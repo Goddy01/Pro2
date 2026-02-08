@@ -1,0 +1,162 @@
+/* App-specific premium styles */
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Ensure images don't overflow */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .headline-hero {
+    font-size: clamp(36px, 12vw, 48px) !important;
+  }
+  
+  .headline-section {
+    font-size: clamp(28px, 8vw, 36px) !important;
+  }
+  
+  .headline-article {
+    font-size: clamp(18px, 5vw, 24px) !important;
+  }
+
+  .body-large {
+    font-size: 1rem !important;
+  }
+
+  .card-editorial {
+    margin: 0;
+  }
+}
+
+/* Premium hover effects */
+.card-editorial {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-editorial::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(201, 255, 59, 0.03) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.card-editorial:hover::before {
+  opacity: 1;
+}
+
+/* Button ripple effect */
+.btn-premium,
+.btn-outline-premium {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-premium::after,
+.btn-outline-premium::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn-premium:active::after,
+.btn-outline-premium:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Image zoom on hover */
+.img-editorial {
+  will-change: transform;
+}
+
+/* Ticker animation pause on hover */
+.ticker-item:hover {
+  animation-play-state: paused;
+}
+
+/* Focus states */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #C9FF3B;
+  outline-offset: 3px;
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(201, 255, 59, 0.25);
+  color: #F6F7F6;
+}
+
+/* Loading state for images */
+img {
+  background: linear-gradient(135deg, #0a3528 0%, #0B3D2E 100%);
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+
+  .ticker-item {
+    animation: none !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .section-premium,
+  .section-light-premium {
+    background: white !important;
+    color: black !important;
+  }
+
+  .btn-premium,
+  .btn-outline-premium {
+    display: none !important;
+  }
+}

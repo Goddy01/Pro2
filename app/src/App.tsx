@@ -486,8 +486,8 @@ function App() {
 
             <p className="hero-subheadline body-large text-offwhite/70 max-w-2xl mx-auto mb-10">
               Original reporting, in-depth analysis, and compelling storytelling, built for fans 
-              who want more than the box score. From Philadelphia to the national stage, we bring 
-              you closer to the games, the players, and the moments that matter.
+              who want more than the box score. From Philadelphia to Chicago, Washington DC, and 
+              Houston, we bring you closer to the games, the players, and the moments that matter.
             </p>
 
             <div className="hero-cta-group flex flex-wrap justify-center gap-4 mb-12">
@@ -935,10 +935,10 @@ function App() {
                   thoughtful commentary, and an unwavering commitment to our readers.
                 </p>
                 <p>
-                  Based in Philadelphia, we've built a team of experienced journalists, former 
-                  athletes, and passionate fans who understand that sports are about more than 
-                  wins and losses. They're about community, culture, and the human stories that 
-                  unfold on and off the field.
+                  With teams in Philadelphia, Chicago, Washington DC, and Houston, we've built a 
+                  roster of experienced journalists, former athletes, and passionate fans who 
+                  understand that sports are about more than wins and losses. They're about 
+                  community, culture, and the human stories that unfold on and off the field.
                 </p>
                 <p>
                   From breaking news to long-form features, from film breakdowns to podcast 

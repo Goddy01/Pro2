@@ -404,7 +404,7 @@ function App() {
           </div>
           
           <div className="hidden lg:flex items-center gap-10">
-            {['Stories', 'Watch', 'Listen', 'Events', 'About', 'Contact'].map((item) => (
+            {['Stories', 'Watch', 'Listen', 'Events', 'Gallery', 'About', 'Contact'].map((item) => (
               <a 
                 key={item} 
                 href={`#${item.toLowerCase()}`}
@@ -432,7 +432,7 @@ function App() {
         {mobileMenuOpen && (
           <div className="lg:hidden bg-forest border-t border-offwhite/10 px-6 py-8">
             <div className="flex flex-col gap-6">
-              {['Stories', 'Watch', 'Listen', 'Events', 'About', 'Contact'].map((item) => (
+              {['Stories', 'Watch', 'Listen', 'Events', 'Gallery', 'About', 'Contact'].map((item) => (
                 <a 
                   key={item} 
                   href={`#${item.toLowerCase()}`}

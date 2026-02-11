@@ -50,16 +50,16 @@ module.exports = {
         },
         // Custom colors for Sideline Sports Network
         forest: {
-          DEFAULT: '#0B3D2E',
-          light: '#0d4a38',
-          dark: '#083026',
+          DEFAULT: '#111214',
+          light: '#15171b',
+          dark: '#0b0c0e',
         },
         lime: {
-          DEFAULT: '#C9FF3B',
-          bright: '#D6FF5C',
+          DEFAULT: '#D2222A',
+          bright: '#E43C43',
         },
         offwhite: {
-          DEFAULT: '#F6F7F6',
+          DEFAULT: '#F2F2F2',
         },
       },
       fontFamily: {

@@ -66,7 +66,7 @@ function App() {
       title: 'Preview Show Ep. 12: Playoffs, Predictions, and Guest Takes', 
       category: 'Podcast', 
       excerpt: 'This week, we\'re joined by former Pro Bowl linebacker Marcus Williams to break down the playoff picture. We discuss the teams that surprised us, the ones that disappointed, and make our bold predictions for the road to the championship. Plus, we answer listener questions about the biggest storylines heading into the postseason.',
-      author: 'The JT\'s POV Team',
+      author: 'Sideline Sports Network Team',
       image: '/grid_4.jpg', 
       date: 'January 10, 2026', 
       readTime: '45 min listen'
@@ -145,7 +145,7 @@ function App() {
 
   const testimonials = [
     {
-      quote: 'JT\'s Point of View has become essential reading for me. The depth of analysis, the quality of writing, and the unique perspectives set it apart from everything else in sports media.',
+      quote: 'Sideline Sports Network has become essential reading for me. The depth of analysis, the quality of writing, and the unique perspectives set it apart from everything else in sports media.',
       author: 'Michael Smith',
       role: 'ESPN Host'
     },
@@ -266,11 +266,11 @@ function App() {
           <div className="flex items-center gap-3">
             <img
               src="/logo-100.png"
-              alt="JT's Point of View logo"
+              alt="Sideline Sports Network logo"
               className="w-10 h-10 object-contain"
             />
-            <span className="text-lime font-editorial font-black text-2xl italic">JT's</span>
-            <span className="text-offwhite font-sans font-semibold text-sm uppercase tracking-[0.2em]">Point of View</span>
+            <span className="text-lime font-editorial font-black text-2xl italic">Sideline</span>
+            <span className="text-offwhite font-sans font-semibold text-sm uppercase tracking-[0.2em]">Sports Network</span>
           </div>
           
           <div className="hidden lg:flex items-center gap-10">
@@ -893,11 +893,11 @@ function App() {
               <div className="flex items-center gap-3 mb-6">
                 <img
                   src="/logo-100.png"
-                  alt="JT's Point of View logo"
+                  alt="Sideline Sports Network logo"
                   className="w-12 h-12 object-contain"
                 />
-                <span className="text-lime font-editorial font-black text-3xl italic">JT's</span>
-                <span className="text-offwhite font-sans font-semibold text-sm uppercase tracking-[0.2em]">Point of View</span>
+                <span className="text-lime font-editorial font-black text-3xl italic">Sideline</span>
+                <span className="text-offwhite font-sans font-semibold text-sm uppercase tracking-[0.2em]">Sports Network</span>
               </div>
               <p className="text-offwhite/50 text-sm max-w-md mb-6">
                 Original reporting, in-depth analysis, and compelling storytelling — built for fans 

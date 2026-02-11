@@ -6,34 +6,34 @@
 
 @layer base {
   :root {
-    --background: 160 70% 14%;
-    --foreground: 120 5% 96%;
-    --card: 160 70% 14%;
-    --card-foreground: 120 5% 96%;
-    --popover: 160 70% 14%;
-    --popover-foreground: 120 5% 96%;
-    --primary: 76 100% 61%;
-    --primary-foreground: 160 70% 14%;
-    --secondary: 120 5% 96%;
-    --secondary-foreground: 160 70% 14%;
-    --muted: 160 50% 20%;
-    --muted-foreground: 120 5% 72%;
-    --accent: 76 100% 61%;
-    --accent-foreground: 160 70% 14%;
+    --background: 220 8% 8%;
+    --foreground: 0 0% 96%;
+    --card: 220 8% 10%;
+    --card-foreground: 0 0% 96%;
+    --popover: 220 8% 10%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 357 72% 49%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 220 8% 10%;
+    --muted: 220 6% 16%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 357 72% 49%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 160 30% 25%;
-    --input: 160 30% 25%;
-    --ring: 76 100% 61%;
+    --border: 220 6% 20%;
+    --input: 220 6% 20%;
+    --ring: 357 72% 49%;
     --radius: 0px;
-    --sidebar-background: 160 70% 14%;
-    --sidebar-foreground: 120 5% 96%;
-    --sidebar-primary: 76 100% 61%;
-    --sidebar-primary-foreground: 160 70% 14%;
-    --sidebar-accent: 160 50% 20%;
-    --sidebar-accent-foreground: 120 5% 96%;
-    --sidebar-border: 160 30% 25%;
-    --sidebar-ring: 76 100% 61%;
+    --sidebar-background: 220 8% 8%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 357 72% 49%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 220 6% 16%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 220 6% 20%;
+    --sidebar-ring: 357 72% 49%;
   }
 }
 
@@ -113,12 +113,12 @@
   /* Premium Card Styles */
   .card-editorial {
     @apply bg-forest/60 backdrop-blur-sm;
-    border: 1px solid rgba(246, 247, 246, 0.08);
+    border: 1px solid rgba(242, 242, 242, 0.08);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .card-editorial:hover {
-    border-color: rgba(201, 255, 59, 0.3);
+    border-color: rgba(210, 34, 42, 0.35);
     transform: translateY(-4px);
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   }
@@ -131,8 +131,8 @@
     font-weight: 600;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    background: #C9FF3B;
-    color: #0B3D2E;
+    background: #D2222A;
+    color: #F2F2F2;
   }
 
   .tag-outline {
@@ -142,14 +142,14 @@
     font-weight: 500;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    border: 1px solid rgba(246, 247, 246, 0.2);
-    color: rgba(246, 247, 246, 0.7);
+    border: 1px solid rgba(242, 242, 242, 0.2);
+    color: rgba(242, 242, 242, 0.7);
     transition: all 0.3s ease;
   }
 
   .tag-outline:hover {
-    border-color: #C9FF3B;
-    color: #C9FF3B;
+    border-color: #D2222A;
+    color: #D2222A;
   }
 
   /* Premium Buttons */
@@ -160,15 +160,15 @@
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    background: #C9FF3B;
-    color: #0B3D2E;
+    background: #D2222A;
+    color: #F2F2F2;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .btn-premium:hover {
-    background: #D6FF5C;
+    background: #E43C43;
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(201, 255, 59, 0.25);
+    box-shadow: 0 8px 24px rgba(210, 34, 42, 0.25);
   }
 
   .btn-outline-premium {
@@ -178,26 +178,26 @@
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    border: 1px solid rgba(246, 247, 246, 0.25);
-    color: #F6F7F6;
+    border: 1px solid rgba(242, 242, 242, 0.25);
+    color: #F2F2F2;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .btn-outline-premium:hover {
-    border-color: #C9FF3B;
-    color: #C9FF3B;
-    background: rgba(201, 255, 59, 0.05);
+    border-color: #D2222A;
+    color: #D2222A;
+    background: rgba(210, 34, 42, 0.08);
   }
 
   /* Section Styles */
   .section-premium {
     @apply relative;
-    background: linear-gradient(180deg, #0B3D2E 0%, #0a3528 100%);
+    background: linear-gradient(180deg, #111214 0%, #0d0e10 100%);
   }
 
   .section-light-premium {
     @apply relative;
-    background: #F6F7F6;
+    background: #F2F2F2;
   }
 
   /* Image Treatment */
@@ -214,19 +214,19 @@
   .divider-accent {
     width: 60px;
     height: 3px;
-    background: #C9FF3B;
+    background: #D2222A;
   }
 
   .divider-subtle {
     width: 100%;
     height: 1px;
-    background: rgba(246, 247, 246, 0.1);
+    background: rgba(242, 242, 242, 0.1);
   }
 
   /* Quote Block */
   .quote-block {
     @apply relative pl-8;
-    border-left: 3px solid #C9FF3B;
+    border-left: 3px solid #D2222A;
   }
 
   /* Breaking News Ticker */
@@ -246,30 +246,30 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: #0B3D2E;
+    background: #111214;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(201, 255, 59, 0.4);
+    background: rgba(210, 34, 42, 0.4);
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #C9FF3B;
+    background: #D2222A;
   }
 
   /* Focus States */
   a:focus-visible,
   button:focus-visible,
   input:focus-visible {
-    outline: 2px solid #C9FF3B;
+    outline: 2px solid #D2222A;
     outline-offset: 3px;
   }
 
   /* Selection */
   ::selection {
-    background: rgba(201, 255, 59, 0.3);
-    color: #F6F7F6;
+    background: rgba(210, 34, 42, 0.35);
+    color: #F2F2F2;
   }
 }
 
@@ -279,7 +279,7 @@
   }
   
   .gradient-text {
-    background: linear-gradient(135deg, #C9FF3B 0%, #D6FF5C 100%);
+    background: linear-gradient(135deg, #D2222A 0%, #E43C43 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

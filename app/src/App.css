@@ -62,7 +62,7 @@ img {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(201, 255, 59, 0.03) 0%, transparent 50%);
+  background: linear-gradient(135deg, rgba(210, 34, 42, 0.06) 0%, transparent 50%);
   opacity: 0;
   transition: opacity 0.4s ease;
   pointer-events: none;
@@ -113,19 +113,19 @@ img {
 a:focus-visible,
 button:focus-visible,
 input:focus-visible {
-  outline: 2px solid #C9FF3B;
+  outline: 2px solid #D2222A;
   outline-offset: 3px;
 }
 
 /* Selection styling */
 ::selection {
-  background: rgba(201, 255, 59, 0.25);
-  color: #F6F7F6;
+  background: rgba(210, 34, 42, 0.35);
+  color: #F2F2F2;
 }
 
 /* Loading state for images */
 img {
-  background: linear-gradient(135deg, #0a3528 0%, #0B3D2E 100%);
+  background: linear-gradient(135deg, #0d0e10 0%, #111214 100%);
 }
 
 /* Reduced motion preferences */

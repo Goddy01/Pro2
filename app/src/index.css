@@ -233,7 +233,7 @@
   /* Breaking News Ticker */
   .ticker-item {
     @apply inline-flex items-center gap-4;
-    animation: ticker 60s linear infinite;
+    animation: ticker 80s linear infinite;
   }
 
   @keyframes ticker {

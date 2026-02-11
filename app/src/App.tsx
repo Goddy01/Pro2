@@ -745,7 +745,7 @@ function App() {
               </h2>
               <div className="space-y-4 body-editorial text-offwhite/60">
                 <p>
-                  JT's Point of View was founded on a simple belief: sports fans deserve better. 
+                  Sideline Sports Network was founded on a simple belief: sports fans deserve better. 
                   Better reporting. Better analysis. Better stories. In a world of hot takes and 
                   clickbait, we chose a different path — one paved with rigorous journalism, 
                   thoughtful commentary, and an unwavering commitment to our readers.
@@ -941,7 +941,7 @@ function App() {
 
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-offwhite/30 text-sm">
-              © 2026 JT's Point of View. All rights reserved.
+              © 2026 Sideline Sports Network. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
               {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map((link, i) => (

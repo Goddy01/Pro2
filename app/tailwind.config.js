@@ -48,7 +48,7 @@ module.exports = {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Custom colors for JT's Point of View
+        // Custom colors for Sideline Sports Network
         forest: {
           DEFAULT: '#0B3D2E',
           light: '#0d4a38',

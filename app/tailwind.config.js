@@ -63,9 +63,9 @@ module.exports = {
         },
       },
       fontFamily: {
-        display: ['Montserrat', 'Oswald', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
-        mono: ['Space Mono', 'monospace'],
+        display: ['Bebas Neue', 'Oswald', 'sans-serif'],
+        body: ['Source Sans 3', 'Inter', 'sans-serif'],
+        mono: ['Space Grotesk', 'monospace'],
       },
       borderRadius: {
         xl: "calc(var(--radius) + 4px)",

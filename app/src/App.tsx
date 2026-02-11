@@ -858,11 +858,11 @@ function App() {
 
           <div className="reveal-section grid md:grid-cols-3 gap-6 lg:gap-10">
             {[
-              { src: '/media/1.jpg', alt: 'Media moment 1' },
-              { src: '/media/2.jpg', alt: 'Media moment 2' },
-              { src: '/media/3.jpg', alt: 'Media moment 3' },
+              { src: '/media/1.jpg', alt: 'Media moment 1', caption: 'Bad Bunny at the Super Bowl' },
+              { src: '/media/2.jpg', alt: 'Media moment 2', caption: 'Jaxon Smith-Njigba' },
+              { src: '/media/3.jpg', alt: 'Media moment 3', caption: 'Christian Gonzalez' },
             ].map((image, i) => (
-              <div key={i} className="overflow-hidden card-editorial group">
+              <figure key={i} className="overflow-hidden card-editorial group">
                 <div className="aspect-[3/4]">
                   <img
                     src={image.src}
@@ -870,7 +870,10 @@ function App() {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 </div>
-              </div>
+                <figcaption className="px-4 py-3 text-offwhite/70 text-sm">
+                  {image.caption}
+                </figcaption>
+              </figure>
             ))}
           </div>
         </div>

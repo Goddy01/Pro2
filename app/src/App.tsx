@@ -49,20 +49,31 @@ function App() {
     'hall of fame',
   ];
 
-  const fallbackMarqueeItems = [
-    { title: 'Super Bowl LX coverage: news, analysis, and live updates', source: 'Sideline Sports Network' },
-    { title: 'NFL Draft tracker: picks, grades, and team needs', source: 'Sideline Sports Network' },
-    { title: 'NFL Combine notebook: top performers and risers', source: 'Sideline Sports Network' },
-    { title: 'Hall of Fame watch: finalists and legacy stories', source: 'Sideline Sports Network' },
+  const fallbackMarqueeFeeds = [
+    {
+      source: 'ESPN Top Headlines',
+      url: 'https://www.espn.com/espn/rss/news',
+    },
+    {
+      source: 'Yahoo Sports',
+      url: 'https://sports.yahoo.com/rss/',
+    },
+    {
+      source: 'Sports Illustrated',
+      url: 'https://www.si.com/rss/si_topstories.rss',
+    },
   ];
 
-  const [marqueeItems, setMarqueeItems] = useState(fallbackMarqueeItems);
+  const [marqueeItems, setMarqueeItems] = useState<{ title: string; source: string }[]>([]);
   const [marqueeReady, setMarqueeReady] = useState(false);
 
   const marqueeDisplayItems = (() => {
     const items = marqueeItems.length > 0 ? [...marqueeItems] : [];
+    if (items.length === 0) {
+      return [];
+    }
     while (items.length < 10) {
-      items.push(fallbackMarqueeItems[items.length % fallbackMarqueeItems.length]);
+      items.push(items[items.length % marqueeItems.length]);
     }
     return items.slice(0, 10);
   })();
@@ -299,9 +310,9 @@ function App() {
     const controller = new AbortController();
 
     const fetchMarqueeItems = async () => {
-      try {
+      const fetchFeeds = async (feeds: { source: string; url: string }[]) => {
         const responses = await Promise.all(
-          marqueeFeeds.map(async (feed) => {
+          feeds.map(async (feed) => {
             const response = await fetch(
               `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`,
               { signal: controller.signal }
@@ -320,25 +331,38 @@ function App() {
           })
         );
 
-        const keywordRegex = new RegExp(marqueeKeywords.join('|'), 'i');
         const merged = responses
           .flat()
           .map((item) => ({
             ...item,
             title: item.title.trim(),
           }))
-          .filter((item) => item.title.length > 0)
-          .filter((item) => keywordRegex.test(item.title));
+          .filter((item) => item.title.length > 0);
 
+        if (merged.length === 0) {
+          return [];
+        }
+
+        const keywordRegex = new RegExp(marqueeKeywords.join('|'), 'i');
+        const filtered = merged.filter((item) => keywordRegex.test(item.title));
+
+        return (filtered.length > 0 ? filtered : merged).slice(0, 10);
+      };
+
+      try {
+        const primaryItems = await fetchFeeds(marqueeFeeds);
+        const fallbackItems = primaryItems.length === 0 ? await fetchFeeds(fallbackMarqueeFeeds) : [];
+        const combined = primaryItems.length > 0 ? primaryItems : fallbackItems;
         const unique = Array.from(
-          new Map(merged.map((item) => [item.title.toLowerCase(), item])).values()
+          new Map(combined.map((item) => [item.title.toLowerCase(), item])).values()
         );
 
-        setMarqueeItems(unique.length > 0 ? unique.slice(0, 10) : fallbackMarqueeItems);
+        setMarqueeItems(unique);
         setMarqueeReady(true);
       } catch (error) {
         if (!controller.signal.aborted) {
-          setMarqueeItems(fallbackMarqueeItems);
+          const fallbackItems = await fetchFeeds(fallbackMarqueeFeeds);
+          setMarqueeItems(fallbackItems);
           setMarqueeReady(true);
         }
       }
@@ -432,9 +456,8 @@ function App() {
             }`}
           >
             {marqueeLoopItems.map((item, index) => (
-              <span key={`${item.source}-${index}`} className="flex items-center gap-2">
+              <span key={`${item.title}-${index}`} className="flex items-center gap-2">
                 <Zap className="w-3 h-3" />
-                <span className="font-semibold">{item.source}:</span>
                 <span>{item.title}</span>
               </span>
             ))}

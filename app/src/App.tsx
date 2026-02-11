@@ -57,6 +57,7 @@ function App() {
   ];
 
   const [marqueeItems, setMarqueeItems] = useState(fallbackMarqueeItems);
+  const [marqueeReady, setMarqueeReady] = useState(false);
 
   const marqueeDisplayItems = (() => {
     const items = marqueeItems.length > 0 ? [...marqueeItems] : [];
@@ -334,9 +335,11 @@ function App() {
         );
 
         setMarqueeItems(unique.length > 0 ? unique.slice(0, 10) : fallbackMarqueeItems);
+        setMarqueeReady(true);
       } catch (error) {
         if (!controller.signal.aborted) {
           setMarqueeItems(fallbackMarqueeItems);
+          setMarqueeReady(true);
         }
       }
     };
@@ -423,7 +426,11 @@ function App() {
       {/* Breaking News Ticker */}
       <div className="fixed top-[73px] left-0 right-0 z-40 bg-lime py-2 overflow-hidden">
         <div className="flex whitespace-nowrap">
-          <div className="ticker-item flex gap-12 text-forest text-xs font-semibold uppercase tracking-wide">
+          <div
+            className={`ticker-item flex gap-12 text-forest text-xs font-semibold uppercase tracking-wide ${
+              marqueeReady ? 'ticker-animate' : 'ticker-pending'
+            }`}
+          >
             {marqueeLoopItems.map((item, index) => (
               <span key={`${item.source}-${index}`} className="flex items-center gap-2">
                 <Zap className="w-3 h-3" />

@@ -863,16 +863,17 @@ function App() {
               { src: '/media/3.jpg', alt: 'Media moment 3', caption: 'Jaxon Smith-Njigba' },
             ].map((image, i) => (
               <figure key={i} className="overflow-hidden card-editorial group">
-                <div className="aspect-[3/4]">
+                <div className="relative aspect-[3/4]">
                   <img
                     src={image.src}
                     alt={image.alt}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-forest/85 via-forest/10 to-transparent" />
+                  <figcaption className="absolute bottom-4 left-4 right-4 text-offwhite text-sm font-medium tracking-wide">
+                    {image.caption}
+                  </figcaption>
                 </div>
-                <figcaption className="px-4 py-3 text-offwhite/70 text-sm">
-                  {image.caption}
-                </figcaption>
               </figure>
             ))}
           </div>

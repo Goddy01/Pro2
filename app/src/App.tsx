@@ -477,7 +477,7 @@ function App() {
         <div className="absolute inset-0 bg-forest/80" />
         <div className="w-full px-6 lg:px-12 pt-20 lg:pt-28 relative z-10">
           <div className="max-w-5xl mx-auto text-center">
-            <span className="label-mono text-lime mb-6 block">Sports Journalism Reimagined</span>
+            <span className="label-mono text-lime text-lg mb-6 block">Sports Journalism Reimagined</span>
             
             <h1 className="hero-headline headline-hero text-offwhite text-5xl sm:text-6xl lg:text-7xl xl:text-8xl mb-8">
               Stories Worth<br />
@@ -485,7 +485,7 @@ function App() {
             </h1>
 
             <p className="hero-subheadline body-large text-offwhite/70 max-w-2xl mx-auto mb-10">
-              Original reporting, in-depth analysis, and compelling storytelling — built for fans 
+              Original reporting, in-depth analysis, and compelling storytelling, built for fans 
               who want more than the box score. From Philadelphia to the national stage, we bring 
               you closer to the games, the players, and the moments that matter.
             </p>
@@ -1079,7 +1079,7 @@ function App() {
                 <span className="text-offwhite font-sans font-semibold text-sm uppercase tracking-[0.2em]">Sports Network</span>
               </div>
               <p className="text-offwhite/50 text-sm max-w-md mb-6">
-                Original reporting, in-depth analysis, and compelling storytelling — built for fans 
+                Original reporting, in-depth analysis, and compelling storytelling, built for fans 
                 who want more than the box score.
               </p>
               <div className="flex items-center gap-4">

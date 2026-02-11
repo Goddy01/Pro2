@@ -88,7 +88,7 @@ function App() {
       excerpt: 'When the rumors started swirling about a potential blockbuster trade, most fans dismissed it as offseason speculation. But beneath the surface, the pieces were falling into place. We spent three weeks analyzing film, speaking with sources close to the organization, and examining the salary cap implications to understand why this move could redefine the franchise\'s trajectory.',
       author: 'Jordan Thomas',
       authorRole: 'Senior NBA Analyst',
-      image: '/grid_1.jpg',
+      image: '/article-1-image.jpg',
       date: 'January 15, 2026',
       readTime: '12 min read',
       featured: true
@@ -492,7 +492,7 @@ function App() {
 
             <div className="hero-cta-group flex flex-wrap justify-center gap-4 mb-12">
               <a href="#stories" className="btn-premium">
-                Explore Latest Stories
+                Explore Latest Articles
                 <ArrowRight className="w-4 h-4" />
               </a>
               <a href="#listen" className="btn-outline-premium">
@@ -528,7 +528,7 @@ function App() {
               </h2>
             </div>
             <a href="#" className="btn-outline-premium mt-6 lg:mt-0 self-start">
-              View All Stories
+              View All Articles
               <ArrowUpRight className="w-4 h-4" />
             </a>
           </div>

@@ -858,7 +858,7 @@ function App() {
 
           <div className="reveal-section grid md:grid-cols-3 gap-6 lg:gap-10">
             {[
-              { src: '/media/1.jpg', alt: 'Media moment 1', caption: 'Bad Bunny at the Super Bowl' },
+              { src: '/media/1.jpg', alt: 'Media moment 1', caption: 'Bad Bunny' },
               { src: '/media/2.jpg', alt: 'Media moment 2', caption: 'Christian Gonzalez' },
               { src: '/media/3.jpg', alt: 'Media moment 3', caption: 'Jaxon Smith-Njigba' },
             ].map((image, i) => (
@@ -870,7 +870,7 @@ function App() {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-forest/85 via-forest/10 to-transparent" />
-                  <figcaption className="absolute bottom-4 left-4 right-4 text-offwhite text-sm font-medium tracking-wide">
+                  <figcaption className="absolute bottom-4 left-4 right-4 text-offwhite text-sm font-display font-bold uppercase tracking-[0.2em]">
                     {image.caption}
                   </figcaption>
                 </div>

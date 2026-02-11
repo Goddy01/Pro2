@@ -58,6 +58,16 @@ function App() {
 
   const [marqueeItems, setMarqueeItems] = useState(fallbackMarqueeItems);
 
+  const marqueeDisplayItems = (() => {
+    const items = marqueeItems.length > 0 ? [...marqueeItems] : [];
+    while (items.length < 10) {
+      items.push(fallbackMarqueeItems[items.length % fallbackMarqueeItems.length]);
+    }
+    return items.slice(0, 10);
+  })();
+
+  const marqueeLoopItems = [...marqueeDisplayItems, ...marqueeDisplayItems];
+
   const featuredArticles = [
     {
       id: 1,
@@ -323,7 +333,7 @@ function App() {
           new Map(merged.map((item) => [item.title.toLowerCase(), item])).values()
         );
 
-        setMarqueeItems(unique.length > 0 ? unique.slice(0, 12) : fallbackMarqueeItems);
+        setMarqueeItems(unique.length > 0 ? unique.slice(0, 10) : fallbackMarqueeItems);
       } catch (error) {
         if (!controller.signal.aborted) {
           setMarqueeItems(fallbackMarqueeItems);
@@ -332,8 +342,12 @@ function App() {
     };
 
     fetchMarqueeItems();
+    const refreshId = setInterval(fetchMarqueeItems, 5 * 60 * 1000);
 
-    return () => controller.abort();
+    return () => {
+      clearInterval(refreshId);
+      controller.abort();
+    };
   }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
@@ -410,7 +424,7 @@ function App() {
       <div className="fixed top-[73px] left-0 right-0 z-40 bg-lime py-2 overflow-hidden">
         <div className="flex whitespace-nowrap">
           <div className="ticker-item flex gap-12 text-forest text-xs font-semibold uppercase tracking-wide">
-            {marqueeItems.map((item, index) => (
+            {marqueeLoopItems.map((item, index) => (
               <span key={`${item.source}-${index}`} className="flex items-center gap-2">
                 <Zap className="w-3 h-3" />
                 <span className="font-semibold">{item.source}:</span>
@@ -424,7 +438,7 @@ function App() {
       {/* Section 1: Hero */}
       <section className="section-premium min-h-screen flex items-center">
         <div className="w-full px-6 lg:px-12">
-          <div className="max-w-5xl">
+          <div className="max-w-5xl mx-auto text-center">
             <span className="label-mono text-lime mb-6 block">Sports Journalism Reimagined</span>
             
             <h1 className="hero-headline headline-hero text-offwhite text-5xl sm:text-6xl lg:text-7xl xl:text-8xl mb-8">
@@ -432,13 +446,13 @@ function App() {
               <span className="text-lime">Talking About</span>
             </h1>
 
-            <p className="hero-subheadline body-large text-offwhite/70 max-w-2xl mb-10">
+            <p className="hero-subheadline body-large text-offwhite/70 max-w-2xl mx-auto mb-10">
               Original reporting, in-depth analysis, and compelling storytelling — built for fans 
               who want more than the box score. From Philadelphia to the national stage, we bring 
               you closer to the games, the players, and the moments that matter.
             </p>
 
-            <div className="hero-cta-group flex flex-wrap gap-4 mb-12">
+            <div className="hero-cta-group flex flex-wrap justify-center gap-4 mb-12">
               <a href="#stories" className="btn-premium">
                 Explore Latest Stories
                 <ArrowRight className="w-4 h-4" />
@@ -449,7 +463,7 @@ function App() {
               </a>
             </div>
 
-            <div className="hero-stats flex flex-wrap gap-8 lg:gap-16">
+            <div className="hero-stats flex flex-wrap justify-center gap-8 lg:gap-16">
               {[
                 { value: '120+', label: 'Stories Published' },
                 { value: '48', label: 'Events Covered' },

@@ -870,7 +870,7 @@ function App() {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-forest/85 via-forest/10 to-transparent" />
-                  <figcaption className="absolute bottom-4 left-4 right-4 text-offwhite text-sm font-display font-bold uppercase tracking-[0.2em]">
+                  <figcaption className="absolute bottom-4 left-4 right-4 text-offwhite text-base lg:text-lg font-display font-bold uppercase tracking-[0.2em]">
                     {image.caption}
                   </figcaption>
                 </div>

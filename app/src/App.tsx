@@ -264,6 +264,11 @@ function App() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-forest/95 backdrop-blur-md border-b border-offwhite/5">
         <div className="px-6 lg:px-12 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
+            <img
+              src="/logo-100.png"
+              alt="JT's Point of View logo"
+              className="w-10 h-10 object-contain"
+            />
             <span className="text-lime font-editorial font-black text-2xl italic">JT's</span>
             <span className="text-offwhite font-sans font-semibold text-sm uppercase tracking-[0.2em]">Point of View</span>
           </div>
@@ -886,6 +891,11 @@ function App() {
             {/* Brand */}
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-6">
+                <img
+                  src="/logo-100.png"
+                  alt="JT's Point of View logo"
+                  className="w-12 h-12 object-contain"
+                />
                 <span className="text-lime font-editorial font-black text-3xl italic">JT's</span>
                 <span className="text-offwhite font-sans font-semibold text-sm uppercase tracking-[0.2em]">Point of View</span>
               </div>

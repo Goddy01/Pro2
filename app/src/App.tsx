@@ -843,7 +843,40 @@ function App() {
         </div>
       </section>
 
-      {/* Section 7: Stats & Impact */}
+      {/* Section 7: Media */}
+      <section id="media" className="section-premium py-24">
+        <div className="w-full px-6 lg:px-12">
+          <div className="reveal-section text-center mb-12">
+            <span className="label-mono text-lime mb-4 block">Media</span>
+            <h2 className="headline-section text-offwhite text-4xl lg:text-5xl mb-4">
+              Inside the Spotlight
+            </h2>
+            <p className="body-large text-offwhite/60 max-w-2xl mx-auto">
+              A curated look at the moments, faces, and stories that define the season.
+            </p>
+          </div>
+
+          <div className="reveal-section grid md:grid-cols-3 gap-6 lg:gap-10">
+            {[
+              { src: '/media/1.jpg', alt: 'Media moment 1' },
+              { src: '/media/2.jpg', alt: 'Media moment 2' },
+              { src: '/media/3.jpg', alt: 'Media moment 3' },
+            ].map((image, i) => (
+              <div key={i} className="overflow-hidden card-editorial group">
+                <div className="aspect-[3/4]">
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Section 8: Stats & Impact */}
       <section className="stats-section section-premium py-24">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section text-center mb-16">
@@ -873,7 +906,7 @@ function App() {
         </div>
       </section>
 
-      {/* Section 8: About / Team */}
+      {/* Section 9: About / Team */}
       <section id="about" className="section-premium py-24">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section grid lg:grid-cols-2 gap-12 lg:gap-20 mb-20">
@@ -935,7 +968,7 @@ function App() {
         </div>
       </section>
 
-      {/* Section 9: Testimonials */}
+      {/* Section 10: Testimonials */}
       <section className="section-light-premium py-24">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section text-center mb-16">
@@ -966,7 +999,7 @@ function App() {
         </div>
       </section>
 
-      {/* Section 10: Newsletter */}
+      {/* Section 11: Newsletter */}
       <section id="subscribe" className="section-premium py-24">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section card-editorial p-8 lg:p-16 text-center max-w-4xl mx-auto">
@@ -999,7 +1032,7 @@ function App() {
         </div>
       </section>
 
-      {/* Section 11: Partners */}
+      {/* Section 12: Partners */}
       <section className="section-premium py-16 border-t border-offwhite/5">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section text-center mb-10">
@@ -1018,7 +1051,7 @@ function App() {
         </div>
       </section>
 
-      {/* Section 12: Footer */}
+      {/* Section 13: Footer */}
       <footer id="contact" className="section-premium pt-24 pb-12 border-t border-offwhite/5">
         <div className="w-full px-6 lg:px-12">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">

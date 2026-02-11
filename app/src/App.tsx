@@ -332,7 +332,7 @@ function App() {
       </div>
 
       {/* Section 1: Hero */}
-      <section className="section-premium min-h-screen flex items-center pt-32 pb-20">
+      <section className="section-premium min-h-screen flex items-center">
         <div className="w-full px-6 lg:px-12">
           <div className="max-w-5xl">
             <span className="label-mono text-lime mb-6 block">Sports Journalism Reimagined</span>

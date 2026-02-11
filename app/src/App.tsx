@@ -399,8 +399,8 @@ function App() {
               alt="Sideline Sports Network logo"
               className="w-10 h-10 object-contain"
             />
-            <span className="text-lime font-editorial font-black text-2xl italic">Sideline</span>
-            <span className="text-offwhite font-sans font-semibold text-sm uppercase tracking-[0.2em]">Sports Network</span>
+            <span className="text-lime font-editorial font-black text-2xl italic">Sideline Sports Network</span>
+            {/* <span className="text-offwhite font-sans font-semibold text-sm uppercase tracking-[0.2em]"></span> */}
           </div>
           
           <div className="hidden lg:flex items-center gap-10">

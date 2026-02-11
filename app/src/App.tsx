@@ -465,7 +465,7 @@ function App() {
         </div>
       </div>
 
-      {/* Section 1: Hero */}
+      {/* Section 1: Hero. */}
       <section className="section-premium min-h-screen flex items-center relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"

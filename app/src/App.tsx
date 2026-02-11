@@ -21,6 +21,25 @@ function App() {
 
   const filters = ['All', 'Features', 'Video', 'Podcast', 'Events', 'Analysis'];
 
+  const marqueeFeeds = [
+    {
+      label: 'NFL.com — Official RSS (Super Bowl, Draft, Combine, HOF)',
+      url: 'https://www.nfl.com/?format=rss',
+    },
+    {
+      label: 'ESPN NFL — RSS',
+      url: 'https://www.espn.com/espn/rss/nfl/news',
+    },
+    {
+      label: 'CBS Sports NFL — RSS',
+      url: 'https://www.cbssports.com/rss/headlines/nfl',
+    },
+    {
+      label: 'Reuters Sports — RSS',
+      url: 'https://www.reutersagency.com/feed/?best-topics=sports&post_type=best',
+    },
+  ];
+
   const featuredArticles = [
     {
       id: 1,
@@ -321,12 +340,18 @@ function App() {
       <div className="fixed top-[73px] left-0 right-0 z-40 bg-lime py-2 overflow-hidden">
         <div className="flex whitespace-nowrap">
           <div className="ticker-item flex gap-12 text-forest text-xs font-semibold uppercase tracking-wide">
-            <span className="flex items-center gap-2"><Zap className="w-3 h-3" /> Breaking: Major trade rumors heating up ahead of deadline</span>
-            <span className="flex items-center gap-2"><Zap className="w-3 h-3" /> Championship preview show drops tomorrow at 8 AM</span>
-            <span className="flex items-center gap-2"><Zap className="w-3 h-3" /> Exclusive: Inside the facility documentary now streaming</span>
-            <span className="flex items-center gap-2"><Zap className="w-3 h-3" /> Breaking: Major trade rumors heating up ahead of deadline</span>
-            <span className="flex items-center gap-2"><Zap className="w-3 h-3" /> Championship preview show drops tomorrow at 8 AM</span>
-            <span className="flex items-center gap-2"><Zap className="w-3 h-3" /> Exclusive: Inside the facility documentary now streaming</span>
+            {marqueeFeeds.map((feed) => (
+              <a
+                key={feed.url}
+                href={feed.url}
+                className="flex items-center gap-2 hover:underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Zap className="w-3 h-3" />
+                {feed.label}
+              </a>
+            ))}
           </div>
         </div>
       </div>

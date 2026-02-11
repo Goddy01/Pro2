@@ -395,7 +395,7 @@ function App() {
         <div className="px-6 lg:px-12 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <img
-              src="/logo-100.png"
+              src="/logo-180.png"
               alt="Sideline Sports Network logo"
               className="w-10 h-10 object-contain"
             />
@@ -1026,7 +1026,7 @@ function App() {
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-6">
                 <img
-                  src="/logo-100.png"
+                  src="/logo-180.png"
                   alt="Sideline Sports Network logo"
                   className="w-12 h-12 object-contain"
                 />

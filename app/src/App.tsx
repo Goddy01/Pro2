@@ -23,22 +23,40 @@ function App() {
 
   const marqueeFeeds = [
     {
-      label: 'NFL.com — Official RSS (Super Bowl, Draft, Combine, HOF)',
+      source: 'NFL.com',
       url: 'https://www.nfl.com/?format=rss',
     },
     {
-      label: 'ESPN NFL — RSS',
+      source: 'ESPN NFL',
       url: 'https://www.espn.com/espn/rss/nfl/news',
     },
     {
-      label: 'CBS Sports NFL — RSS',
+      source: 'CBS Sports NFL',
       url: 'https://www.cbssports.com/rss/headlines/nfl',
     },
     {
-      label: 'Reuters Sports — RSS',
+      source: 'Reuters Sports',
       url: 'https://www.reutersagency.com/feed/?best-topics=sports&post_type=best',
     },
   ];
+
+  const marqueeKeywords = [
+    'super bowl',
+    'nfl draft',
+    'draft',
+    'combine',
+    'scouting combine',
+    'hall of fame',
+  ];
+
+  const fallbackMarqueeItems = [
+    { title: 'Super Bowl LX coverage: news, analysis, and live updates', source: 'Sideline Sports Network' },
+    { title: 'NFL Draft tracker: picks, grades, and team needs', source: 'Sideline Sports Network' },
+    { title: 'NFL Combine notebook: top performers and risers', source: 'Sideline Sports Network' },
+    { title: 'Hall of Fame watch: finalists and legacy stories', source: 'Sideline Sports Network' },
+  ];
+
+  const [marqueeItems, setMarqueeItems] = useState(fallbackMarqueeItems);
 
   const featuredArticles = [
     {
@@ -266,6 +284,58 @@ function App() {
     return () => ctx.revert();
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchMarqueeItems = async () => {
+      try {
+        const responses = await Promise.all(
+          marqueeFeeds.map(async (feed) => {
+            const response = await fetch(
+              `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`,
+              { signal: controller.signal }
+            );
+            if (!response.ok) {
+              return [];
+            }
+            const data = await response.json();
+            if (!data || !Array.isArray(data.items)) {
+              return [];
+            }
+            return data.items.map((item: { title?: string }) => ({
+              title: item.title ?? '',
+              source: feed.source,
+            }));
+          })
+        );
+
+        const keywordRegex = new RegExp(marqueeKeywords.join('|'), 'i');
+        const merged = responses
+          .flat()
+          .map((item) => ({
+            ...item,
+            title: item.title.trim(),
+          }))
+          .filter((item) => item.title.length > 0)
+          .filter((item) => keywordRegex.test(item.title));
+
+        const unique = Array.from(
+          new Map(merged.map((item) => [item.title.toLowerCase(), item])).values()
+        );
+
+        setMarqueeItems(unique.length > 0 ? unique.slice(0, 12) : fallbackMarqueeItems);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setMarqueeItems(fallbackMarqueeItems);
+        }
+      }
+    };
+
+    fetchMarqueeItems();
+
+    return () => controller.abort();
+  }, []);
+
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (email) {
@@ -340,17 +410,12 @@ function App() {
       <div className="fixed top-[73px] left-0 right-0 z-40 bg-lime py-2 overflow-hidden">
         <div className="flex whitespace-nowrap">
           <div className="ticker-item flex gap-12 text-forest text-xs font-semibold uppercase tracking-wide">
-            {marqueeFeeds.map((feed) => (
-              <a
-                key={feed.url}
-                href={feed.url}
-                className="flex items-center gap-2 hover:underline"
-                target="_blank"
-                rel="noreferrer"
-              >
+            {marqueeItems.map((item, index) => (
+              <span key={`${item.source}-${index}`} className="flex items-center gap-2">
                 <Zap className="w-3 h-3" />
-                {feed.label}
-              </a>
+                <span className="font-semibold">{item.source}:</span>
+                <span>{item.title}</span>
+              </span>
             ))}
           </div>
         </div>

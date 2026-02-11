@@ -466,8 +466,16 @@ function App() {
       </div>
 
       {/* Section 1: Hero */}
-      <section className="section-premium min-h-screen flex items-center">
-        <div className="w-full px-6 lg:px-12">
+      <section className="section-premium min-h-screen flex items-center relative overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1537882111161-c3379a777c8b?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+          }}
+        />
+        <div className="absolute inset-0 bg-forest/80" />
+        <div className="w-full px-6 lg:px-12 pt-20 lg:pt-28 relative z-10">
           <div className="max-w-5xl mx-auto text-center">
             <span className="label-mono text-lime mb-6 block">Sports Journalism Reimagined</span>
             

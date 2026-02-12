@@ -10,7 +10,7 @@ const teamMembers = [
   {
     name: 'J.B. Ellis',
     role: 'Founder and CEO',
-    bio: 'J.B. Ellis is an American sports media personality, host, and interviewer known for his energetic presence and deep passion for competition. A key voice on Sideline Sports & Entertainment, he co-hosts Sideline Sports and leads original programs such as Cubfidential and J & J Sports Express. Ellis has covered six Super Bowls and is credentialed with the NFL, NBA, and MLB, delivering firsthand access and insight from the biggest stages in sports. His coverage also includes the NFL Scouting Combine, MLB Hall of Fame ceremonies, and major college tournaments. Previously, he created and hosted The PROgram on the Bleav Network, spotlighting compelling conversations with athletes and media figures alike.',
+    bio: 'J.B. Ellis is an American sports media personality, host, and interviewer known for his energetic presence and deep passion for competition. A key voice on Sideline Sports & Entertainment, he co-hosts Sideline Sports and leads original programs such as Cubfidential and J & J Sports Express. Ellis has covered six Super Bowls and is credentialed with the NFL, NBA, and MLB, delivering firsthand access and insight from the biggest stages in sports and entertainment. His coverage also includes the NFL Scouting Combine, MLB Hall of Fame ceremonies, and major college tournaments. Previously, he created and hosted The PROgram on the Bleav Network, spotlighting compelling conversations with athletes and media figures alike.',
     image: '/JB-ELLIS.jpg',
   },
   {
@@ -109,7 +109,7 @@ export default function Team() {
             </h2>
             <p className="body-large text-offwhite/60 max-w-2xl mx-auto">
               The people behind Sideline Sports & Entertainment — journalists, hosts, and creatives
-              bringing you stories from the biggest stages in sports.
+              bringing you stories from the biggest stages in sports and entertainment.
             </p>
           </div>
 

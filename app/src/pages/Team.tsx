@@ -113,7 +113,18 @@ export default function Team() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-10">
+          <figure className="reveal-section overflow-hidden card-editorial max-w-3xl mx-auto mb-48 md:mb-24">
+            <img
+              src="/team.jpg"
+              alt="Sideline Sports & Entertainment team with Puka Nacua"
+              className="w-full h-auto object-cover img-editorial max-h-[320px]"
+            />
+            <figcaption className="mt-4 text-center py-3 px-6 bg-[#1A1A1A] text-offwhite font-bold uppercase tracking-wide text-sm md:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
+              Sideline Sports & Entertainment team with Puka Nacua of the Los Angeles Rams
+            </figcaption>
+          </figure>
+
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-10 pt-20 md:pt-0">
             {teamMembers.map((member, i) => (
               <article
                 key={i}

@@ -454,7 +454,7 @@ export default function Home() {
                 ))}
               </div>
 
-              <p className="text-offwhite/60 text-sm mb-3">Listen to more podcasts</p>
+              <p className="text-offwhite/60 text-sm mb-3">Listen to out Podcasts on </p>
               <div className="flex flex-wrap gap-3">
                 <a 
                   href="https://www.youtube.com/@sidelinesports3840" 
@@ -574,45 +574,33 @@ export default function Home() {
           </div>
 
           <div className="reveal-section grid lg:grid-cols-2 gap-8">
-            <div className="relative overflow-hidden group cursor-pointer">
-              <div className="aspect-[4/3]">
-                <img 
-                  src="/event_coverage.jpg" 
-                  alt="Event coverage" 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-forest/90 via-transparent to-transparent" />
+            <div className="relative overflow-hidden group cursor-pointer h-[280px] sm:h-[320px] lg:h-[360px]">
+              <img 
+                src="/coverage.jpg" 
+                alt="Event coverage" 
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              style={{ objectPosition: 'center 35%' }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-forest/90 via-transparent to-transparent pointer-events-none" />
               <div className="absolute bottom-8 left-8 right-8">
                 <span className="bg-lime text-forest text-[10px] font-bold uppercase tracking-wider px-2 py-1 mb-4 inline-block">
-                  Championship Game
+                  Baseball Game
                 </span>
                 <h3 className="font-editorial font-bold text-offwhite text-2xl mb-2">
-                  The Night They Made History
+                  The Night They Made History (Baseball)
                 </h3>
-                <p className="text-offwhite/70 text-sm">
-                  47 photos from an unforgettable championship night
-                </p>
               </div>
             </div>
 
             <div className="space-y-6">
               {[
-                { title: 'Playoff Preview: What to Watch in Round 2', date: 'Jan 16, 2026', type: 'Preview' },
-                { title: 'Signing Day Central: Live Updates', date: 'Jan 15, 2026', type: 'Live Coverage' },
-                { title: 'All-Star Weekend: Behind the Scenes', date: 'Jan 12, 2026', type: 'Feature' },
+                { type: 'NBA Drafts' },
+                { type: 'Super Bowl' },
+                { type: 'Hall of Fame' },
+                { type: 'Soccer Events' },
               ].map((event, i) => (
                 <div key={i} className="bg-offwhite border border-forest/10 p-6 group cursor-pointer hover:border-forest/30 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <span className="text-lime text-[10px] font-bold uppercase tracking-wider">{event.type}</span>
-                      <h4 className="font-editorial font-semibold text-forest text-lg mt-2 group-hover:text-forest/70 transition-colors">
-                        {event.title}
-                      </h4>
-                      <p className="text-forest/50 text-sm mt-2">{event.date}</p>
-                    </div>
-                    <ArrowUpRight className="w-5 h-5 text-forest/30 group-hover:text-lime transition-colors" />
-                  </div>
+                  <span className="text-red-600 text-sm font-bold uppercase tracking-wider">{event.type}</span>
                 </div>
               ))}
             </div>

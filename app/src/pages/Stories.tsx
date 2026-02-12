@@ -6,7 +6,7 @@ import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const filters = ['All', 'Features', 'Video', 'Podcast', 'Events', 'Analysis'];
+const filters = ['All', 'Features', 'Podcast', 'Events'];
 
 const articleCards = [
   {

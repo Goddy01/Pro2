@@ -23,6 +23,7 @@ const navItems = [
   { label: 'Listen', href: '/#listen' },
   { label: 'Events', href: '/#events' },
   { label: 'Media', href: '/#media' },
+  { label: 'Coverage', to: '/coverage' },
   { label: 'Team', to: '/team' },
   { label: 'About', href: '/#about' },
   { label: 'Contact', href: '/#contact' },

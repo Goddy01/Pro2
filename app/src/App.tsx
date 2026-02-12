@@ -3,6 +3,7 @@ import Layout from './Layout';
 import Home from './pages/Home';
 import Team from './pages/Team';
 import Stories from './pages/Stories';
+import Coverage from './pages/Coverage';
 import './App.css';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
         <Route element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="stories" element={<Stories />} />
+          <Route path="coverage" element={<Coverage />} />
           <Route path="team" element={<Team />} />
         </Route>
       </Routes>

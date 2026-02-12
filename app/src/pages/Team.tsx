@@ -10,7 +10,7 @@ const teamMembers = [
   {
     name: 'J.B. Ellis',
     role: 'Founder and CEO',
-    bio: 'J.B. Ellis is an American sports media personality, host, and interviewer known for his energetic presence and deep passion for competition. A key voice on Sideline Sports & Entertainment, he co-hosts Sideline Sports and leads original programs such as Cubfidential and J & J Sports Express. Ellis has covered six Super Bowls and is credentialed with the NFL, NBA, and MLB, delivering firsthand access and insight from the biggest stages in sports and entertainment. His coverage also includes the NFL Scouting Combine, MLB Hall of Fame ceremonies, and major college tournaments. Previously, he created and hosted The PROgram on the Bleav Network, spotlighting compelling conversations with athletes and media figures alike.',
+    bio: 'J.B. Ellis is an American sports media personality, host, and interviewer known for his energetic style and passion for competition. A leading voice on Sideline Sports & Entertainment, he co-hosts Sideline Sports and leads original programs including Cubfidential and J & J Sports Express. Ellis has covered six Super Bowls and is credentialed with the NFL, NBA, and MLB, providing firsthand insight from major sporting events. He previously created and hosted The PROgram on the Bleav Network.',
     image: '/JB-ELLIS.jpg',
   },
   {
@@ -22,7 +22,7 @@ const teamMembers = [
   {
     name: 'James Tatum',
     role: 'Director of Content & Media Operations',
-    bio: 'James Tatum is a multimedia sports journalist and media executive with Sideline Sports, where he oversees content strategy, video production, website management, and talent recruitment. A first-generation graduate fueled by determination and passion, James has covered some of the biggest events in sports, including Super Bowl LVI, LVII, LIX, and LX, the 2023 NFL Draft, and Premier League matches across the United States. From interviewing athletes and executives on Radio Row to delivering in-depth analysis, feature stories, and digital content, he brings energy and insight to every platform. Blending on-camera presence with strong writing and leadership skills, James continues to build a growing media brand rooted in authenticity, access, and impactful sports storytelling',
+    bio: 'James Tatum is a multimedia sports journalist and media executive with Sideline Sports, overseeing content strategy, video production, website management, and talent recruitment. A first-generation graduate driven by passion and determination, he has covered major events across the NFL, MLB, and Premier League. From interviewing athletes and executives to delivering in-depth analysis, feature stories, and digital content, James brings energy and insight to every platform, blending on-camera presence with strong writing and leadership skills to build an authentic, impactful sports media brand.',
     image: '/JAMES-TATUM.jpg',
   },
   {

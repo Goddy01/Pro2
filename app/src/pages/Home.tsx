@@ -11,10 +11,17 @@ import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const PODCAST_LINKS = [
+  { href: 'https://www.youtube.com/@sidelinesports3840', icon: Youtube, label: 'YouTube' },
+  { href: 'https://open.spotify.com/show/35pw2rvjZ1xEagLJS72Gpf', icon: Podcast, label: 'Spotify' },
+  { href: 'https://podcasts.apple.com/us/podcast/sideline-sports/id1565070611', icon: Podcast, label: 'Apple Podcasts' },
+];
+
 export default function Home() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
+  const [showPodcastPlatforms, setShowPodcastPlatforms] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
 
   const filters = ['All', 'Features', 'Video', 'Podcast', 'Events', 'Analysis'];
@@ -259,15 +266,37 @@ export default function Home() {
               Houston, we bring you closer to the games, the players, and the moments that matter.
             </p>
 
-            <div className="hero-cta-group flex flex-wrap justify-center gap-4 mb-12">
-              <a href="#stories" className="btn-premium">
-                Explore Latest Articles
-                <ArrowRight className="w-4 h-4" />
-              </a>
-              <a href="#listen" className="btn-outline-premium">
-                <Headphones className="w-4 h-4" />
-                Listen to Podcast
-              </a>
+            <div className="hero-cta-group flex flex-col items-center gap-4 mb-12">
+              <div className="flex flex-wrap justify-center gap-4">
+                <a href="#stories" className="btn-premium">
+                  Explore Latest Articles
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setShowPodcastPlatforms((v) => !v)}
+                  className="btn-outline-premium inline-flex items-center gap-2"
+                >
+                  <Headphones className="w-4 h-4" />
+                  Listen to Podcast
+                </button>
+              </div>
+              {showPodcastPlatforms && (
+                <div className="flex flex-wrap justify-center gap-3 pt-2">
+                  {PODCAST_LINKS.map((link) => (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-outline-premium"
+                    >
+                      <link.icon className="w-4 h-4" />
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="hero-stats flex flex-wrap justify-center gap-8 lg:gap-16">

@@ -697,22 +697,12 @@ export default function Home() {
                 Built for Fans.<br />Rooted in the Details.
               </h2>
               <div className="space-y-4 body-editorial text-offwhite/60">
+                <h3 className="text-offwhite font-editorial font-semibold text-xl mt-8 mb-3">Mission statement</h3>
                 <p>
-                  Sideline Sports & Entertainment was founded on a simple belief: sports fans deserve better. 
-                  Better reporting. Better analysis. Better stories. In a world of hot takes and 
-                  clickbait, we chose a different path — one paved with rigorous journalism, 
-                  thoughtful commentary, and an unwavering commitment to our readers.
+                  Sideline Sports is committed to delivering authentic coverage of sports and entertainment rooted in credibility, insight, and passion. We prioritize substance over sensationalism, informed analysis over empty headlines, and meaningful storytelling over click-driven noise. Our mission is to be a trusted source for fans who want real conversations about the games, the culture, and the moments that shape both industries.
                 </p>
                 <p>
-                  With teams in Philadelphia, Chicago, Washington DC, and Houston, we've built a 
-                  roster of experienced journalists, former athletes, and passionate fans who 
-                  understand that sports are about more than wins and losses. They're about 
-                  community, culture, and the human stories that unfold on and off the field.
-                </p>
-                <p>
-                  From breaking news to long-form features, from film breakdowns to podcast 
-                  conversations, we cover the sports world with the depth and nuance it deserves. 
-                  No fluff. No filler. Just stories worth talking about.
+                  Sideline Sports has accepted the challenge to fill the void in sports and entertainment coverage. We deliver authentic, informed reporting, thoughtful analysis, and meaningful storytelling — free from hype, clickbait, or political noise. Our mission is to be a trusted destination for fans who want real insight, real conversations, and real coverage of the moments and personalities that shape sports and entertainment.
                 </p>
               </div>
             </div>

@@ -18,7 +18,7 @@ const fallbackMarqueeFeeds = [
 ];
 
 const navItems = [
-  { label: 'Articles', href: '/#stories' },
+  { label: 'Articles', to: '/stories' },
   { label: 'Watch', href: '/#watch' },
   { label: 'Listen', href: '/#listen' },
   { label: 'Events', href: '/#events' },

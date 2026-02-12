@@ -20,11 +20,8 @@ const PODCAST_LINKS = [
 export default function Home() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
-  const [activeFilter, setActiveFilter] = useState('All');
   const [showPodcastPlatforms, setShowPodcastPlatforms] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
-
-  const filters = ['All', 'Features', 'Video', 'Podcast', 'Events', 'Analysis'];
 
   const featuredArticles = [
     {
@@ -66,38 +63,9 @@ export default function Home() {
   ];
 
   const articleCards = [
-    { 
-      id: 4, 
-      title: 'Preview Show Ep. 12: Playoffs, Predictions, and Guest Takes', 
-      category: 'Podcast', 
-      excerpt: 'This week, we\'re joined by former Pro Bowl linebacker Marcus Williams to break down the playoff picture. We discuss the teams that surprised us, the ones that disappointed, and make our bold predictions for the road to the championship. Plus, we answer listener questions about the biggest storylines heading into the postseason.',
-      author: 'Sideline Sports & Entertainment Team',
-      image: '/grid_4.jpg', 
-      date: 'January 10, 2026', 
-      readTime: '45 min listen'
-    },
-    { 
-      id: 5, 
-      title: 'Photo Essay: Under the Lights — Moments From the Night Game', 
-      category: 'Events', 
-      excerpt: 'There\'s something magical about night games. The stadium lights cutting through the darkness, the breath visible in the cold air, the roar of the crowd echoing into the night. Our photography team spent the entire game capturing the moments that define why we love this sport — the tension, the joy, the heartbreak, and the triumph.',
-      author: 'Sarah Chen',
-      authorRole: 'Photo Editor',
-      image: '/grid_5.jpg', 
-      date: 'January 8, 2026', 
-      readTime: '6 min read'
-    },
-    { 
-      id: 6, 
-      title: 'By the Numbers: What the Defense Stats Actually Say', 
-      category: 'Analysis', 
-      excerpt: 'Traditional statistics tell one story, but advanced analytics reveal another. We dove deep into the data — pressure rates, coverage grades, tackling efficiency, and more — to understand why this defense has been so effective. The numbers might surprise you, and they definitely challenge some conventional wisdom.',
-      author: 'David Park',
-      authorRole: 'Analytics Director',
-      image: '/grid_6.jpg', 
-      date: 'January 5, 2026', 
-      readTime: '10 min read'
-    },
+    { id: 4, title: 'Preview Show Ep. 12: Playoffs, Predictions, and Guest Takes', category: 'Podcast', excerpt: 'This week, we\'re joined by former Pro Bowl linebacker Marcus Williams to break down the playoff picture. We discuss the teams that surprised us, the ones that disappointed, and make our bold predictions for the road to the championship. Plus, we answer listener questions about the biggest storylines heading into the postseason.', author: 'Sideline Sports & Entertainment Team', image: '/grid_4.jpg', date: 'January 10, 2026', readTime: '45 min listen' },
+    { id: 5, title: 'Photo Essay: Under the Lights — Moments From the Night Game', category: 'Events', excerpt: 'There\'s something magical about night games. The stadium lights cutting through the darkness, the breath visible in the cold air, the roar of the crowd echoing into the night. Our photography team spent the entire game capturing the moments that define why we love this sport — the tension, the joy, the heartbreak, and the triumph.', author: 'Sarah Chen', authorRole: 'Photo Editor', image: '/grid_5.jpg', date: 'January 8, 2026', readTime: '6 min read' },
+    { id: 6, title: 'By the Numbers: What the Defense Stats Actually Say', category: 'Analysis', excerpt: 'Traditional statistics tell one story, but advanced analytics reveal another. We dove deep into the data — pressure rates, coverage grades, tackling efficiency, and more — to understand why this defense has been so effective. The numbers might surprise you, and they definitely challenge some conventional wisdom.', author: 'David Park', authorRole: 'Analytics Director', image: '/grid_6.jpg', date: 'January 5, 2026', readTime: '10 min read' },
   ];
 
   const podcastEpisodes = [
@@ -141,10 +109,6 @@ export default function Home() {
       role: 'The Ringer'
     }
   ];
-
-  const filteredArticles = activeFilter === 'All' 
-    ? articleCards 
-    : articleCards.filter(card => card.category === activeFilter);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -409,7 +373,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section 3: Latest Stories Grid */}
+      {/* Section 3: More Stories You'll Love */}
       <section className="section-light-premium py-24">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section mb-12">
@@ -417,49 +381,21 @@ export default function Home() {
             <h2 className="headline-section text-forest text-4xl mb-6">
               More Stories You'll Love
             </h2>
-            
-            {/* Filter Chips */}
-            <div className="flex flex-wrap gap-3">
-              {filters.map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setActiveFilter(filter)}
-                  className={`px-5 py-2.5 text-xs font-semibold uppercase tracking-wide transition-all duration-300 ${
-                    activeFilter === filter
-                      ? 'bg-forest text-offwhite'
-                      : 'bg-forest/10 text-forest hover:bg-forest/20'
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
           </div>
 
-          {/* Article Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredArticles.map((card) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {articleCards.map((card) => (
               <article key={card.id} className="stagger-card group cursor-pointer">
                 <div className="bg-offwhite border border-forest/10 overflow-hidden hover:shadow-2xl transition-shadow duration-500">
                   <div className="relative overflow-hidden h-[220px]">
-                    <img 
-                      src={card.image} 
-                      alt={card.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
+                    <img src={card.image} alt={card.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                     <div className="absolute top-4 left-4">
-                      <span className="bg-lime text-forest text-[10px] font-bold uppercase tracking-wider px-2 py-1">
-                        {card.category}
-                      </span>
+                      <span className="bg-lime text-forest text-[10px] font-bold uppercase tracking-wider px-2 py-1">{card.category}</span>
                     </div>
                   </div>
                   <div className="p-6">
-                    <h3 className="font-editorial font-semibold text-forest text-lg mb-3 group-hover:text-forest/70 transition-colors line-clamp-2">
-                      {card.title}
-                    </h3>
-                    <p className="text-forest/60 text-sm mb-4 line-clamp-3">
-                      {card.excerpt}
-                    </p>
+                    <h3 className="font-editorial font-semibold text-forest text-lg mb-3 group-hover:text-forest/70 transition-colors line-clamp-2">{card.title}</h3>
+                    <p className="text-forest/60 text-sm mb-4 line-clamp-3">{card.excerpt}</p>
                     <div className="flex items-center justify-between text-forest/40 text-xs">
                       <span>{card.author}</span>
                       <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {card.readTime}</span>
@@ -468,6 +404,13 @@ export default function Home() {
                 </div>
               </article>
             ))}
+          </div>
+
+          <div className="reveal-section text-center">
+            <a href="/stories" className="btn-premium inline-flex items-center gap-2">
+              Read More Stories
+              <ArrowUpRight className="w-4 h-4" />
+            </a>
           </div>
         </div>
       </section>
@@ -773,11 +716,11 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="relative">
+            <div className="relative overflow-hidden max-h-[380px] lg:max-h-[420px]">
               <img 
-                src="/topics_celebration.jpg" 
+                src="/fans.jpg" 
                 alt="Team celebration" 
-                className="w-full h-full object-cover img-editorial"
+                className="w-full h-full object-cover object-center img-editorial"
               />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-forest to-transparent h-1/3" />
             </div>

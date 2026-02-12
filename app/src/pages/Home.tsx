@@ -486,12 +486,12 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="relative">
+            <div className="relative max-w-md lg:max-w-lg xl:max-w-xl mx-auto">
               <div className="aspect-square overflow-hidden">
                 <img 
                   src="/podcast_cover.jpg" 
                   alt="Podcast" 
-                  className="w-full h-full object-cover img-editorial"
+                  className="w-full h-full object-cover object-center scale-125 img-editorial"
                 />
               </div>
               <div className="absolute -bottom-6 -left-6 bg-lime p-6">

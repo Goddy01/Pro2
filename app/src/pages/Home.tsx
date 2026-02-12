@@ -708,7 +708,7 @@ export default function Home() {
             </div>
             <div className="relative overflow-hidden max-h-[380px] lg:max-h-[420px]">
               <img 
-                src="/fans.jpg" 
+                src="/team.jpg" 
                 alt="Team celebration" 
                 className="w-full h-full object-cover object-center img-editorial"
               />

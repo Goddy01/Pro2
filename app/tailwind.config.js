@@ -48,7 +48,7 @@ module.exports = {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Custom colors for Sideline Sports Network
+        // Custom colors for Sideline Sports & Entertainment
         forest: {
           DEFAULT: '#111214',
           light: '#15171b',

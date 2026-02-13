@@ -9,9 +9,12 @@ import {
   Star, ArrowUpRight,
   ChevronLeft, ChevronRight, X
 } from 'lucide-react';
+import { EVENTS } from '../data/events';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
+
+const EVENT_PREVIEW_IMAGES = 1;
 
 const PODCAST_LINKS = [
   { href: 'https://www.youtube.com/@sidelinesports3840', icon: Youtube, label: 'YouTube' },
@@ -759,6 +762,57 @@ export default function Home() {
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
+
+          {/* Events */}
+          <div className="reveal-section mt-24 pt-16 border-t border-forest/10">
+            <span className="label-mono text-forest/60 mb-2 block">Event Galleries</span>
+            <h2 className="headline-section text-forest text-3xl lg:text-4xl mb-10">
+              Event Galleries
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              {EVENTS.map((event) => {
+                const previewImages = event.images.slice(0, EVENT_PREVIEW_IMAGES);
+                return (
+                  <div
+                    key={event.id}
+                    className="stagger-card flex flex-col bg-offwhite border border-forest/10 overflow-hidden"
+                  >
+                    <div className="p-6 lg:p-8">
+                      <h3 className="headline-article text-forest text-xl lg:text-2xl mb-2">
+                        {event.title}
+                      </h3>
+                      <p className="body-large text-forest/60 mb-6">
+                        {event.description}
+                      </p>
+                      <div className="w-[100%] mx-auto h-96 sm:h-[27rem] overflow-hidden rounded-sm bg-forest/5 group mb-6">
+                            <img
+                              src={previewImages[0]}
+                              alt=""
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              style={{ objectPosition: event.id === 'rmh' ? 'top' : 'center' }}
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          </div>
+                      <Link
+                        to={`/coverage/event/${event.id}`}
+                        className="btn-premium inline-flex items-center gap-2"
+                      >
+                        View more
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="reveal-section mt-10 flex justify-center">
+              <Link to="/events" className="btn-outline-premium inline-flex items-center gap-2">
+                View all event galleries
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1097,7 +1151,7 @@ export default function Home() {
       )}
 
       {/* Section 11: Newsletter */}
-      <section id="subscribe" className="section-premium py-24">
+      {/* <section id="subscribe" className="section-premium py-24">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section card-editorial p-8 lg:p-16 text-center max-w-4xl mx-auto">
             <span className="label-mono text-lime mb-4 block">Newsletter</span>
@@ -1127,7 +1181,7 @@ export default function Home() {
             </p>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Section 12: Partners */}
       <section className="section-premium py-16 border-t border-offwhite/5">

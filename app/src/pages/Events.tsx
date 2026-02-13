@@ -8,7 +8,7 @@ import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const PREVIEW_IMAGES = 3;
+const PREVIEW_IMAGES = 1;
 
 export default function Events() {
   const mainRef = useRef<HTMLDivElement>(null);
@@ -83,18 +83,14 @@ export default function Events() {
                     <p className="body-large text-offwhite/60 mb-6">
                       {event.description}
                     </p>
-                    <div className="grid grid-cols-3 gap-3 mb-6">
-                      {previewImages.map((src, i) => (
-                        <div key={i} className="aspect-[4/3] overflow-hidden rounded-sm bg-offwhite/10 group">
-                          <img
-                            src={src}
-                            alt=""
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                        </div>
-                      ))}
+                    <div className="aspect-[4/3] overflow-hidden rounded-sm bg-offwhite/10 group mb-6">
+                      <img
+                        src={previewImages[0]}
+                        alt=""
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </div>
                     <Link
                       to={`/coverage/event/${event.id}`}

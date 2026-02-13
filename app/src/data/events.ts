@@ -14,11 +14,11 @@ export const EVENTS = [
     id: 'rmh',
     title: 'Ronald McDonald House Charities',
     description:
-      'Super Bowl 59 exclusive coverage — The Impact of Ronald McDonald House with Marnie Schneider & CEO Grace McIntosh.',
+      'The Impact of Ronald McDonald House with Marnie Schneider & CEO Grace McIntosh.',
     images: [
+      '/RMH Event/IMG_8595.PNG',
       '/RMH Event/F1793232-1BA8-41C6-BD1C-5727EFCA5B80.jpeg',
       '/RMH Event/IMG_2562.png',
-      '/RMH Event/IMG_8595.PNG',
       '/RMH Event/IMG_8597.png',
       '/RMH Event/IMG_8600.png',
       '/RMH Event/IMG_8610.png',

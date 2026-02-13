@@ -24,10 +24,14 @@ app.use('/api/articles', articleRoutes);
 app.use('/api/work-with-us', workWithUsRoutes);
 
 async function start() {
+  if (!process.env.DATABASE_URL) {
+    console.error('DATABASE_URL is not set. On Railway: add a PostgreSQL service and link it to this service, or set DATABASE_URL in Variables.');
+    process.exit(1);
+  }
   await initDb();
   await ensureAdmin();
   app.listen(PORT, () => {
-    console.log(`Backend running at http://localhost:${PORT}`);
+    console.log(`Backend running on port ${PORT}`);
   });
 }
 

@@ -142,7 +142,7 @@ export default function Gallery() {
               <button
                 type="button"
                 onClick={() => setVisibleCount((c) => Math.min(c + LOAD_MORE_STEP, galleryImages.length))}
-                className="bg-lime text-offwhite hover:bg-lime/90 px-8 py-4 font-display font-bold uppercase tracking-[0.2em] rounded-none border-0 transition-colors"
+                className="bg-lime text-offwhite hover:bg-lime/90 px-6 py-3 font-display font-bold uppercase tracking-[0.2em] rounded-none border-0 transition-colors"
                 style={{ textShadow: '0 0 20px rgba(255,255,255,0.4)' }}
               >
                 Load more

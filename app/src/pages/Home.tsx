@@ -869,13 +869,13 @@ export default function Home() {
       <section className="section-premium py-16 border-t border-offwhite/5">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section text-center mb-10">
-            <span className="label-mono text-offwhite/40 mb-4 block">Featured In</span>
+            <span className="label-mono text-offwhite/40 mb-4 block">Worked With</span>
           </div>
           <div className="reveal-section flex flex-wrap justify-center items-center gap-8 lg:gap-16">
-            {['Sideline Sports & Entertainment', 'Gauntlet Media', 'Philly Voice', 'SportsRadio WIP', 'Fox29', 'ESPN'].map((partner, i) => (
+            {['DBTV', 'Real 1100', 'Abigail TV', 'Bleav', 'South Florida Tribune'].map((partner, i) => (
               <span 
                 key={i} 
-                className="text-offwhite/20 hover:text-offwhite/50 font-display font-bold text-lg lg:text-xl uppercase tracking-wide transition-colors cursor-pointer"
+                className="text-[#e7363c] hover:text-offwhite/50 font-display font-bold text-lg lg:text-xl uppercase tracking-[0.2em] transition-colors cursor-pointer"
               >
                 {partner}
               </span>

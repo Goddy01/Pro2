@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import './../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -41,6 +41,7 @@ const teamMembers = [
 
 export default function Team() {
   const mainRef = useRef<HTMLDivElement>(null);
+  const teamCarouselRef = useRef<HTMLDivElement>(null);
   const bioRefs = useRef<(HTMLParagraphElement | null)[]>([]);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [truncatedIndices, setTruncatedIndices] = useState<Set<number>>(new Set());
@@ -62,6 +63,29 @@ export default function Team() {
     const t = setTimeout(measureTruncation, 0);
     return () => clearTimeout(t);
   }, [measureTruncation]);
+
+  useEffect(() => {
+    const el = teamCarouselRef.current;
+    if (!el) return;
+    const run = () => {
+      el.scrollLeft = 0;
+    };
+    const t = setTimeout(run, 50);
+    const onResize = () => run();
+    window.addEventListener('resize', onResize);
+    const onScroll = () => {
+      const setWidth = el.scrollWidth / 3;
+      if (setWidth <= 0) return;
+      if (el.scrollLeft <= 0) el.scrollLeft += setWidth;
+      else if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 2) el.scrollLeft -= setWidth;
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('resize', onResize);
+      el.removeEventListener('scroll', onScroll);
+    };
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -119,7 +143,7 @@ export default function Team() {
             </p>
           </div>
 
-          <figure className="reveal-section overflow-hidden card-editorial max-w-3xl mx-auto mb-48 md:mb-24">
+          <figure className="reveal-section overflow-hidden card-editorial max-w-3xl mx-auto mb-16 md:mb-20">
             <img
               src="/team.jpg"
               alt="Sideline Sports & Entertainment team with Puka Nacua"
@@ -130,55 +154,92 @@ export default function Team() {
             </figcaption>
           </figure>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 pt-20 md:pt-0">
-            {teamMembers.map((member, i) => (
-              <article
-                key={i}
-                className={`stagger-card card-editorial overflow-hidden group flex flex-col md:flex-row gap-0 ${i === teamMembers.length - 1 && teamMembers.length % 2 === 1 ? 'md:col-span-2 md:max-w-2xl md:mx-auto' : ''}`}
-              >
-                <div className="relative w-full md:w-80 flex-shrink-0 overflow-hidden aspect-[4/5] md:aspect-square">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="w-full h-full object-cover img-editorial transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-forest/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
-                <div className="p-6 lg:p-8 flex flex-col justify-center">
-                  <span className="label-mono text-lime text-xs mb-2">{member.role}</span>
-                  <h3 className="headline-article text-offwhite text-2xl mb-4 group-hover:text-lime transition-colors">
-                    {member.name}
-                  </h3>
-                  <p
-                    ref={(el) => {
-                      bioRefs.current[i] = el;
-                    }}
-                    className={`body-editorial text-offwhite/60 ${expandedIndex === i ? '' : 'line-clamp-5'}`}
+          <div className="reveal-section relative -mx-6 lg:-mx-12">
+            <button
+              type="button"
+              onClick={() => {
+                const el = teamCarouselRef.current;
+                if (el) {
+                  const card = el.querySelector('article');
+                  const cardWidth = (card?.getBoundingClientRect().width ?? 400) + 40;
+                  el.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+                }
+              }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-forest border border-offwhite/20 text-offwhite flex items-center justify-center hover:bg-forest/90 hover:text-lime hover:border-lime/50 transition-colors shadow-lg"
+              aria-label="Previous"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const el = teamCarouselRef.current;
+                if (el) {
+                  const card = el.querySelector('article');
+                  const cardWidth = (card?.getBoundingClientRect().width ?? 400) + 40;
+                  el.scrollBy({ left: cardWidth, behavior: 'smooth' });
+                }
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-forest border border-offwhite/20 text-offwhite flex items-center justify-center hover:bg-forest/90 hover:text-lime hover:border-lime/50 transition-colors shadow-lg"
+              aria-label="Next"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+            <div
+              ref={teamCarouselRef}
+              className="team-carousel overflow-x-auto scroll-smooth snap-x snap-mandatory flex gap-10 px-14 lg:px-16 py-4"
+            >
+              {[0, 1, 2].map((repeatIndex) =>
+                teamMembers.map((member, i) => (
+                  <article
+                    key={`${repeatIndex}-${i}`}
+                    className="stagger-card card-editorial flex-shrink-0 w-[320px] sm:w-[380px] lg:w-[420px] snap-center flex flex-col overflow-hidden group"
                   >
-                    {member.bio}
-                  </p>
-                  {(truncatedIndices.has(i) || expandedIndex === i) && (
-                    <button
-                      type="button"
-                      onClick={() => setExpandedIndex((prev) => (prev === i ? null : i))}
-                      className="mt-3 inline-flex items-center gap-1.5 text-lime text-sm font-medium hover:text-lime/80 transition-colors"
-                    >
-                      {expandedIndex === i ? (
-                        <>
-                          Read less
-                          <ChevronUp className="w-4 h-4" />
-                        </>
-                      ) : (
-                        <>
-                          Read more
-                          <ChevronDown className="w-4 h-4" />
-                        </>
+                    <div className="relative overflow-hidden aspect-[3/4]">
+                      <img
+                        src={member.image}
+                        alt={member.name}
+                        className="w-full h-full object-cover img-editorial transition-transform duration-700 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-forest/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                    <div className="p-6 lg:p-8 flex flex-col flex-1 bg-forest/30 border border-offwhite/5 border-t-0">
+                      <span className="label-mono text-lime text-xs mb-1">{member.role}</span>
+                      <h3 className="headline-article text-offwhite text-xl lg:text-2xl mb-3 group-hover:text-lime transition-colors">
+                        {member.name}
+                      </h3>
+                      <p
+                        ref={(el) => {
+                          bioRefs.current[i] = el;
+                        }}
+                        className={`body-editorial text-offwhite/70 text-sm lg:text-base flex-1 ${expandedIndex === i ? '' : 'line-clamp-4'}`}
+                      >
+                        {member.bio}
+                      </p>
+                      {(truncatedIndices.has(i) || expandedIndex === i) && (
+                        <button
+                          type="button"
+                          onClick={() => setExpandedIndex((prev) => (prev === i ? null : i))}
+                          className="mt-3 inline-flex items-center gap-1.5 text-lime text-sm font-medium hover:text-lime/80 transition-colors"
+                        >
+                          {expandedIndex === i ? (
+                            <>
+                              Read less
+                              <ChevronUp className="w-4 h-4" />
+                            </>
+                          ) : (
+                            <>
+                              Read more
+                              <ChevronDown className="w-4 h-4" />
+                            </>
+                          )}
+                        </button>
                       )}
-                    </button>
-                  )}
-                </div>
-              </article>
-            ))}
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </section>

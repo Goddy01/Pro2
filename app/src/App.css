@@ -132,6 +132,14 @@ input:focus-visible {
   display: none;
 }
 
+.team-carousel {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.team-carousel::-webkit-scrollbar {
+  display: none;
+}
+
 /* Loading state for images */
 img {
   background: linear-gradient(135deg, #0d0e10 0%, #111214 100%);

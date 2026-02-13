@@ -30,8 +30,6 @@ const WATCH_VIDEOS = [
 ];
 
 export default function Home() {
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
   const [showPodcastPlatforms, setShowPodcastPlatforms] = useState(false);
   const [testimonialForm, setTestimonialForm] = useState({
     name: '',
@@ -270,17 +268,6 @@ export default function Home() {
       el.removeEventListener('scroll', onScroll);
     };
   }, []);
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      setSubscribed(true);
-      setTimeout(() => {
-        setEmail('');
-        setSubscribed(false);
-      }, 4000);
-    }
-  };
 
   const handleTestimonialSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1163,17 +1150,10 @@ export default function Home() {
               Join over 50,000 subscribers who start their week with us.
             </p>
             
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto mb-6">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="flex-1 px-5 py-4 bg-offwhite/5 border border-offwhite/20 text-offwhite placeholder:text-offwhite/30 focus:outline-none focus:border-lime transition-colors"
-              />
-              <button type="submit" className="btn-premium">
-                {subscribed ? 'Subscribed!' : 'Subscribe'}
-              </button>
+            <form onSubmit={(e) => e.preventDefault()} className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto mb-6">
+              <a href="https://www.youtube.com/@sidelinesports3840?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="btn-premium">
+                Subscribe on YouTube
+              </a>
             </form>
             
             <p className="text-offwhite/40 text-xs">

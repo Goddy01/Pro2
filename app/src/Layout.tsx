@@ -143,7 +143,7 @@ export default function Layout() {
             )}
           </div>
           <div className="flex items-center gap-4">
-            <a href="/#subscribe" className="hidden sm:inline-flex btn-premium text-xs py-3 px-6">
+            <a href="https://www.youtube.com/@sidelinesports3840?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="hidden sm:inline-flex btn-premium text-xs py-3 px-6">
               Subscribe
             </a>
             <button className="lg:hidden text-offwhite" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>

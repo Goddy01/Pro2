@@ -31,6 +31,7 @@ export default function Home() {
   const [showPodcastPlatforms, setShowPodcastPlatforms] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
   const watchCarouselRef = useRef<HTMLDivElement>(null);
+  const testimonialsCarouselRef = useRef<HTMLDivElement>(null);
 
   const featuredArticles = [
     {
@@ -102,21 +103,17 @@ export default function Home() {
   ];
 
   const testimonials = [
-    {
-      quote: 'Sideline Sports & Entertainment has become essential reading for me. The depth of analysis, the quality of writing, and the unique perspectives set it apart from everything else in sports media.',
-      author: 'Michael Smith',
-      role: 'ESPN Host'
-    },
-    {
-      quote: 'Finally, sports journalism that respects the intelligence of its audience. These aren\'t just game recaps — they\'re stories that matter.',
-      author: 'Sarah Koenig',
-      role: 'Journalist'
-    },
-    {
-      quote: 'The attention to detail is remarkable. Whether it\'s a breaking news story or a deep dive feature, you know it\'s going to be thorough and well-researched.',
-      author: 'Bill Simmons',
-      role: 'The Ringer'
-    }
+    { author: 'Momcilo Velickovic', role: 'Attorney at Law & Basketball Agent', quote: 'Sideline Sports & Entertainment delivers high-quality podcasts that are both engaging and educational. Their topics are insightful, and the overall experience makes it easy to recommend collaborating or being featured on their platform.' },
+    { author: 'Sean Russi', role: 'NFL/MLB Agent specializing in Player Acquisition and Contract Negotiation', quote: 'Sideline Sports & Entertainment consistently demonstrates strong preparation and professionalism. Their team does thorough research before interviews and engages with clients at a high level, making every interaction seamless and impressive.' },
+    { author: 'Geoff Magliocchetti', role: 'Beat Writer / Columnist / Reporter at NJ.com', quote: 'Working with Sideline Sports & Entertainment was a great experience. Their podcast conversations are engaging, well-structured, and driven by thoughtful questions that lead to meaningful and insightful discussions.' },
+    { author: 'David Brody', role: 'Trusted Voice Coach to Rising & Pro Sportscasters', quote: 'Sideline Sports & Entertainment shows exceptional passion for growth and continuous improvement. Their team is highly coachable, collaborative, and brings strong value to any platform they are part of.' },
+    { author: 'Randy Hardenbrook', role: 'Podcast Co-Host', quote: 'Among the many podcast teams I\'ve worked with, Sideline Sports & Entertainment stands out as one of the most professional and well-organized. The quality of their shows and execution is top-tier.' },
+    { author: 'Jay A Field III', role: 'Managing Partner & CIO, Rocfield Capital | eXp Realty', quote: 'Sideline Sports & Entertainment produces high-quality podcasts featuring professional athletes and industry insights. Their content is engaging, well-curated, and highly valuable for sports audiences.' },
+    { author: 'Scott Morganroth', role: 'Content Hunter & Author, "Lessons From The Microphone"', quote: 'Sideline Sports & Entertainment demonstrates true professionalism in sports journalism. Their team is knowledgeable, well-spoken, dependable, and continuously evolving, making them a strong asset in the media space.' },
+    { author: 'Erik Little QKA', role: 'Director, RIA Services at The Boon Group', quote: 'Sideline Sports & Entertainment combines strong knowledge of sports and business with an ability to create enjoyable, engaging experiences. Their team brings people together and makes every collaboration both productive and fun.' },
+    { author: 'David Brunner', role: 'Owner / CEO at DBTV Television Network | TV/Sports Talent Agent', quote: 'When building our television network, we looked for talented and passionate partners, and Sideline Sports & Entertainment stood out. Their sports knowledge, broadcasting skills, and innovative ideas make them a valuable addition to any network.' },
+    { author: 'Gabriel Santiago', role: 'Sports Media Professional', quote: 'Sideline Sports & Entertainment delivers content that is both thorough and engaging. Their deep understanding of key markets, combined with insightful analysis, positions them as a strong voice in the industry.' },
+    { author: 'Scott Ferrall', role: 'PROPHETABLE.tv', quote: 'Working with Sideline Sports & Entertainment has been a great experience. Their team is always prepared, asks insightful questions, and consistently delivers engaging and entertaining content.' },
   ];
 
   useEffect(() => {
@@ -228,6 +225,31 @@ export default function Home() {
 
     el.addEventListener('scroll', onScroll, { passive: true });
 
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('resize', onResize);
+      el.removeEventListener('scroll', onScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    const el = testimonialsCarouselRef.current;
+    if (!el) return;
+    const run = () => {
+      const setWidth = el.scrollWidth / 3;
+      if (setWidth <= 0) return;
+      el.scrollLeft = setWidth;
+    };
+    const t = setTimeout(run, 50);
+    const onResize = () => run();
+    window.addEventListener('resize', onResize);
+    const onScroll = () => {
+      const setWidth = el.scrollWidth / 3;
+      if (setWidth <= 0) return;
+      if (el.scrollLeft <= 0) el.scrollLeft += setWidth;
+      else if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 2) el.scrollLeft -= setWidth;
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       clearTimeout(t);
       window.removeEventListener('resize', onResize);
@@ -801,8 +823,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section 10: Testimonials */}
-      <section className="section-light-premium py-24">
+      {/* Section 10: Testimonials - Endless carousel */}
+      <section className="section-light-premium py-24 overflow-hidden">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section text-center mb-16">
             <span className="label-mono text-forest/60 mb-4 block">What People Say</span>
@@ -811,23 +833,64 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="reveal-section grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, i) => (
-              <div key={i} className="bg-offwhite border border-forest/10 p-8">
-                <div className="flex gap-1 mb-6">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-4 h-4 text-lime fill-lime" />
-                  ))}
-                </div>
-                <p className="font-editorial text-forest text-lg italic mb-6">
-                  "{testimonial.quote}"
-                </p>
-                <div>
-                  <p className="text-forest font-semibold">{testimonial.author}</p>
-                  <p className="text-forest/50 text-sm">{testimonial.role}</p>
-                </div>
-              </div>
-            ))}
+          <div className="reveal-section relative -mx-6 lg:-mx-12">
+            <button
+              type="button"
+              onClick={() => {
+                const el = testimonialsCarouselRef.current;
+                if (el) {
+                  const card = el.querySelector('[data-testimonial-card]');
+                  const w = (card?.getBoundingClientRect().width ?? 380) + 32;
+                  el.scrollBy({ left: -w, behavior: 'smooth' });
+                }
+              }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-forest border border-forest/30 text-offwhite flex items-center justify-center hover:bg-forest/90 hover:text-lime hover:border-lime/50 transition-colors shadow-lg"
+              aria-label="Previous testimonials"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const el = testimonialsCarouselRef.current;
+                if (el) {
+                  const card = el.querySelector('[data-testimonial-card]');
+                  const w = (card?.getBoundingClientRect().width ?? 380) + 32;
+                  el.scrollBy({ left: w, behavior: 'smooth' });
+                }
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-forest border border-forest/30 text-offwhite flex items-center justify-center hover:bg-forest/90 hover:text-lime hover:border-lime/50 transition-colors shadow-lg"
+              aria-label="Next testimonials"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+            <div
+              ref={testimonialsCarouselRef}
+              className="testimonials-carousel overflow-x-auto scroll-smooth snap-x snap-mandatory flex gap-8 px-14 lg:px-16 py-4"
+            >
+              {[0, 1, 2].map((repeatIndex) =>
+                testimonials.map((testimonial, i) => (
+                  <div
+                    key={`${repeatIndex}-${i}`}
+                    data-testimonial-card
+                    className="flex-shrink-0 w-[320px] sm:w-[360px] lg:w-[400px] snap-center bg-offwhite border border-forest/10 p-8"
+                  >
+                    <div className="flex gap-1 mb-6">
+                      {[...Array(5)].map((_, j) => (
+                        <Star key={j} className="w-4 h-4 text-lime fill-lime" />
+                      ))}
+                    </div>
+                    <p className="font-editorial text-forest text-lg italic mb-6 line-clamp-5">
+                      "{testimonial.quote}"
+                    </p>
+                    <div>
+                      <p className="text-forest font-semibold">{testimonial.author}</p>
+                      <p className="text-forest/50 text-sm mt-1">{testimonial.role}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </section>

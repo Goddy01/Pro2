@@ -140,6 +140,14 @@ input:focus-visible {
   display: none;
 }
 
+.testimonials-carousel {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.testimonials-carousel::-webkit-scrollbar {
+  display: none;
+}
+
 /* Loading state for images */
 img {
   background: linear-gradient(135deg, #0d0e10 0%, #111214 100%);

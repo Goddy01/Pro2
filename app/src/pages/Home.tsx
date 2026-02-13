@@ -739,12 +739,12 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <div className="reveal-section mt-10 flex justify-start">
+          <div className="reveal-section mt-10 flex justify-center">
             <Link
               to="/coverage"
               className="btn-premium inline-flex items-center gap-2"
             >
-              View More Coverages
+              View Coverages
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -784,6 +784,15 @@ export default function Home() {
                 </div>
               </figure>
             ))}
+          </div>
+          <div className="reveal-section mt-10 flex justify-center">
+            <Link
+              to="/gallery"
+              className="btn-premium inline-flex items-center gap-2"
+            >
+              View More
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>

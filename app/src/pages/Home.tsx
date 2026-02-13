@@ -771,7 +771,7 @@ export default function Home() {
                       <p className="body-large text-forest/60 mb-6">
                         {event.description}
                       </p>
-                      <div className="w-[100%] mx-auto h-96 sm:h-[27rem] overflow-hidden rounded-sm bg-forest/5 group mb-6">
+                      <div className="w-full mx-auto h-[28rem] sm:h-[32rem] overflow-hidden rounded-sm bg-forest/5 group mb-6">
                             <img
                               src={previewImages[0]}
                               alt=""

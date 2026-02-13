@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { X } from 'lucide-react';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -55,6 +56,7 @@ const galleryImages = [
 export default function Gallery() {
   const mainRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const canLoadMore = visibleCount < galleryImages.length;
 
   useEffect(() => {
@@ -122,9 +124,13 @@ export default function Gallery() {
             {galleryImages.slice(0, visibleCount).map((image, i) => (
               <figure
                 key={i}
-                className={`overflow-hidden card-editorial group ${i < INITIAL_VISIBLE ? 'stagger-card' : 'gallery-card-late'}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => setLightboxIndex(i)}
+                onKeyDown={(e) => e.key === 'Enter' && setLightboxIndex(i)}
+                className={`overflow-hidden card-editorial group cursor-pointer ${i < INITIAL_VISIBLE ? 'stagger-card' : 'gallery-card-late'}`}
               >
-                <div className="relative aspect-[3/4]">
+                <div className="relative aspect-[3/4] min-h-[320px]">
                   <img
                     src={image.src}
                     alt=""
@@ -136,6 +142,30 @@ export default function Gallery() {
                 </div>
               </figure>
             ))}
+          {lightboxIndex !== null && (
+            <div
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+              onClick={() => setLightboxIndex(null)}
+              role="dialog"
+              aria-modal="true"
+              aria-label="View image full size"
+            >
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setLightboxIndex(null); }}
+                className="absolute top-4 right-4 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <img
+                src={galleryImages[lightboxIndex].src}
+                alt=""
+                className="max-w-full max-h-[90vh] w-auto h-auto object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          )}
           </div>
           {canLoadMore && (
             <div className="reveal-section flex justify-center mt-12">

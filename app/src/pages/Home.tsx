@@ -707,7 +707,7 @@ export default function Home() {
           <div className="reveal-section mb-12">
             <span className="label-mono text-forest/60 mb-4 block">On The Scene</span>
             <h2 className="headline-section text-forest text-4xl lg:text-5xl mb-4">
-              Event Coverage
+              Coverage
             </h2>
             <p className="body-large text-forest/60 max-w-2xl">
               Photos, updates, and post-game analysis from the biggest nights. 

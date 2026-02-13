@@ -61,7 +61,7 @@ export default function Events() {
           <div className="reveal-section mb-16 text-center">
             <span className="label-mono text-lime mb-4 block">Event Galleries</span>
             <h2 className="headline-section text-offwhite text-4xl lg:text-5xl mb-4">
-              Event Coverage Galleries
+              Event Galleries
             </h2>
             <p className="body-large text-offwhite/60 max-w-2xl mx-auto">
               Photo galleries from the events we've covered — from community initiatives to Super Bowl exclusives.

@@ -183,7 +183,7 @@ export default function Layout() {
         </div>
       </div>
 
-      <main className="pt-[145px]">
+      <main className="pt-[110px]">
         <Outlet />
       </main>
 

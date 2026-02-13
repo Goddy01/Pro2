@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ExternalLink, Youtube, ArrowRight } from 'lucide-react';
@@ -159,10 +158,15 @@ export default function Coverage() {
             ))}
           </div>
           <div className="reveal-section mt-14 flex justify-center">
-            <Link to="/events" className="btn-premium inline-flex items-center gap-2">
-              View event galleries
+            <a
+              href="https://www.youtube.com/@sidelinesports3840"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-premium inline-flex items-center gap-2"
+            >
+              View more
               <ArrowRight className="w-4 h-4" />
-            </Link>
+            </a>
           </div>
         </div>
       </section>

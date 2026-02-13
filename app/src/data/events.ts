@@ -16,6 +16,7 @@ export const EVENTS = [
     description:
       'The Impact of Ronald McDonald House with Marnie Schneider & CEO Grace McIntosh.',
     images: [
+      '/RMH Event/rmh2.png',
       '/RMH Event/IMG_8595.PNG',
       '/RMH Event/F1793232-1BA8-41C6-BD1C-5727EFCA5B80.jpeg',
       '/RMH Event/IMG_2562.png',
@@ -29,7 +30,6 @@ export const EVENTS = [
       '/RMH Event/IMG_8640.png',
       '/RMH Event/IMG_8643.png',
       '/RMH Event/rmh1.png',
-      '/RMH Event/rmh2.png',
     ],
   },
 ] as const;

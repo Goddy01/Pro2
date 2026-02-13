@@ -5,7 +5,8 @@ import {
   Play, ArrowRight, Youtube, Podcast, 
   Headphones, Clock, 
   Calendar, User, Bookmark, Share2,
-  Star, ArrowUpRight
+  Star, ArrowUpRight,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import '../App.css';
 
@@ -17,11 +18,19 @@ const PODCAST_LINKS = [
   { href: 'https://podcasts.apple.com/us/podcast/sideline-sports/id1565070611', icon: Podcast, label: 'Apple Podcasts' },
 ];
 
+const WATCH_VIDEOS = [
+  { title: 'Sideline Sports', videoId: '0HZWARKVflQ', duration: 'Video' },
+  { title: 'Super Bowl LX Recap Live from San Francisco', videoId: 'mz4Aktj4Zxw', duration: 'Shorts' },
+  { title: 'Mike Trout Postgame Interview | Los Angeles Angels', videoId: 'ssBAzJHiUws', duration: 'Shorts' },
+  { title: 'Exclusive Interview with Kenny Einhorn: 20+ Years as Eagles Statistician | Super Bowl LII Champion', videoId: 'ymupY14vvCs', duration: 'Video' },
+];
+
 export default function Home() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [showPodcastPlatforms, setShowPodcastPlatforms] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
+  const watchCarouselRef = useRef<HTMLDivElement>(null);
 
   const featuredArticles = [
     {
@@ -190,6 +199,40 @@ export default function Home() {
     }, mainRef);
 
     return () => ctx.revert();
+  }, []);
+
+  // Infinite watch carousel: start at middle set, jump at boundaries
+  useEffect(() => {
+    const el = watchCarouselRef.current;
+    if (!el) return;
+
+    const run = () => {
+      const setWidth = el.scrollWidth / 3;
+      if (setWidth <= 0) return;
+      el.scrollLeft = setWidth;
+    };
+
+    const t = setTimeout(run, 50);
+    const onResize = () => run();
+    window.addEventListener('resize', onResize);
+
+    const onScroll = () => {
+      const setWidth = el.scrollWidth / 3;
+      if (setWidth <= 0) return;
+      if (el.scrollLeft <= 0) {
+        el.scrollLeft += setWidth;
+      } else if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 2) {
+        el.scrollLeft -= setWidth;
+      }
+    };
+
+    el.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('resize', onResize);
+      el.removeEventListener('scroll', onScroll);
+    };
   }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
@@ -503,58 +546,102 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section 5: Video Content */}
-      <section id="watch" className="section-premium py-24">
+      {/* Section 5: Video Content - Carousel */}
+      <section id="watch" className="section-premium py-24 overflow-hidden">
         <div className="w-full px-6 lg:px-12">
-          <div className="reveal-section mb-12">
-            <span className="label-mono text-lime mb-4 block">Watch</span>
-            <h2 className="headline-section text-offwhite text-4xl lg:text-5xl">
-              Behind the Playbook
-            </h2>
+          <div className="reveal-section mb-12 flex items-end justify-between gap-4">
+            <div>
+              <span className="label-mono text-lime mb-4 block">Watch</span>
+              <h2 className="headline-section text-offwhite text-4xl lg:text-5xl">
+                Behind the Playbook
+              </h2>
+            </div>
+            <a
+              href="https://www.youtube.com/@sidelinesports3840"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary group hidden lg:flex items-center gap-2 shrink-0"
+            >
+              View More
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </a>
           </div>
 
-          <div className="reveal-section grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 relative group cursor-pointer overflow-hidden">
-              <div className="aspect-video">
-                <img 
-                  src="/media_video.jpg" 
-                  alt="Video content" 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-forest/90 via-forest/20 to-transparent" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <button className="w-20 h-20 bg-lime rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                  <Play className="w-8 h-8 text-forest fill-forest ml-1" />
-                </button>
-              </div>
-              <div className="absolute bottom-8 left-8 right-8">
-                <span className="tag-premium mb-4">Film Breakdown</span>
-                <h3 className="headline-article text-offwhite text-2xl lg:text-3xl">
-                  Inside the Film Room: How the Defense Changed Everything
-                </h3>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              {[
-                { title: 'Locker Room Access: Post-Game Emotions', duration: '8:24' },
-                { title: 'Player Interview: The Mindset of a Champion', duration: '12:45' },
-                { title: 'Practice Report: Week 4 Observations', duration: '6:18' },
-              ].map((video, i) => (
-                <div key={i} className="card-editorial p-4 group cursor-pointer flex gap-4">
-                  <div className="w-24 h-16 bg-offwhite/10 flex-shrink-0 flex items-center justify-center">
-                    <Play className="w-6 h-6 text-offwhite/40 group-hover:text-lime transition-colors" />
-                  </div>
-                  <div>
-                    <h4 className="text-offwhite text-sm font-medium mb-1 group-hover:text-lime transition-colors line-clamp-2">
+          <div className="reveal-section relative -mx-6 lg:-mx-12">
+            <button
+              type="button"
+              onClick={() => {
+                const el = watchCarouselRef.current;
+                if (el) el.scrollBy({ left: -((el.querySelector('a')?.getBoundingClientRect().width ?? 320) + 32), behavior: 'smooth' });
+              }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-forest border border-offwhite/20 text-offwhite flex items-center justify-center hover:bg-forest/90 hover:text-lime hover:border-lime/50 transition-colors shadow-lg"
+              aria-label="Previous videos"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const el = watchCarouselRef.current;
+                if (el) el.scrollBy({ left: (el.querySelector('a')?.getBoundingClientRect().width ?? 320) + 32, behavior: 'smooth' });
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-forest border border-offwhite/20 text-offwhite flex items-center justify-center hover:bg-forest/90 hover:text-lime hover:border-lime/50 transition-colors shadow-lg"
+              aria-label="Next videos"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+            <div
+              ref={watchCarouselRef}
+              className="watch-carousel overflow-x-auto scroll-smooth snap-x snap-mandatory flex gap-10 px-12 lg:px-16 py-2"
+            >
+              {[0, 1, 2].map((repeatIndex) =>
+                WATCH_VIDEOS.map((video, i) => (
+                  <a
+                    key={`${repeatIndex}-${i}`}
+                    href={`https://www.youtube.com/watch?v=${video.videoId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group cursor-pointer flex-shrink-0 w-[360px] sm:w-[380px] lg:w-[540px] snap-center"
+                  >
+                    <div className="relative overflow-hidden mb-4">
+                      <div className="aspect-video bg-offwhite/10 relative rounded overflow-hidden">
+                        <img
+                          src={`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`}
+                          alt={video.title}
+                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-forest/80 via-transparent to-transparent" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-16 h-16 bg-offwhite/90 rounded-full flex items-center justify-center group-hover:bg-lime transition-colors">
+                            <Play className="w-8 h-8 text-forest ml-1" fill="currentColor" />
+                          </div>
+                        </div>
+                        <div className="absolute top-4 right-4">
+                          <span className="bg-forest/90 text-offwhite text-[10px] font-bold uppercase tracking-wider px-2 py-1">
+                            {video.duration}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <h3 className="headline-article text-offwhite text-lg lg:text-xl group-hover:text-lime transition-colors line-clamp-2">
                       {video.title}
-                    </h4>
-                    <span className="text-offwhite/40 text-xs">{video.duration}</span>
-                  </div>
-                </div>
-              ))}
+                    </h3>
+                  </a>
+                ))
+              )}
             </div>
+          </div>
+
+          <div className="reveal-section lg:hidden text-center mt-8">
+            <a
+              href="https://www.youtube.com/@sidelinesports3840"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary group inline-flex items-center gap-2"
+            >
+              View More
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </a>
           </div>
         </div>
       </section>
@@ -573,8 +660,8 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="reveal-section grid lg:grid-cols-2 gap-8">
-            <div className="relative overflow-hidden group cursor-pointer h-[280px] sm:h-[320px] lg:h-[360px]">
+          <div className="reveal-section grid lg:grid-cols-2 gap-8 items-stretch">
+            <div className="relative overflow-hidden group cursor-pointer h-[280px] sm:h-[320px] lg:h-full min-h-0">
               <img 
                 src="/coverage.jpg" 
                 alt="Event coverage" 
@@ -594,13 +681,14 @@ export default function Home() {
 
             <div className="space-y-6">
               {[
-                { type: 'NBA Drafts' },
-                { type: 'Super Bowl' },
-                { type: 'Hall of Fame' },
-                { type: 'Soccer Events' },
+                { type: 'NBA Drafts', description: 'In-depth coverage capturing the excitement and anticipation of NBA and WNBA drafts, spotlighting future stars.' },
+                { type: 'Super Bowl', description: 'On-the-ground coverage from the biggest game in sports — Radio Row, game day, and the moments that define the season.' },
+                { type: 'Hall of Fame', description: 'Exclusive interviews and photo galleries from Pro Football and MLB Hall of Fame ceremonies honoring legends.' },
+                { type: 'Soccer Events', description: 'Live coverage of US Soccer matches and Premier League preseason tours, capturing the passion on and off the field.' },
               ].map((event, i) => (
                 <div key={i} className="bg-offwhite border border-forest/10 p-6 group cursor-pointer hover:border-forest/30 transition-colors">
-                  <span className="text-red-600 text-sm font-bold uppercase tracking-wider">{event.type}</span>
+                  <span className="text-lime text-sm font-bold uppercase tracking-wider">{event.type}</span>
+                  <p className="text-forest/90 text-sm lg:text-base mt-3 leading-relaxed">{event.description}</p>
                 </div>
               ))}
             </div>

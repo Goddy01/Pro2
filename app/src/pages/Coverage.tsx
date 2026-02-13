@@ -13,17 +13,17 @@ const coverages = [
   },
   {
     title: 'NBA Drafts',
-    description: 'From the green room to the first pick, we capture the drama, the decisions, and the next generation of stars.',
+    description: 'In-depth coverage capturing the excitement and anticipation of NBA and WNBA drafts, spotlighting future stars.',
     image: '/topics_celebration.jpg',
   },
   {
     title: 'Hall of Fame',
-    description: 'Ceremonies, speeches, and the legends who shaped the game. Our coverage brings you inside the most prestigious honors in sports.',
+    description: 'Exclusive interviews and photo galleries from Pro Football and MLB Hall of Fame ceremonies honoring legends. ',
     image: '/grid_1.jpg',
   },
   {
     title: 'Soccer Events',
-    description: 'Domestic leagues, international matches, and the global game. Sideline Sports covers soccer at every level.',
+    description: 'Live coverage of US Soccer matches and Premier League preseason tours, capturing the passion on and off the field.',
     image: '/grid_2.jpg',
   },
 ];
@@ -86,28 +86,21 @@ export default function Coverage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-10">
+          <div className="max-w-3xl">
             {coverages.map((item, i) => (
               <article
                 key={i}
-                className="stagger-card card-editorial overflow-hidden group"
+                className="stagger-card py-8 first:pt-0"
               >
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover img-editorial transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-forest/90 via-forest/30 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8">
-                    <h3 className="headline-article text-offwhite text-2xl lg:text-3xl mb-2 group-hover:text-lime transition-colors">
-                      {item.title}
-                    </h3>
-                    <p className="text-offwhite/80 text-sm lg:text-base">
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
+                {i > 0 && (
+                  <hr className="border-offwhite/10 mb-8" aria-hidden />
+                )}
+                <h3 className="headline-article text-lime font-bold text-xl lg:text-2xl uppercase tracking-wide mb-4">
+                  {item.title}
+                </h3>
+                <p className="text-offwhite/80 text-sm lg:text-base leading-relaxed">
+                  {item.description}
+                </p>
               </article>
             ))}
           </div>

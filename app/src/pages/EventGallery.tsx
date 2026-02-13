@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowLeft, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { EVENTS } from '../data/events';
 import '../App.css';
 
@@ -14,18 +14,12 @@ export default function EventGallery() {
   const { eventId } = useParams<{ eventId: string }>();
   const mainRef = useRef<HTMLDivElement>(null);
   const [showAll, setShowAll] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const event = EVENTS.find((e) => e.id === eventId);
   if (!event) return <Navigate to="/coverage" replace />;
 
   const imagesToShow = showAll ? event.images : event.images.slice(0, INITIAL_IMAGE_COUNT);
   const hasMore = event.images.length > INITIAL_IMAGE_COUNT;
-
-  useEffect(() => {
-    document.body.style.overflow = lightboxIndex !== null ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [lightboxIndex]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -93,11 +87,7 @@ export default function EventGallery() {
             {imagesToShow.map((src, i) => (
               <div
                 key={`${src}-${i}`}
-                role="button"
-                tabIndex={0}
-                onClick={() => setLightboxIndex(i)}
-                onKeyDown={(e) => e.key === 'Enter' && setLightboxIndex(i)}
-                className="event-image-card overflow-hidden rounded-sm border border-offwhite/10 bg-offwhite/5 aspect-[4/3] min-h-[280px] group cursor-pointer"
+                className="event-image-card overflow-hidden rounded-sm border border-offwhite/10 bg-offwhite/5 aspect-[4/3] min-h-[280px] group"
               >
                 <img
                   src={src}
@@ -108,30 +98,6 @@ export default function EventGallery() {
                 />
               </div>
             ))}
-          {lightboxIndex !== null && (
-            <div
-              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
-              onClick={() => setLightboxIndex(null)}
-              role="dialog"
-              aria-modal="true"
-              aria-label="View image full size"
-            >
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setLightboxIndex(null); }}
-                className="absolute top-4 right-4 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-                aria-label="Close"
-              >
-                <X className="w-6 h-6" />
-              </button>
-              <img
-                src={imagesToShow[lightboxIndex]}
-                alt=""
-                className="max-w-full max-h-[90vh] w-auto h-auto object-contain"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-          )}
           </div>
 
           {hasMore && (

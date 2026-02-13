@@ -87,12 +87,12 @@ export default function EventGallery() {
             {imagesToShow.map((src, i) => (
               <div
                 key={`${src}-${i}`}
-                className="event-image-card overflow-hidden rounded-sm border border-offwhite/10 bg-offwhite/5 group"
+                className="event-image-card overflow-hidden rounded-sm border border-offwhite/10 bg-offwhite/5 aspect-[4/3] group"
               >
                 <img
                   src={src}
                   alt=""
-                  className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                   decoding="async"
                 />

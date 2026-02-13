@@ -130,7 +130,7 @@ export default function Gallery() {
                     alt=""
                     loading="lazy"
                     decoding="async"
-                    className="w-full h-full object-cover img-editorial transition-transform duration-700 group-hover:scale-105"
+                    className="w-full h-full object-cover object-center img-editorial transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-forest/85 via-forest/10 to-transparent" />
                 </div>

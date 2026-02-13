@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-error.log*
+
+# Build artifacts and temporary files
+dist/
+build/
+*.tsbuildinfo
+coverage/
+.nyc_output/
+
+# Editor/IDE specific files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+.history/
+
+# NPM/Yarn specific files
+package-lock.json
+yarn.lock
+npm-shrinkwrap.json
+
+# Optional: if you have a specific upload folder
+uploads/
+temp/

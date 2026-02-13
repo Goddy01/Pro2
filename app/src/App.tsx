@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Layout from './Layout';
 import Home from './pages/Home';
 import Team from './pages/Team';
@@ -7,23 +8,31 @@ import Coverage from './pages/Coverage';
 import EventGallery from './pages/EventGallery';
 import Events from './pages/Events';
 import Gallery from './pages/Gallery';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
+import WorkWithUs from './pages/WorkWithUs';
 import './App.css';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="stories" element={<Stories />} />
-          <Route path="coverage" element={<Coverage />} />
-          <Route path="coverage/event/:eventId" element={<EventGallery />} />
-          <Route path="events" element={<Events />} />
-          <Route path="team" element={<Team />} />
-          <Route path="gallery" element={<Gallery />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="stories" element={<Stories />} />
+            <Route path="coverage" element={<Coverage />} />
+            <Route path="coverage/event/:eventId" element={<EventGallery />} />
+            <Route path="events" element={<Events />} />
+            <Route path="team" element={<Team />} />
+            <Route path="gallery" element={<Gallery />} />
+            <Route path="work-with-us" element={<WorkWithUs />} />
+          </Route>
+          <Route path="superuser" element={<AdminLogin />} />
+          <Route path="admin" element={<AdminDashboard />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

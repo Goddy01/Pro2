@@ -1,0 +1,93 @@
+import { Router } from 'express';
+import db from '../db.js';
+
+const router = Router();
+
+const MAX_NAME = 200;
+const MAX_PHONE = 30;
+const MAX_EMAIL = 254;
+const MAX_INTRO = 2000;
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const RATE_LIMIT_MAX = 5; // per IP per window
+
+const rateLimitMap = new Map();
+
+function getClientIp(req) {
+  return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+}
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  let entry = rateLimitMap.get(ip);
+  if (!entry) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (now >= entry.resetAt) {
+    entry.count = 1;
+    entry.resetAt = now + RATE_LIMIT_WINDOW_MS;
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count += 1;
+  return true;
+}
+
+function stripHtml(str) {
+  if (typeof str !== 'string') return '';
+  return str
+    .replace(/<[^>]*>/g, '')
+    .replace(/javascript:/gi, '')
+    .replace(/data:/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+router.post('/', async (req, res) => {
+  try {
+    const ip = getClientIp(req);
+    if (!checkRateLimit(ip)) {
+      return res.status(429).json({ error: 'Too many submissions. Please try again later.' });
+    }
+
+    const body = req.body;
+    if (!body || typeof body !== 'object') {
+      return res.status(400).json({ error: 'Invalid request body' });
+    }
+
+    let name = typeof body.name === 'string' ? body.name.trim().slice(0, MAX_NAME) : '';
+    let phone = typeof body.phone === 'string' ? body.phone.trim().slice(0, MAX_PHONE) : '';
+    let email = typeof body.email === 'string' ? body.email.trim().slice(0, MAX_EMAIL).toLowerCase() : '';
+    let introduction = typeof body.introduction === 'string' ? stripHtml(body.introduction).slice(0, MAX_INTRO).trim() : '';
+
+    if (body.introduction?.length > MAX_INTRO) {
+      return res.status(400).json({ error: `Introduction must be ${MAX_INTRO} characters or less` });
+    }
+
+    if (!name || name.length < 2) {
+      return res.status(400).json({ error: 'Name must be at least 2 characters' });
+    }
+    if (!phone || phone.replace(/\D/g, '').length < 10) {
+      return res.status(400).json({ error: 'Valid phone number required' });
+    }
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    if (!email || !emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Valid email required' });
+    }
+    if (!introduction || introduction.length < 50) {
+      return res.status(400).json({ error: 'Introduction must be at least 50 characters' });
+    }
+
+    await db.query(
+      `INSERT INTO work_with_us (name, phone, email, introduction) VALUES ($1, $2, $3, $4)`,
+      [name, phone, email, introduction]
+    );
+
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    console.error('work-with-us error:', err);
+    res.status(500).json({ error: 'Could not submit. Please try again.' });
+  }
+});
+
+export default router;

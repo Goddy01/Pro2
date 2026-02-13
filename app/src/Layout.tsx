@@ -42,14 +42,15 @@ const fallbackMarqueeFeeds = [
 
 const navItems = [
   { label: 'Articles', to: '/stories' },
-  { label: 'Watch', href: '/#watch' },
-  { label: 'Listen', href: '/#listen' },
-  { label: 'Events', to: '/events' },
+  // { label: 'Watch', href: '/#watch' },
+  // { label: 'Listen', href: '/#listen' },
+  { label: 'About', href: '/#about' },
+  { label: 'Work with Us', to: '/work-with-us' },
+  { label: 'Team', to: '/team' },
   { label: 'Media', to: '/gallery' },
   { label: 'Coverage', to: '/coverage' },
-  { label: 'Team', to: '/team' },
-  { label: 'About', href: '/#about' },
-  { label: 'Contact', href: '/#contact' },
+  { label: 'Events', to: '/events' },
+  // { label: 'Contact', href: '/#contact' },
 ];
 
 export default function Layout() {

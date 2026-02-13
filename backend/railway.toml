@@ -1,0 +1,8 @@
+# Railway: build = install only; start = run server at deploy time (not during build).
+# This prevents "npm run start" from running during build (which would try to connect to DB and fail).
+
+[build]
+buildCommand = "npm install"
+
+[deploy]
+startCommand = "npm start"

@@ -22,19 +22,19 @@ const teamMembers = [
   {
     name: 'Jay Nelson',
     role: 'Sports Personality & Media Executive',
-    bio: 'Will Peralta is a Multimedia Photographer for Sideline Sports, covering professional sports and entertainment events. He has photographed the NBA, NFL, MLB, and major artists, focusing on capturing authentic moments that reflect the atmosphere and story of each client and event.',
+    bio: 'Will Peralta is a Multimedia Photographer for Sideline Sports & Entertainment, covering professional sports and entertainment events. He has photographed the NBA, NFL, MLB, and major artists, focusing on capturing authentic moments that reflect the atmosphere and story of each client and event.',
     image: '/JAY.jpg',
   },
   {
     name: 'James Tatum',
     role: 'Director of Content & Media Operations',
-    bio: 'James Tatum is a multimedia sports journalist and media executive with Sideline Sports, overseeing content strategy, video production, website management, and talent recruitment. A first-generation graduate driven by passion and determination, he has covered major events across the NFL, MLB, and Premier League. From interviewing athletes and executives to delivering in-depth analysis, feature stories, and digital content, James brings energy and insight to every platform, blending on-camera presence with strong writing and leadership skills to build an authentic, impactful sports media brand.',
+    bio: 'James Tatum is a multimedia sports journalist and media executive with Sideline Sports & Entertainment, overseeing content strategy, video production, website management, and talent recruitment. A first-generation graduate driven by passion and determination, he has covered major events across the NFL, MLB, and Premier League. From interviewing athletes and executives to delivering in-depth analysis, feature stories, and digital content, James brings energy and insight to every platform, blending on-camera presence with strong writing and leadership skills to build an authentic, impactful sports media brand.',
     image: '/JAMES-TATUM.jpg',
   },
   {
     name: 'Will Peralta',
     role: 'Multimedia Photographer',
-    bio: 'Will Peralta is a Multimedia Photographer for Sideline Sports, covering professional sports and entertainment events. He has photographed the NBA, NFL, MLB, and major artists, focusing on capturing authentic moments that reflect the atmosphere and story of each client and event.',
+    bio: 'Will Peralta is a Multimedia Photographer for Sideline Sports & Entertainment, covering professional sports and entertainment events. He has photographed the NBA, NFL, MLB, and major artists, focusing on capturing authentic moments that reflect the atmosphere and story of each client and event.',
     image: '/WILL-PERALTA.jpg',
   },
 ];

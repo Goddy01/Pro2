@@ -82,7 +82,7 @@ export default function Coverage() {
               Where We've Been
             </h2>
             <p className="body-large text-offwhite/60 max-w-2xl mx-auto">
-              Sideline Sports brings you authentic coverage from the biggest events in sports and entertainment.
+              Sideline Sports &amp; Entertainment brings you authentic coverage from the biggest events in sports and entertainment.
             </p>
           </div>
 

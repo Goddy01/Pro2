@@ -820,10 +820,10 @@ export default function Home() {
               <div className="space-y-4 body-editorial text-offwhite/60">
                 <h3 className="text-offwhite font-editorial font-semibold text-xl mt-8 mb-3">Mission statement</h3>
                 <p>
-                  Sideline Sports is committed to delivering authentic coverage of sports and entertainment rooted in credibility, insight, and passion. We prioritize substance over sensationalism, informed analysis over empty headlines, and meaningful storytelling over click-driven noise. Our mission is to be a trusted source for fans who want real conversations about the games, the culture, and the moments that shape both industries.
+                  Sideline Sports &amp; Entertainment started as a sports media company and is now expanding into the entertainment space. We are committed to delivering authentic coverage of sports and entertainment rooted in credibility, insight, and passion. We prioritize substance over sensationalism, informed analysis over empty headlines, and meaningful storytelling over click-driven noise. Our mission is to be a trusted source for fans who want real conversations about the games, the culture, and the moments that shape both industries.
                 </p>
                 <p>
-                  Sideline Sports has accepted the challenge to fill the void in sports and entertainment coverage. We deliver authentic, informed reporting, thoughtful analysis, and meaningful storytelling — free from hype, clickbait, or political noise. Our mission is to be a trusted destination for fans who want real insight, real conversations, and real coverage of the moments and personalities that shape sports and entertainment.
+                  Sideline Sports &amp; Entertainment has accepted the challenge to fill the void in sports and entertainment coverage. We deliver authentic, informed reporting, thoughtful analysis, and meaningful storytelling — free from hype, clickbait, or political noise. Our mission is to be a trusted destination for fans who want real insight, real conversations, and real coverage of the moments and personalities that shape sports and entertainment.
                 </p>
               </div>
             </div>

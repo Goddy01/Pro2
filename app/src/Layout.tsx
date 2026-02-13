@@ -1,6 +1,29 @@
 import { useEffect, useState } from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { Zap, Menu, X, Twitter, Youtube, Instagram, Podcast } from 'lucide-react';
+import { Zap, Menu, X, Youtube, Instagram } from 'lucide-react';
+
+function IconXLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+function IconTikTok({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+    </svg>
+  );
+}
+
+const SOCIAL_LINKS = [
+  { href: 'https://x.com/sidelinesports', icon: IconXLogo, label: 'X' },
+  { href: 'https://www.instagram.com/instagram?igsh=MTkyaWd4emtidGIwYQ==', icon: Instagram, label: 'Instagram' },
+  { href: 'https://www.tiktok.com/@sidelinesports?_r=1&_t=ZP-93rbPS1Y3Be', icon: IconTikTok, label: 'TikTok' },
+  { href: 'https://www.youtube.com/@sidelinesports3840?si=E5TmSrVYn-l-qBWh', icon: Youtube, label: 'YouTube' },
+];
 
 const marqueeFeeds = [
   { source: 'NFL.com', url: 'https://www.nfl.com/?format=rss' },
@@ -176,13 +199,8 @@ export default function Layout() {
                 Original reporting, in-depth analysis, and compelling storytelling, built for fans who want more than the box score.
               </p>
               <div className="flex items-center gap-4">
-                {[
-                  { icon: Twitter, label: 'X' },
-                  { icon: Youtube, label: 'YouTube' },
-                  { icon: Instagram, label: 'Instagram' },
-                  { icon: Podcast, label: 'TikTok' },
-                ].map((social, i) => (
-                  <a key={i} href="#" className="w-10 h-10 border border-offwhite/20 flex items-center justify-center text-offwhite/50 hover:text-lime hover:border-lime transition-all" aria-label={social.label}>
+                {SOCIAL_LINKS.map((social, i) => (
+                  <a key={i} href={social.href} target="_blank" rel="noopener noreferrer" className="w-10 h-10 border border-offwhite/20 flex items-center justify-center text-offwhite/50 hover:text-lime hover:border-lime transition-all" aria-label={social.label}>
                     <social.icon className="w-4 h-4" />
                   </a>
                 ))}

@@ -19,6 +19,10 @@ app.use(express.json({ limit: '50kb' }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/work-with-us', workWithUsRoutes);

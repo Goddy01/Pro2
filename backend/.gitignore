@@ -34,3 +34,5 @@ npm-shrinkwrap.json
 # Optional: if you have a specific upload folder
 uploads/
 temp/
+
+.md

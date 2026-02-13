@@ -6,7 +6,7 @@ import {
   Headphones, Clock, 
   Calendar, User, Bookmark, Share2,
   Star, ArrowUpRight,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, X
 } from 'lucide-react';
 import '../App.css';
 
@@ -29,6 +29,16 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [showPodcastPlatforms, setShowPodcastPlatforms] = useState(false);
+  const [testimonialForm, setTestimonialForm] = useState({
+    name: '',
+    company: '',
+    role: '',
+    message: '',
+    stars: 0,
+  });
+  const [testimonialSubmitted, setTestimonialSubmitted] = useState(false);
+  const [testimonialErrors, setTestimonialErrors] = useState<Record<string, string>>({});
+  const [showTestimonialForm, setShowTestimonialForm] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
   const watchCarouselRef = useRef<HTMLDivElement>(null);
   const testimonialsCarouselRef = useRef<HTMLDivElement>(null);
@@ -266,6 +276,19 @@ export default function Home() {
         setSubscribed(false);
       }, 4000);
     }
+  };
+
+  const handleTestimonialSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+    if (!testimonialForm.name.trim()) errors.name = 'Name is required';
+    if (!testimonialForm.message.trim()) errors.message = 'Message is required';
+    if (testimonialForm.stars < 1 || testimonialForm.stars > 5) errors.stars = 'Please select a rating (1–5 stars)';
+    setTestimonialErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+    // TODO: send to backend
+    setTestimonialSubmitted(true);
+    setTestimonialForm({ name: '', company: '', role: '', message: '', stars: 0 });
   };
 
   return (
@@ -880,20 +903,164 @@ export default function Home() {
                         <Star key={j} className="w-4 h-4 text-lime fill-lime" />
                       ))}
                     </div>
-                    <p className="font-editorial text-forest text-lg italic mb-6 line-clamp-5">
+                    <p className="text-forest text-base font-normal leading-relaxed mb-6 line-clamp-5">
                       "{testimonial.quote}"
                     </p>
-                    <div>
-                      <p className="text-forest font-semibold">{testimonial.author}</p>
-                      <p className="text-forest/50 text-sm mt-1">{testimonial.role}</p>
+                    <div className="border-t border-forest/10 pt-4">
+                      <p className="text-forest font-semibold text-base antialiased" style={{ textShadow: 'none' }}>{testimonial.author}</p>
+                      <p className="text-forest/80 text-sm font-medium mt-1 antialiased" style={{ textShadow: 'none' }}>{testimonial.role}</p>
                     </div>
                   </div>
                 ))
               )}
             </div>
           </div>
+
+          <div className="reveal-section text-center mt-12">
+            <button
+              type="button"
+              onClick={() => {
+                setShowTestimonialForm(true);
+                setTimeout(() => document.getElementById('write-testimonial')?.scrollIntoView({ behavior: 'smooth' }), 100);
+              }}
+              className="bg-lime text-offwhite font-display font-bold uppercase tracking-[0.3em] px-8 py-4 rounded-none border-0 hover:bg-lime/90 transition-colors inline-flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(210,34,42,0.4)]"
+              style={{ textShadow: '0 0 20px rgba(255,255,255,0.35), 0 1px 1px rgba(255,255,255,0.5)' }}
+            >
+              Write a testimonial
+            </button>
+          </div>
         </div>
       </section>
+
+      {showTestimonialForm && (
+      /* Section 10b: Write a testimonial */
+      <section id="write-testimonial" className="section-light-premium py-24 border-t border-forest/10 relative">
+        <button
+          type="button"
+          onClick={() => setShowTestimonialForm(false)}
+          className="absolute top-6 right-6 lg:right-12 p-2 text-forest/70 hover:text-forest hover:bg-forest/10 rounded transition-colors"
+          aria-label="Close write testimonial"
+        >
+          <X className="w-6 h-6" />
+        </button>
+        <div className="w-full px-6 lg:px-12">
+          <div className="reveal-section text-center mb-12">
+            <span className="label-mono text-forest/60 mb-4 block">Share your experience</span>
+            <h2 className="headline-section text-forest text-4xl mb-4 ">
+              Write a testimonial
+            </h2>
+            <p className="body-large text-forest/60 max-w-xl mx-auto">
+              Enjoyed working with us? We’d love to hear from you.
+            </p>
+          </div>
+
+          <div className="reveal-section max-w-2xl mx-auto">
+            {testimonialSubmitted ? (
+              <div className="bg-offwhite border border-forest/10 p-8 text-center">
+                <p className="text-forest font-semibold">Thank you for your testimonial.</p>
+                <p className="text-forest/70 text-sm mt-2">We’ll review it and may feature it on our site.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleTestimonialSubmit} className="space-y-6">
+                <div>
+                  <label htmlFor="testimonial-name" className="block text-forest font-medium text-sm mb-2">
+                    Name <span className="text-lime">*</span>
+                  </label>
+                  <input
+                    id="testimonial-name"
+                    type="text"
+                    required
+                    value={testimonialForm.name}
+                    onChange={(e) => setTestimonialForm((f) => ({ ...f, name: e.target.value }))}
+                    placeholder="Your name"
+                    className="w-full px-4 py-3 bg-offwhite border border-forest/20 text-forest placeholder:text-forest/40 focus:outline-none focus:border-lime transition-colors"
+                  />
+                  {testimonialErrors.name && (
+                    <p className="text-lime text-xs mt-1">{testimonialErrors.name}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="testimonial-company" className="block text-forest font-medium text-sm mb-2">
+                    Company
+                  </label>
+                  <input
+                    id="testimonial-company"
+                    type="text"
+                    value={testimonialForm.company}
+                    onChange={(e) => setTestimonialForm((f) => ({ ...f, company: e.target.value }))}
+                    placeholder="Company (optional)"
+                    className="w-full px-4 py-3 bg-offwhite border border-forest/20 text-forest placeholder:text-forest/40 focus:outline-none focus:border-lime transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="testimonial-role" className="block text-forest font-medium text-sm mb-2">
+                    Role
+                  </label>
+                  <input
+                    id="testimonial-role"
+                    type="text"
+                    value={testimonialForm.role}
+                    onChange={(e) => setTestimonialForm((f) => ({ ...f, role: e.target.value }))}
+                    placeholder="Your role or title (optional)"
+                    className="w-full px-4 py-3 bg-offwhite border border-forest/20 text-forest placeholder:text-forest/40 focus:outline-none focus:border-lime transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="testimonial-message" className="block text-forest font-medium text-sm mb-2">
+                    Message <span className="text-lime">*</span>
+                  </label>
+                  <textarea
+                    id="testimonial-message"
+                    required
+                    rows={5}
+                    value={testimonialForm.message}
+                    onChange={(e) => setTestimonialForm((f) => ({ ...f, message: e.target.value }))}
+                    placeholder="Your testimonial..."
+                    className="w-full px-4 py-3 bg-offwhite border border-forest/20 text-forest placeholder:text-forest/40 focus:outline-none focus:border-lime transition-colors resize-y min-h-[120px]"
+                  />
+                  {testimonialErrors.message && (
+                    <p className="text-lime text-xs mt-1">{testimonialErrors.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-forest font-medium text-sm mb-2">
+                    Rating <span className="text-lime">*</span>
+                  </label>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setTestimonialForm((f) => ({ ...f, stars: n }))}
+                        className="p-1 focus:outline-none focus:ring-2 focus:ring-lime focus:ring-offset-2 rounded"
+                        aria-label={`${n} star${n > 1 ? 's' : ''}`}
+                      >
+                        <Star
+                          className={`w-8 h-8 transition-colors ${
+                            n <= testimonialForm.stars ? 'text-lime fill-lime' : 'text-forest/30'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  {testimonialErrors.stars && (
+                    <p className="text-lime text-xs mt-1">{testimonialErrors.stars}</p>
+                  )}
+                </div>
+
+                <button type="submit" className="w-full sm:w-auto px-8 py-4 bg-lime text-offwhite font-semibold uppercase tracking-wide hover:bg-lime/90 transition-colors">
+                  Submit testimonial
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </section>
+      )}
 
       {/* Section 11: Newsletter */}
       <section id="subscribe" className="section-premium py-24">

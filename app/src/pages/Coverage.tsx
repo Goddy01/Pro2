@@ -1,32 +1,63 @@
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ExternalLink, Youtube } from 'lucide-react';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const coverages = [
+const COVERAGE_VIDEOS = [
   {
-    title: 'Super Bowl',
-    description: 'On-the-ground coverage from the biggest game in sports — Radio Row, game day, and the moments that define the season.',
-    image: '/event_coverage.jpg',
+    title: 'Philadelphia Eagles Super Bowl Coverage & Press Conferences #Eagles vs #Chiefs #SuperBowlLIX',
+    url: 'https://www.youtube.com/watch?v=lNOAooyqLd8',
+    videoId: 'lNOAooyqLd8',
   },
   {
-    title: 'NBA Drafts',
-    description: 'In-depth coverage capturing the excitement and anticipation of NBA and WNBA drafts, spotlighting future stars.',
-    image: '/topics_celebration.jpg',
+    title: 'Liverpool FC vs Arsenal FC Summer 2024 USA Tour | Premier League Preseason Media Coverage',
+    url: 'https://www.youtube.com/watch?v=s3Iq7VGZnv4&feature=youtu.be',
+    videoId: 's3Iq7VGZnv4',
   },
   {
-    title: 'Hall of Fame',
-    description: 'Exclusive interviews and photo galleries from Pro Football and MLB Hall of Fame ceremonies honoring legends. ',
-    image: '/grid_1.jpg',
+    title: 'Interview with NFL Executive & Former Player Troy Vincent | Vincent Country Community Event',
+    url: 'https://www.youtube.com/shorts/4fn77lY3eXA',
+    videoId: '4fn77lY3eXA',
   },
   {
-    title: 'Soccer Events',
-    description: 'Live coverage of US Soccer matches and Premier League preseason tours, capturing the passion on and off the field.',
-    image: '/grid_2.jpg',
+    title: 'Super Bowl 59 Exclusive: The Impact of Ronald McDonald House | Marnie Schneider & CEO Grace McIntosh',
+    url: 'https://www.youtube.com/watch?v=4TPIvNqU03A',
+    videoId: '4TPIvNqU03A',
+  },
+  {
+    title: 'James Tatum on Fox 29 Philadelphia | Super Bowl LIX Coverage | Sideline Sports',
+    url: 'https://www.youtube.com/watch?v=UyQH93szCR4',
+    videoId: 'UyQH93szCR4',
+  },
+  {
+    title: 'One on One Interview with #Eagles Landon Dickerson #SuperBowlLIX',
+    url: 'https://www.youtube.com/watch?v=LGrL5-ZVzSA',
+    videoId: 'LGrL5-ZVzSA',
+  },
+  {
+    title: "The Linc'd In Podcast: Philadelphia Eagles Announcer Merrill Reese Joins The Conversation",
+    url: 'https://www.youtube.com/watch?v=fBdnH5DJwMw',
+    videoId: 'fBdnH5DJwMw',
+  },
+  {
+    title: 'Interview Compilation for Super Bowl LVII',
+    url: 'https://www.youtube.com/watch?v=ueiIg4FnGBo',
+    videoId: 'ueiIg4FnGBo',
+  },
+  {
+    title: 'Patrick Mahomes on facing Eagles in Super Bowl',
+    url: 'https://www.youtube.com/watch?v=OMDMurVBZiE',
+    videoId: 'OMDMurVBZiE',
   },
 ];
+
+function getThumbnail(videoId: string | null): string | null {
+  if (!videoId) return null;
+  return `https://img.youtube.com/vi/${videoId}/sddefault.jpg`;
+}
 
 export default function Coverage() {
   const mainRef = useRef<HTMLDivElement>(null);
@@ -58,7 +89,7 @@ export default function Coverage() {
             y: 0,
             opacity: 1,
             duration: 0.7,
-            delay: i * 0.1,
+            delay: i * 0.08,
             ease: 'power3.out',
             scrollTrigger: {
               trigger: card,
@@ -75,7 +106,7 @@ export default function Coverage() {
   return (
     <div ref={mainRef} className="relative">
       <section className="section-premium py-24">
-        <div className="w-full px-6 lg:px-12">
+        <div className="w-full px-6 lg:px-12 max-w-7xl mx-auto">
           <div className="reveal-section mb-16 text-center">
             <span className="label-mono text-lime mb-4 block">Coverage</span>
             <h2 className="headline-section text-offwhite text-4xl lg:text-5xl mb-4">
@@ -86,21 +117,41 @@ export default function Coverage() {
             </p>
           </div>
 
-          <div className="max-w-3xl">
-            {coverages.map((item, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+            {COVERAGE_VIDEOS.map((item, i) => (
               <article
                 key={i}
-                className="stagger-card py-8 first:pt-0"
+                className="stagger-card group"
               >
-                {i > 0 && (
-                  <hr className="border-offwhite/10 mb-8" aria-hidden />
-                )}
-                <h3 className="headline-article text-lime font-bold text-xl lg:text-2xl uppercase tracking-wide mb-4">
-                  {item.title}
-                </h3>
-                <p className="text-offwhite/80 text-sm lg:text-base leading-relaxed">
-                  {item.description}
-                </p>
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col h-full bg-offwhite/5 border border-offwhite/10 hover:border-lime/40 transition-colors overflow-hidden"
+                >
+                  <div className="aspect-video bg-offwhite/10 overflow-hidden">
+                    {getThumbnail(item.videoId) ? (
+                      <img
+                        src={getThumbnail(item.videoId)!}
+                        alt=""
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-offwhite/40">
+                        <Youtube className="w-20 h-20" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 flex flex-col justify-between p-6">
+                    <h3 className="headline-article text-offwhite font-bold text-lg lg:text-xl group-hover:text-lime transition-colors line-clamp-3">
+                      {item.title}
+                    </h3>
+                    <span className="mt-4 inline-flex items-center gap-2 text-lime text-sm font-medium">
+                      Watch on YouTube
+                      <ExternalLink className="w-4 h-4 shrink-0" />
+                    </span>
+                  </div>
+                </a>
               </article>
             ))}
           </div>

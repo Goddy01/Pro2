@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { 
@@ -737,6 +738,15 @@ export default function Home() {
                 </div>
               ))}
             </div>
+          </div>
+          <div className="reveal-section mt-10 flex justify-start">
+            <Link
+              to="/coverage"
+              className="btn-premium inline-flex items-center gap-2"
+            >
+              View More Coverages
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>

@@ -22,7 +22,8 @@ const PODCAST_LINKS = [
   { href: 'https://podcasts.apple.com/us/podcast/sideline-sports/id1565070611', icon: Podcast, label: 'Apple Podcasts' },
 ];
 
-const WATCH_VIDEOS = [
+type WatchVideo = { title: string; videoId: string | null; videoUrl?: string; duration: string };
+const FALLBACK_WATCH: WatchVideo[] = [
   { title: 'Sideline Sports', videoId: '0HZWARKVflQ', duration: 'Video' },
   { title: 'Super Bowl LX Recap Live from San Francisco', videoId: 'mz4Aktj4Zxw', duration: 'Shorts' },
   { title: 'Mike Trout Postgame Interview | Los Angeles Angels', videoId: 'ssBAzJHiUws', duration: 'Shorts' },
@@ -30,6 +31,8 @@ const WATCH_VIDEOS = [
 ];
 
 export default function Home() {
+  const [watchVideos, setWatchVideos] = useState<WatchVideo[]>([]);
+  const [podcastEpisodesFromApi, setPodcastEpisodesFromApi] = useState<{ title: string; description: string; duration: string; guests?: string[] }[]>([]);
   const [showPodcastPlatforms, setShowPodcastPlatforms] = useState(false);
   const [testimonialForm, setTestimonialForm] = useState({
     name: '',
@@ -44,6 +47,37 @@ export default function Home() {
   const mainRef = useRef<HTMLDivElement>(null);
   const watchCarouselRef = useRef<HTMLDivElement>(null);
   const testimonialsCarouselRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetch('/api/podcast')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setPodcastEpisodesFromApi(data.map((e: { title: string; description?: string; duration_label?: string; guests?: string }) => ({
+            title: e.title,
+            description: e.description || '',
+            duration: e.duration_label || '',
+            guests: e.guests ? e.guests.split(',').map((s: string) => s.trim()).filter(Boolean) : undefined,
+          })));
+        }
+      })
+      .catch(() => {});
+  }, []);
+  useEffect(() => {
+    fetch('/api/watch')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setWatchVideos(data.map((v: { title: string; videoId?: string | null; videoUrl?: string; duration?: string }) => ({
+            title: v.title,
+            videoId: v.videoId || null,
+            videoUrl: v.videoUrl,
+            duration: v.duration || 'Video',
+          })));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const featuredArticles = [
     {
@@ -90,7 +124,7 @@ export default function Home() {
     { id: 6, title: 'By the Numbers: What the Defense Stats Actually Say', category: 'Analysis', excerpt: 'Traditional statistics tell one story, but advanced analytics reveal another. We dove deep into the data — pressure rates, coverage grades, tackling efficiency, and more — to understand why this defense has been so effective. The numbers might surprise you, and they definitely challenge some conventional wisdom.', author: 'David Park', authorRole: 'Analytics Director', image: '/grid_6.jpg', date: 'January 5, 2026', readTime: '10 min read' },
   ];
 
-  const podcastEpisodes = [
+  const staticPodcastEpisodes = [
     {
       id: 1,
       title: 'Micah Parsons Trade Drama & Jon Shearer’s Top 10 Hall of Fame Picks',
@@ -113,6 +147,9 @@ export default function Home() {
       guests: ['JB Ellis','Jon Shearer', 'Dave DesRochers']
     }
   ];
+  const podcastEpisodes = podcastEpisodesFromApi.length > 0
+    ? podcastEpisodesFromApi
+    : staticPodcastEpisodes;
 
   const testimonials = [
     { author: 'Momcilo Velickovic', role: 'Attorney at Law & Basketball Agent', quote: 'Sideline Sports & Entertainment delivers high-quality podcasts that are both engaging and educational. Their topics are insightful, and the overall experience makes it easy to recommend collaborating or being featured on their platform.' },
@@ -638,41 +675,52 @@ export default function Home() {
               className="watch-carousel overflow-x-auto scroll-smooth snap-x snap-mandatory flex gap-10 px-12 lg:px-16 py-2"
             >
               {[0, 1, 2].map((repeatIndex) =>
-                WATCH_VIDEOS.map((video, i) => (
-                  <a
-                    key={`${repeatIndex}-${i}`}
-                    href={`https://www.youtube.com/watch?v=${video.videoId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group cursor-pointer flex-shrink-0 w-[360px] sm:w-[380px] lg:w-[540px] snap-center"
-                  >
-                    <div className="relative overflow-hidden mb-4">
-                      <div className="aspect-video bg-offwhite/10 relative rounded overflow-hidden">
-                        <img
-                          src={`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`}
-                          alt=""
-                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-forest/80 via-transparent to-transparent" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-16 h-16 bg-offwhite/90 rounded-full flex items-center justify-center group-hover:bg-lime transition-colors">
-                            <Play className="w-8 h-8 text-forest ml-1" fill="currentColor" />
+                (watchVideos.length ? watchVideos : FALLBACK_WATCH).map((video, i) => {
+                  const isYoutube = !!video.videoId;
+                  const href = isYoutube ? `https://www.youtube.com/watch?v=${video.videoId}` : (video.videoUrl || '#');
+                  const thumb = isYoutube ? `https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg` : (video.videoUrl || '');
+                  return (
+                    <a
+                      key={`${repeatIndex}-${i}`}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group cursor-pointer flex-shrink-0 w-[360px] sm:w-[380px] lg:w-[540px] snap-center"
+                    >
+                      <div className="relative overflow-hidden mb-4">
+                        <div className="aspect-video bg-offwhite/10 relative rounded overflow-hidden">
+                          {thumb ? (
+                            <img
+                              src={thumb}
+                              alt=""
+                              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 bg-offwhite/10 flex items-center justify-center">
+                              <Play className="w-12 h-12 text-offwhite/50" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-forest/80 via-transparent to-transparent" />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-16 h-16 bg-offwhite/90 rounded-full flex items-center justify-center group-hover:bg-lime transition-colors">
+                              <Play className="w-8 h-8 text-forest ml-1" fill="currentColor" />
+                            </div>
+                          </div>
+                          <div className="absolute top-4 right-4">
+                            <span className="bg-forest/90 text-offwhite text-[10px] font-bold uppercase tracking-wider px-2 py-1">
+                              {video.duration}
+                            </span>
                           </div>
                         </div>
-                        <div className="absolute top-4 right-4">
-                          <span className="bg-forest/90 text-offwhite text-[10px] font-bold uppercase tracking-wider px-2 py-1">
-                            {video.duration}
-                          </span>
-                        </div>
                       </div>
-                    </div>
-                    <h3 className="headline-article text-offwhite text-lg lg:text-xl group-hover:text-lime transition-colors line-clamp-2">
-                      {video.title}
-                    </h3>
-                  </a>
-                ))
+                      <h3 className="headline-article text-offwhite text-lg lg:text-xl group-hover:text-lime transition-colors line-clamp-2">
+                        {video.title}
+                      </h3>
+                    </a>
+                  );
+                })
               )}
             </div>
           </div>

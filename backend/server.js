@@ -8,6 +8,10 @@ import { initDb } from './db.js';
 import authRoutes, { ensureAdmin } from './routes/auth.js';
 import articleRoutes from './routes/articles.js';
 import workWithUsRoutes from './routes/workWithUs.js';
+import galleryRoutes from './routes/gallery.js';
+import eventsRoutes from './routes/events.js';
+import podcastRoutes from './routes/podcast.js';
+import watchRoutes from './routes/watch.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 4000;
@@ -26,6 +30,10 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/work-with-us', workWithUsRoutes);
+app.use('/api/gallery', galleryRoutes);
+app.use('/api/events', eventsRoutes);
+app.use('/api/podcast', podcastRoutes);
+app.use('/api/watch', watchRoutes);
 
 async function start() {
   if (!process.env.DATABASE_URL) {

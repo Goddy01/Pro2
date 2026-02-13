@@ -10,13 +10,35 @@ gsap.registerPlugin(ScrollTrigger);
 
 const INITIAL_IMAGE_COUNT = 3;
 
+type EventData = { id: string; title: string; description: string; images: string[] };
+
 export default function EventGallery() {
   const { eventId } = useParams<{ eventId: string }>();
   const mainRef = useRef<HTMLDivElement>(null);
   const [showAll, setShowAll] = useState(false);
+  const [event, setEvent] = useState<EventData | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
-  const event = EVENTS.find((e) => e.id === eventId);
-  if (!event) return <Navigate to="/coverage" replace />;
+  useEffect(() => {
+    if (!eventId) {
+      setNotFound(true);
+      return;
+    }
+    fetch(`/api/events/${eventId}`)
+      .then((r) => {
+        if (!r.ok) throw new Error('Not found');
+        return r.json();
+      })
+      .then((data) => setEvent({ id: data.id, title: data.title, description: data.description || '', images: data.images || [] }))
+      .catch(() => {
+        const staticEvent = EVENTS.find((e) => e.id === eventId);
+        if (staticEvent) setEvent(staticEvent as unknown as EventData);
+        else setNotFound(true);
+      });
+  }, [eventId]);
+
+  if (notFound) return <Navigate to="/events" replace />;
+  if (!event) return null;
 
   const imagesToShow = showAll ? event.images : event.images.slice(0, INITIAL_IMAGE_COUNT);
   const hasMore = event.images.length > INITIAL_IMAGE_COUNT;

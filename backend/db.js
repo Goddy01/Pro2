@@ -35,6 +35,51 @@ export async function initDb() {
         introduction TEXT NOT NULL,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS gallery_images (
+        id SERIAL PRIMARY KEY,
+        image_url TEXT NOT NULL,
+        caption TEXT,
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS events (
+        id SERIAL PRIMARY KEY,
+        slug VARCHAR(100) UNIQUE NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS event_images (
+        id SERIAL PRIMARY KEY,
+        event_id INT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+        image_url TEXT NOT NULL,
+        sort_order INT DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS podcast_episodes (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        duration_label VARCHAR(50),
+        guests TEXT,
+        audio_url TEXT,
+        video_url TEXT,
+        thumbnail_url TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS watch_videos (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        video_id VARCHAR(20),
+        video_url TEXT,
+        duration_label VARCHAR(50) DEFAULT 'Video',
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
     `);
   } finally {
     client.release();

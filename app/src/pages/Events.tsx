@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -10,8 +10,23 @@ gsap.registerPlugin(ScrollTrigger);
 
 const PREVIEW_IMAGES = 1;
 
+type EventItem = { id: string; title: string; description: string; images: string[] };
+
 export default function Events() {
   const mainRef = useRef<HTMLDivElement>(null);
+  const [events, setEvents] = useState<EventItem[]>([]);
+
+  useEffect(() => {
+    fetch('/api/events')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) setEvents(data);
+        else setEvents(EVENTS as unknown as EventItem[]);
+      })
+      .catch(() => setEvents(EVENTS as unknown as EventItem[]));
+  }, []);
+
+  const list = events.length > 0 ? events : (EVENTS as unknown as EventItem[]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -52,7 +67,7 @@ export default function Events() {
       });
     }, mainRef);
     return () => ctx.revert();
-  }, []);
+  }, [list.length]);
 
   return (
     <div ref={mainRef} className="relative">
@@ -69,8 +84,9 @@ export default function Events() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {EVENTS.map((event) => {
-              const previewImages = event.images.slice(0, PREVIEW_IMAGES);
+            {list.map((event) => {
+              const imgs = event.images || [];
+              const previewImages = imgs.slice(0, PREVIEW_IMAGES);
               return (
                 <div
                   key={event.id}
@@ -85,7 +101,7 @@ export default function Events() {
                     </p>
                     <div className="aspect-[4/3] overflow-hidden rounded-sm bg-offwhite/10 group mb-6">
                       <img
-                        src={previewImages[0]}
+                        src={previewImages[0] || ''}
                         alt=""
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"

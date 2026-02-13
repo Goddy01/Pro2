@@ -9,52 +9,34 @@ gsap.registerPlugin(ScrollTrigger);
 const INITIAL_VISIBLE = 12;
 const LOAD_MORE_STEP = 12;
 
-const galleryImages = [
+const FALLBACK_GALLERY = [
   { src: '/media/1.jpg', alt: 'Sideline Sports & Entertainment' },
   { src: '/media/2.jpg', alt: 'Sideline Sports & Entertainment' },
   { src: '/media/3.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/1532646176157624422.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/2359157038716308892.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/2692397244325096066.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/2761035603652569794.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/2772238397044479159.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/2899172770795387.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/3510623865048350093.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/3825053133675075935.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/4044688110347809626.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/4142831271204609322.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/5990357541264182351.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/7054099196915847454.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/8236872768832652205.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/8430488630247374580.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/8688937658204051989.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/9211792278450370841.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/DSC00013-3.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/DSC00073.jpg', alt: 'Sideline Sports & Entertainment' },
   { src: '/media/DSC04893.jpg', alt: 'Sideline Sports & Entertainment' },
   { src: '/media/DSC07660.jpg', alt: 'Sideline Sports & Entertainment' },
   { src: '/media/DSC08405.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/DSC09404.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/DSC09569-3.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC1198-Enhanced-NR.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC1723-Enhanced-NR.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC1887-Enhanced-NR.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC1934-Enhanced-NR.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC2074-Enhanced-NR.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC2546-Enhanced-NR.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC2661-Enhanced-NR.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC2783-Enhanced-NR.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC3101-Enhanced-NR%202.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC4127-Enhanced-NR.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC4274-Enhanced-NR.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC5631-Enhanced-NR.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC5750-Enhanced-NR.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/_DSC8587-Enhanced-NR.jpg', alt: 'Sideline Sports & Entertainment' },
 ];
 
 export default function Gallery() {
   const mainRef = useRef<HTMLDivElement>(null);
+  const [images, setImages] = useState<{ src: string; alt: string }[]>([]);
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
+
+  useEffect(() => {
+    fetch('/api/gallery')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setImages(data.map((x: { src: string; alt?: string }) => ({ src: x.src, alt: x.alt || 'Sideline Sports & Entertainment' })));
+        } else {
+          setImages(FALLBACK_GALLERY);
+        }
+      })
+      .catch(() => setImages(FALLBACK_GALLERY));
+  }, []);
+
+  const galleryImages = images.length > 0 ? images : FALLBACK_GALLERY;
   const canLoadMore = visibleCount < galleryImages.length;
 
   useEffect(() => {

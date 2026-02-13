@@ -4,6 +4,8 @@ import Home from './pages/Home';
 import Team from './pages/Team';
 import Stories from './pages/Stories';
 import Coverage from './pages/Coverage';
+import EventGallery from './pages/EventGallery';
+import Events from './pages/Events';
 import Gallery from './pages/Gallery';
 import './App.css';
 
@@ -15,6 +17,8 @@ function App() {
           <Route index element={<Home />} />
           <Route path="stories" element={<Stories />} />
           <Route path="coverage" element={<Coverage />} />
+          <Route path="coverage/event/:eventId" element={<EventGallery />} />
+          <Route path="events" element={<Events />} />
           <Route path="team" element={<Team />} />
           <Route path="gallery" element={<Gallery />} />
         </Route>

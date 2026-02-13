@@ -167,8 +167,11 @@ export default function Team() {
           <figure className="reveal-section overflow-hidden card-editorial max-w-3xl mx-auto mb-16 md:mb-20">
             <img
               src="/team.jpg"
-              alt="Sideline Sports & Entertainment team with Puka Nacua"
+              alt=""
               className="w-full h-auto object-cover img-editorial max-h-[320px]"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
             />
             <figcaption className="mt-4 text-center py-3 px-6 bg-[#1A1A1A] text-offwhite font-bold uppercase tracking-wide text-sm md:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
               Sideline Sports & Entertainment team with Puka Nacua of the Los Angeles Rams
@@ -219,8 +222,10 @@ export default function Team() {
                     <div className="relative overflow-hidden aspect-[3/4]">
                       <img
                         src={member.image}
-                        alt={member.name}
+                        alt=""
                         className="w-full h-full object-cover img-editorial transition-transform duration-700 group-hover:scale-105"
+                        loading="lazy"
+                        decoding="async"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-forest/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>

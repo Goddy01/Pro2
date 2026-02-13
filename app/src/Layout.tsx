@@ -44,7 +44,7 @@ const navItems = [
   { label: 'Articles', to: '/stories' },
   { label: 'Watch', href: '/#watch' },
   { label: 'Listen', href: '/#listen' },
-  { label: 'Events', href: '/#events' },
+  { label: 'Events', to: '/events' },
   { label: 'Media', to: '/gallery' },
   { label: 'Coverage', to: '/coverage' },
   { label: 'Team', to: '/team' },
@@ -118,7 +118,7 @@ export default function Layout() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-forest/95 backdrop-blur-md border-b border-offwhite/5">
         <div className="px-6 lg:px-12 py-4 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/logo-180.png" alt="Sideline Sports & Entertainment logo" className="w-10 h-10 object-contain" />
+            <img src="/logo-180.png" alt="Sideline Sports & Entertainment logo" className="w-10 h-10 object-contain" decoding="async" width={40} height={40} />
             <span className="text-lime font-editorial font-black text-2xl italic">Sideline Sports & Entertainment</span>
           </Link>
           <div className="hidden lg:flex items-center gap-10">
@@ -192,7 +192,7 @@ export default function Layout() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-6">
-                <img src="/logo-180.png" alt="Sideline Sports & Entertainment logo" className="w-12 h-12 object-contain" />
+                <img src="/logo-180.png" alt="Sideline Sports & Entertainment logo" className="w-12 h-12 object-contain" decoding="async" width={48} height={48} />
                 <span className="text-lime font-editorial font-black text-3xl italic">Sideline Sports & Entertainment</span>
               </div>
               <p className="text-offwhite/50 text-sm max-w-md mb-6">

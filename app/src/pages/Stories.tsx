@@ -250,8 +250,10 @@ export default function Stories() {
                   <div className="relative overflow-hidden h-[220px]">
                     <img
                       src={card.image}
-                      alt={card.title}
+                      alt=""
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div className="absolute top-4 left-4">
                       <span className="bg-lime text-forest text-[10px] font-bold uppercase tracking-wider px-2 py-1">

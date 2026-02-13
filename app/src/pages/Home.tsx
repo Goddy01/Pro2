@@ -390,8 +390,11 @@ export default function Home() {
               <div className="relative overflow-hidden h-[400px] lg:h-[500px]">
                 <img 
                   src={featuredArticles[0].image} 
-                  alt={featuredArticles[0].title}
+                  alt=""
                   className="w-full h-full object-cover img-editorial"
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
                 />
                 <div className="absolute top-6 left-6">
                   <span className="tag-premium">{featuredArticles[0].category}</span>
@@ -437,8 +440,10 @@ export default function Home() {
                 <div className="relative overflow-hidden h-[250px]">
                   <img 
                     src={article.image} 
-                    alt={article.title}
+                    alt=""
                     className="w-full h-full object-cover img-editorial"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute top-4 left-4">
                     <span className="tag-premium text-[10px]">{article.category}</span>
@@ -477,7 +482,7 @@ export default function Home() {
               <article key={card.id} className="stagger-card group cursor-pointer">
                 <div className="bg-offwhite border border-forest/10 overflow-hidden hover:shadow-2xl transition-shadow duration-500">
                   <div className="relative overflow-hidden h-[220px]">
-                    <img src={card.image} alt={card.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <img src={card.image} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
                     <div className="absolute top-4 left-4">
                       <span className="bg-lime text-forest text-[10px] font-bold uppercase tracking-wider px-2 py-1">{card.category}</span>
                     </div>
@@ -511,7 +516,7 @@ export default function Home() {
             <div>
               <span className="label-mono text-lime mb-4 block">Listen</span>
               <h2 className="headline-section text-offwhite text-4xl lg:text-5xl mb-6">
-                The Preview Show
+                PODCASTS
               </h2>
               <p className="body-large text-offwhite/60 mb-8">
                 Weekly takes, guest interviews, and what to watch next. Join us every Wednesday 
@@ -579,8 +584,10 @@ export default function Home() {
               <div className="aspect-square overflow-hidden">
                 <img 
                   src="/podcast_cover.jpg" 
-                  alt="Podcast" 
+                  alt="" 
                   className="w-full h-full object-cover object-center scale-125 img-editorial"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div className="absolute -bottom-6 -left-6 bg-lime p-6">
@@ -599,7 +606,7 @@ export default function Home() {
             <div>
               <span className="label-mono text-lime mb-4 block">Watch</span>
               <h2 className="headline-section text-offwhite text-4xl lg:text-5xl">
-                Behind the Playbook
+                INTERVIEWS & VIDEOS
               </h2>
             </div>
             <a
@@ -653,8 +660,10 @@ export default function Home() {
                       <div className="aspect-video bg-offwhite/10 relative rounded overflow-hidden">
                         <img
                           src={`https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`}
-                          alt={video.title}
+                          alt=""
                           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                          decoding="async"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-forest/80 via-transparent to-transparent" />
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -710,18 +719,20 @@ export default function Home() {
             <div className="relative overflow-hidden group cursor-pointer h-[280px] sm:h-[320px] lg:h-full min-h-0">
               <img 
                 src="/coverage.jpg" 
-                alt="Event coverage" 
+                alt="" 
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              style={{ objectPosition: 'center 35%' }}
+                style={{ objectPosition: 'center 35%' }}
+                loading="lazy"
+                decoding="async"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-forest/90 via-transparent to-transparent pointer-events-none" />
               <div className="absolute bottom-8 left-8 right-8">
                 <span className="bg-lime text-forest text-[10px] font-bold uppercase tracking-wider px-2 py-1 mb-4 inline-block">
-                  Baseball Game
+                  Baseball
                 </span>
-                <h3 className="font-editorial font-bold text-offwhite text-2xl mb-2">
-                  The Night They Made History (Baseball)
-                </h3>
+                {/* <h3 className="font-editorial font-bold text-offwhite text-2xl mb-2">
+                  The Night They Made History
+                </h3> */}
               </div>
             </div>
 
@@ -774,8 +785,10 @@ export default function Home() {
                 <div className="relative aspect-[3/4]">
                   <img
                     src={image.src}
-                    alt={image.alt}
+                    alt=""
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-forest/85 via-forest/10 to-transparent" />
                   <figcaption className="absolute bottom-4 left-4 right-4 text-offwhite text-base lg:text-lg font-display font-bold uppercase tracking-[0.2em]">
@@ -849,8 +862,10 @@ export default function Home() {
             <div className="relative overflow-hidden max-h-[380px] lg:max-h-[420px]">
               <img 
                 src="/team.jpg" 
-                alt="Team celebration" 
+                alt="" 
                 className="w-full h-full object-cover object-center img-editorial"
+                loading="lazy"
+                decoding="async"
               />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-forest to-transparent h-1/3" />
             </div>

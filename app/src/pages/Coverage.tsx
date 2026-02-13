@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ExternalLink, Youtube } from 'lucide-react';
+import { ExternalLink, Youtube, ArrowRight } from 'lucide-react';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -135,6 +136,8 @@ export default function Coverage() {
                         src={getThumbnail(item.videoId)!}
                         alt=""
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        decoding="async"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-offwhite/40">
@@ -154,6 +157,12 @@ export default function Coverage() {
                 </a>
               </article>
             ))}
+          </div>
+          <div className="reveal-section mt-14 flex justify-center">
+            <Link to="/events" className="btn-premium inline-flex items-center gap-2">
+              View event galleries
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>

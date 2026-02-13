@@ -127,7 +127,7 @@ export default function Gallery() {
                 <div className="relative aspect-[3/4]">
                   <img
                     src={image.src}
-                    alt={image.alt}
+                    alt=""
                     loading="lazy"
                     decoding="async"
                     className="w-full h-full object-cover img-editorial transition-transform duration-700 group-hover:scale-105"

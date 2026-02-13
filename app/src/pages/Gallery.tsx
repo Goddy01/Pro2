@@ -60,6 +60,11 @@ export default function Gallery() {
   const canLoadMore = visibleCount < galleryImages.length;
 
   useEffect(() => {
+    document.body.style.overflow = lightboxIndex !== null ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [lightboxIndex]);
+
+  useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.utils.toArray<HTMLElement>('.reveal-section').forEach((section) => {
         gsap.fromTo(

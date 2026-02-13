@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Team from './pages/Team';
 import Stories from './pages/Stories';
 import Coverage from './pages/Coverage';
+import Gallery from './pages/Gallery';
 import './App.css';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Route path="stories" element={<Stories />} />
           <Route path="coverage" element={<Coverage />} />
           <Route path="team" element={<Team />} />
+          <Route path="gallery" element={<Gallery />} />
         </Route>
       </Routes>
     </BrowserRouter>

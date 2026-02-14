@@ -334,7 +334,13 @@ export default function AdminDashboard() {
             <ArrowLeft className="w-4 h-4" />
             Back to site
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <Link to="/admin/work-with-us-submissions" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
+              View Work with us submissions
+            </Link>
+            <Link to="/admin/newsletter-signups" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
+              View newsletter signups
+            </Link>
             <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); }} className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
               <UserPlus className="w-4 h-4" />
               Add new admin
@@ -347,7 +353,7 @@ export default function AdminDashboard() {
         </div>
 
         <h1 className="text-offwhite font-editorial font-bold text-2xl mb-2">Admin</h1>
-        <p className="text-offwhite/60 text-sm mb-6">Upload articles, gallery photos, events, and podcast episodes. <Link to="/admin/work-with-us-submissions" className="text-lime hover:underline">View Work with us submissions</Link> · <Link to="/admin/newsletter-signups" className="text-lime hover:underline">View newsletter signups</Link></p>
+        <p className="text-offwhite/60 text-sm mb-6">Upload articles, gallery photos, events, and podcast episodes.</p>
 
         <div className="flex flex-wrap gap-2 mb-8 border-b border-offwhite/10 pb-4">
           {TABS.map((tab) => (

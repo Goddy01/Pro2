@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, User } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Share2 } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import '../App.css';
 
@@ -27,6 +27,33 @@ export default function StoryDetail() {
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [shareCopied, setShareCopied] = useState(false);
+
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}` : '';
+
+  async function handleShare() {
+    const url = shareUrl || `${window.location.origin}/stories/${id}`;
+    const title = article?.title ?? 'Article';
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share({
+          title,
+          url,
+          text: `Read "${title}" on Sideline Sports & Entertainment`,
+        });
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2000);
+      }
+    } catch (err) {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2000);
+      }
+    }
+  }
 
   useEffect(() => {
     if (!id) return;
@@ -94,6 +121,16 @@ export default function StoryDetail() {
               <Calendar className="w-4 h-4" />
               {formatDate(article.created_at)}
             </span>
+            <button
+              type="button"
+              onClick={handleShare}
+              className="inline-flex items-center gap-2 text-offwhite/60 hover:text-lime transition-colors"
+              title="Share article link"
+              aria-label="Share article link"
+            >
+              <Share2 className="w-4 h-4" />
+              {shareCopied ? 'Link copied!' : 'Share'}
+            </button>
           </div>
         </header>
 

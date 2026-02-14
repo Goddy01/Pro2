@@ -55,7 +55,6 @@ export default function AdminDashboard() {
   const [watchTitle, setWatchTitle] = useState('');
   const [watchVideoId, setWatchVideoId] = useState('');
   const [watchDuration, setWatchDuration] = useState('Video');
-  const [watchVideoFile, setWatchVideoFile] = useState<File | null>(null);
 
   if (!isAuthenticated) return <Navigate to="/superuser" replace />;
 
@@ -253,8 +252,8 @@ export default function AdminDashboard() {
       return;
     }
     const hasYoutube = /^[a-zA-Z0-9_-]{11}$/.test(watchVideoId.trim()) || watchVideoId.includes('youtube') || watchVideoId.includes('youtu.be');
-    if (!watchVideoFile && !hasYoutube) {
-      setError('Add a YouTube video ID/URL or upload a video file');
+    if (!hasYoutube) {
+      setError('YouTube video ID or URL is required');
       return;
     }
     setLoading(true);
@@ -262,8 +261,7 @@ export default function AdminDashboard() {
       const form = new FormData();
       form.append('title', watchTitle.trim());
       form.append('duration_label', watchDuration.trim());
-      if (watchVideoId.trim()) form.append('video_id', watchVideoId.trim());
-      if (watchVideoFile) form.append('video', watchVideoFile);
+      form.append('video_id', watchVideoId.trim());
       const res = await fetch(apiUrl('/api/watch'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -278,7 +276,6 @@ export default function AdminDashboard() {
       setWatchTitle('');
       setWatchVideoId('');
       setWatchDuration('Video');
-      setWatchVideoFile(null);
     } catch {
       setError('Could not connect to server');
     } finally {
@@ -490,12 +487,8 @@ export default function AdminDashboard() {
               <input type="text" value={watchTitle} onChange={(e) => setWatchTitle(e.target.value)} className={inputClass} placeholder="Video title" required />
             </label>
             <label className="block">
-              <span className={labelClass}>YouTube video ID or URL</span>
-              <input type="text" value={watchVideoId} onChange={(e) => setWatchVideoId(e.target.value)} className={inputClass} placeholder="dQw4w9WgXcQ or full YouTube URL" />
-            </label>
-            <label className="block">
-              <span className={labelClass}>Or upload video file (if not using YouTube)</span>
-              <input type="file" accept="video/*,.mp4" onChange={(e) => setWatchVideoFile(e.target.files?.[0] || null)} className={inputClass} />
+              <span className={labelClass}>YouTube video ID or URL *</span>
+              <input type="text" value={watchVideoId} onChange={(e) => setWatchVideoId(e.target.value)} className={inputClass} placeholder="dQw4w9WgXcQ or full YouTube URL" required />
             </label>
             <label className="block">
               <span className={labelClass}>Duration label</span>

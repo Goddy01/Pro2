@@ -146,7 +146,7 @@ export default function StoryDetail() {
 
   return (
     <div className="min-h-screen bg-forest">
-      <article className="max-w-4xl mx-auto px-6 py-8 lg:py-10">
+      <article className="max-w-5xl lg:max-w-6xl mx-auto px-6 py-8 lg:py-10">
         <Link
           to="/stories"
           className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm mb-6"
@@ -167,10 +167,10 @@ export default function StoryDetail() {
           </span>
         </div>
 
-        {/* Two-column: sidebar (author, date, read time) + main (image, body) */}
+        {/* Two-column: sidebar (author, date, read time) + main (image, body). On mobile, author block first. */}
         <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 lg:gap-12">
-          {/* Left sidebar – contributor card */}
-          <aside className="lg:w-48 flex-shrink-0 order-2 lg:order-1">
+          {/* Left sidebar – contributor card; on mobile appears before article with extra spacing below */}
+          <aside className="lg:w-48 flex-shrink-0 order-1 lg:order-1 pb-12 mb-6 lg:pb-0 lg:mb-0 border-b border-offwhite/10 lg:border-b-0">
             <div className="flex lg:flex-col items-center lg:items-start gap-4 lg:gap-4">
               <div className="w-12 h-12 rounded-full bg-offwhite/10 flex items-center justify-center flex-shrink-0">
                 <User className="w-6 h-6 text-offwhite/60" />
@@ -196,8 +196,8 @@ export default function StoryDetail() {
             </div>
           </aside>
 
-          {/* Main content – hero image then body */}
-          <div className="order-1 lg:order-2 min-w-0">
+          {/* Main content – hero image then body; on mobile appears after author block */}
+          <div className="order-2 lg:order-2 min-w-0">
             {/* Hero image – rounded frame, full width of content column */}
             {article.image && (
               <div className="rounded-xl overflow-hidden bg-forest/30 mb-8 w-full aspect-[16/10] min-h-[260px] max-h-[420px]">

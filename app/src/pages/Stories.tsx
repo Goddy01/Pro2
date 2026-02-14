@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiUrl } from '../lib/api';
+import { encodeArticleId } from '../lib/articleId';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -142,7 +143,7 @@ export default function Stories() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
               {paginatedArticles.map((card) => (
-                <Link key={card.id} to={`/stories/${card.id}`} className="stagger-card group block">
+                <Link key={card.id} to={`/stories/${encodeArticleId(card.id)}`} className="stagger-card group block">
                   <article className="cursor-pointer h-full">
                     <div className="bg-offwhite border border-forest/10 overflow-hidden hover:shadow-2xl transition-shadow duration-500 h-full">
                       <div className="relative overflow-hidden h-[220px]">

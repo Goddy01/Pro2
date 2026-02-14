@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Calendar, User, Share2 } from 'lucide-react';
 import { apiUrl } from '../lib/api';
+import { decodeArticleId } from '../lib/articleId';
 import '../App.css';
 
 type Article = {
@@ -23,7 +24,7 @@ function formatDate(iso: string) {
 }
 
 export default function StoryDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { id: idHash } = useParams<{ id: string }>();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,7 +33,7 @@ export default function StoryDetail() {
   const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}` : '';
 
   async function handleShare() {
-    const url = shareUrl || `${window.location.origin}/stories/${id}`;
+    const url = shareUrl || (idHash ? `${window.location.origin}/stories/${idHash}` : '');
     const title = article?.title ?? 'Article';
     try {
       if (typeof navigator !== 'undefined' && navigator.share) {
@@ -56,11 +57,21 @@ export default function StoryDetail() {
   }
 
   useEffect(() => {
-    if (!id) return;
+    if (!idHash) {
+      setLoading(false);
+      setError('Invalid link');
+      return;
+    }
+    const numericId = decodeArticleId(idHash);
+    if (numericId == null || numericId < 1) {
+      setLoading(false);
+      setError('Article not found');
+      return;
+    }
     let cancelled = false;
     setLoading(true);
     setError('');
-    fetch(apiUrl(`/api/articles/${id}`))
+    fetch(apiUrl(`/api/articles/${numericId}`))
       .then((r) => {
         if (!r.ok) throw new Error(r.status === 404 ? 'Article not found' : 'Failed to load');
         return r.json();
@@ -75,7 +86,7 @@ export default function StoryDetail() {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [id]);
+  }, [idHash]);
 
   if (loading) {
     return (
@@ -101,11 +112,32 @@ export default function StoryDetail() {
 
   return (
     <div className="min-h-screen bg-forest">
-      <article className="max-w-4xl mx-auto px-6 py-12">
-        <Link to="/stories" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm mb-8">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Stories
-        </Link>
+      {/* Cover image at top – full width */}
+      {article.image && (
+        <div className="relative w-full h-[45vh] min-h-[280px] max-h-[520px] overflow-hidden">
+          <img
+            src={article.image}
+            alt=""
+            className="w-full h-full object-cover object-top"
+            loading="eager"
+          />
+          <Link
+            to="/stories"
+            className="absolute top-4 left-4 lg:left-8 inline-flex items-center gap-2 px-3 py-2 rounded bg-forest/80 text-offwhite/90 hover:text-lime hover:bg-forest transition-colors text-sm"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Stories
+          </Link>
+        </div>
+      )}
+
+      <article className="max-w-4xl mx-auto px-6 py-10">
+        {!article.image && (
+          <Link to="/stories" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm mb-8">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Stories
+          </Link>
+        )}
 
         <header className="mb-10">
           <span className="tag-premium mb-4 inline-block">{article.category}</span>
@@ -133,17 +165,6 @@ export default function StoryDetail() {
             </button>
           </div>
         </header>
-
-        {article.image && (
-          <div className="relative overflow-hidden rounded-lg mb-10 h-[320px] lg:h-[420px]">
-            <img
-              src={article.image}
-              alt=""
-              className="w-full h-full object-cover"
-              loading="eager"
-            />
-          </div>
-        )}
 
         <div
           className="prose-editorial prose prose-invert max-w-none text-offwhite/90 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-8 [&_h2]:mb-4 [&_h3]:text-lg [&_h3]:font-semibold [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-lime [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-offwhite/70 [&_a]:text-lime [&_a]:underline [&_img]:rounded-lg"

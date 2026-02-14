@@ -10,6 +10,7 @@ import {
   ChevronLeft, ChevronRight, X
 } from 'lucide-react';
 import { apiUrl } from '../lib/api';
+import { encodeArticleId } from '../lib/articleId';
 import { EVENTS } from '../data/events';
 import '../App.css';
 
@@ -421,7 +422,7 @@ export default function Home() {
           {/* Main Featured Article */}
           {featuredArticles.length > 0 && (
             <div className="reveal-section mb-12">
-              <Link to={`/stories/${featuredArticles[0].id}`} className="block">
+              <Link to={`/stories/${encodeArticleId(featuredArticles[0].id)}`} className="block">
                 <article className="card-editorial grid lg:grid-cols-2 gap-0 overflow-hidden group cursor-pointer">
                   <div className="relative overflow-hidden h-[400px] lg:h-[500px]">
                     <img 
@@ -472,7 +473,7 @@ export default function Home() {
           {featuredArticles.length > 1 && (
             <div className="grid lg:grid-cols-2 gap-8">
               {featuredArticles.slice(1, 3).map((article) => (
-                <Link key={article.id} to={`/stories/${article.id}`} className="block">
+                <Link key={article.id} to={`/stories/${encodeArticleId(article.id)}`} className="block">
                   <article className="stagger-card card-editorial overflow-hidden group cursor-pointer">
                     <div className="relative overflow-hidden h-[250px]">
                       <img 
@@ -518,7 +519,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {articleCards.map((card) => (
-              <Link key={card.id} to={`/stories/${card.id}`} className="stagger-card group block">
+              <Link key={card.id} to={`/stories/${encodeArticleId(card.id)}`} className="stagger-card group block">
                 <article className="cursor-pointer h-full">
                   <div className="bg-offwhite border border-forest/10 overflow-hidden hover:shadow-2xl transition-shadow duration-500 h-full">
                     <div className="relative overflow-hidden h-[220px]">

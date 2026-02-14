@@ -428,7 +428,7 @@ export default function Home() {
                     <img 
                       src={featuredArticles[0].image} 
                       alt=""
-                      className="w-full h-full object-cover img-editorial"
+                      className="w-full h-full object-cover object-top img-editorial"
                       loading="eager"
                       decoding="async"
                       fetchPriority="high"

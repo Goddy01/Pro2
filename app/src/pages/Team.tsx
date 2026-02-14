@@ -28,7 +28,7 @@ const teamMembers = [
     role: 'Founder and CEO',
     bio: 'J.B. Ellis is an American sports media personality, host, and interviewer known for his energetic style and passion for competition. A leading voice on Sideline Sports & Entertainment, he co-hosts Sideline Sports and leads original programs including Cubfidential and J & J Sports Express. Ellis has covered six Super Bowls and is credentialed with the NFL, NBA, and MLB, providing firsthand insight from major sporting events. He previously created and hosted The PROgram on the Bleav Network.',
     image: '/JB-ELLIS.jpg',
-    socials: { instagram: 'https://www.instagram.com/sidelinesports_j.b.ellis' },
+    socials: { instagram: 'https://www.instagram.com/sidelinesports_j.b.ellis', x: 'https://x.com/jb_theprogram' },
   },
   {
     name: 'Jon Shearer',

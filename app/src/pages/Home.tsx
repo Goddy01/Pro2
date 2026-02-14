@@ -366,7 +366,7 @@ export default function Home() {
                   className="btn-outline-premium inline-flex items-center gap-2"
                 >
                   <Headphones className="w-4 h-4" />
-                  Listen to Show
+                  Explore Shows
                 </button>
               </div>
               {showPodcastPlatforms && (

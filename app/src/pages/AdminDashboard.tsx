@@ -35,7 +35,8 @@ export default function AdminDashboard() {
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const [galleryCaption, setGalleryCaption] = useState('');
-  const [galleryImage, setGalleryImage] = useState<File | null>(null);
+  const [galleryImages, setGalleryImages] = useState<File[]>([]);
+  const [galleryUploadProgress, setGalleryUploadProgress] = useState<{ uploaded: number; total: number } | null>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const [eventTitle, setEventTitle] = useState('');
@@ -112,31 +113,41 @@ export default function AdminDashboard() {
   async function handleGallerySubmit(e: FormEvent) {
     e.preventDefault();
     clearMessages();
-    if (!galleryImage) {
-      setError('Choose an image');
+    if (!galleryImages.length) {
+      setError('Choose at least one image');
       return;
     }
     setLoading(true);
+    const total = galleryImages.length;
+    let uploaded = 0;
+    setGalleryUploadProgress({ uploaded: 0, total });
     try {
-      const form = new FormData();
-      form.append('image', galleryImage);
-      if (galleryCaption.trim()) form.append('caption', galleryCaption.trim());
-      const res = await fetch(apiUrl('/api/gallery'), {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: form,
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Upload failed');
-        return;
+      for (const file of galleryImages) {
+        const form = new FormData();
+        form.append('image', file);
+        if (galleryCaption.trim()) form.append('caption', galleryCaption.trim());
+        const res = await fetch(apiUrl('/api/gallery'), {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: form,
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setGalleryUploadProgress(null);
+          setError(data.error || `Upload failed (${uploaded} of ${total} uploaded)`);
+          return;
+        }
+        uploaded += 1;
+        setGalleryUploadProgress({ uploaded, total });
       }
-      setSuccess('Image added to gallery.');
+      setGalleryUploadProgress(null);
+      setSuccess(total === 1 ? 'Image added to gallery.' : `${total} images added to gallery.`);
       setGalleryCaption('');
-      setGalleryImage(null);
+      setGalleryImages([]);
       if (galleryInputRef.current) galleryInputRef.current.value = '';
     } catch {
-      setError('Could not connect to server');
+      setGalleryUploadProgress(null);
+      setError('Could not connect to server' + (uploaded ? ` (${uploaded} of ${total} uploaded)` : ''));
     } finally {
       setLoading(false);
     }
@@ -355,22 +366,28 @@ export default function AdminDashboard() {
         {activeTab === 'gallery' && (
           <form onSubmit={handleGallerySubmit} className="space-y-6">
             <label className="block">
-              <span className={labelClass}>Photo *</span>
+              <span className={labelClass}>Photos * (select one or multiple)</span>
               <input
                 ref={galleryInputRef}
                 type="file"
                 accept="image/*"
-                onChange={(e) => setGalleryImage(e.target.files?.[0] || null)}
+                multiple
+                onChange={(e) => setGalleryImages(Array.from(e.target.files || []))}
                 className={`${inputClass} file:mr-4 file:py-2 file:px-4 file:bg-lime file:text-forest file:border-0`}
-                required
               />
+              {galleryImages.length > 0 && (
+                <p className="text-offwhite/50 text-sm mt-1">{galleryImages.length} image{galleryImages.length !== 1 ? 's' : ''} selected</p>
+              )}
             </label>
             <label className="block">
-              <span className={labelClass}>Caption (optional)</span>
+              <span className={labelClass}>Caption (optional, applied to all)</span>
               <input type="text" value={galleryCaption} onChange={(e) => setGalleryCaption(e.target.value)} className={inputClass} placeholder="Brief caption" />
             </label>
-            <button type="submit" disabled={loading} className="btn-premium py-4 px-8 disabled:opacity-50">
-              {loading ? 'Uploading...' : 'Add to Gallery'}
+            {galleryUploadProgress && (
+              <p className="text-lime text-sm">{galleryUploadProgress.total > 1 ? `Uploading ${galleryUploadProgress.uploaded} of ${galleryUploadProgress.total}...` : 'Uploading...'}</p>
+            )}
+            <button type="submit" disabled={loading || !galleryImages.length} className="btn-premium py-4 px-8 disabled:opacity-50">
+              {loading ? (galleryUploadProgress ? `Uploading ${galleryUploadProgress.uploaded}/${galleryUploadProgress.total}...` : 'Uploading...') : galleryImages.length > 1 ? `Add ${galleryImages.length} to Gallery` : 'Add to Gallery'}
             </button>
           </form>
         )}

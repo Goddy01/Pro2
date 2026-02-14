@@ -175,7 +175,7 @@ export default function Layout() {
             )}
           </div>
           <div className="flex items-center gap-4">
-            <a href="https://www.youtube.com/@sidelinesports3840?sub_confirmation=1" target="_blank" rel="noopener noreferrer" className="hidden sm:inline-flex btn-premium text-xs py-3 px-6">
+            <a href="#signup" className="hidden sm:inline-flex btn-premium text-xs py-3 px-6">
               Subscribe
             </a>
             <button className="lg:hidden text-offwhite" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -197,6 +197,9 @@ export default function Layout() {
                   </a>
                 )
               )}
+              <a href="#signup" className="text-offwhite text-lg font-medium" onClick={() => setMobileMenuOpen(false)}>
+                Subscribe
+              </a>
             </div>
           </div>
         )}
@@ -221,7 +224,7 @@ export default function Layout() {
 
       <footer id="contact" className="section-premium pt-24 pb-12 border-t border-offwhite/5">
         <div className="w-full px-6 lg:px-12">
-          <div className="max-w-2xl mb-16">
+          <div id="signup" className="max-w-2xl mb-16 scroll-mt-28">
             <h3 className="text-offwhite font-display font-bold text-xl mb-2">Sign up for more information</h3>
             <p className="text-offwhite/60 text-sm mb-4">
               Get the latest Sideline Sports news and information. We’ll compile a list of everyone interested.

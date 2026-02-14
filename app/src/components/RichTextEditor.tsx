@@ -216,6 +216,14 @@ function Toolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
         >
           —
         </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().setHardBreak().run()}
+          className={toolbarBtnClass}
+          title="Line break (Shift+Enter)"
+        >
+          ↵
+        </button>
         <span className="w-px h-5 bg-offwhite/20" />
         <button
           type="button"
@@ -250,7 +258,7 @@ type RichTextEditorProps = {
   minHeight?: string;
 };
 
-export default function RichTextEditor({ value, onChange, placeholder = 'Write your article...', className = '', minHeight = '12rem' }: RichTextEditorProps) {
+export default function RichTextEditor({ value, onChange, placeholder = 'Write your article...', className = '', minHeight = '32rem' }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -270,7 +278,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Write y
     editorProps: {
       attributes: {
         class:
-          'prose prose-invert max-w-none min-h-[8rem] px-4 py-3 text-offwhite placeholder:text-offwhite/40 focus:outline-none [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-lg [&_h3]:font-semibold [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-lime [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-offwhite/80 [&_code]:bg-offwhite/10 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-offwhite/10 [&_pre]:p-4 [&_pre]:rounded [&_pre]:overflow-x-auto [&_hr]:border-offwhite/20 [&_mark]:bg-lime/30 [&_mark]:text-forest [&_.tiptap-table]:border-collapse [&_.tiptap-table_td]:border [&_.tiptap-table_td]:border-offwhite/20 [&_.tiptap-table_th]:border [&_.tiptap-table_th]:border-offwhite/20 [&_input[type=checkbox]]:rounded',
+          'prose prose-invert max-w-none min-h-[28rem] px-4 py-4 text-offwhite placeholder:text-offwhite/40 focus:outline-none text-base [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-lg [&_h3]:font-semibold [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-lime [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-offwhite/80 [&_code]:bg-offwhite/10 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-offwhite/10 [&_pre]:p-4 [&_pre]:rounded [&_pre]:overflow-x-auto [&_hr]:border-offwhite/20 [&_mark]:bg-lime/30 [&_mark]:text-forest [&_.tiptap-table]:border-collapse [&_.tiptap-table_td]:border [&_.tiptap-table_td]:border-offwhite/20 [&_.tiptap-table_th]:border [&_.tiptap-table_th]:border-offwhite/20 [&_input[type=checkbox]]:rounded',
       },
     },
   });

@@ -9,6 +9,31 @@ const MIN_USERNAME_LEN = 2;
 const MAX_USERNAME_LEN = 100;
 const MIN_PASSWORD_LEN = 6;
 
+const LOGIN_RATE_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_RATE_MAX = 10;
+const loginRateMap = new Map();
+
+function getClientIp(req) {
+  return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+}
+
+function checkLoginRateLimit(ip) {
+  const now = Date.now();
+  let entry = loginRateMap.get(ip);
+  if (!entry) {
+    loginRateMap.set(ip, { count: 1, resetAt: now + LOGIN_RATE_WINDOW_MS });
+    return true;
+  }
+  if (now >= entry.resetAt) {
+    entry.count = 1;
+    entry.resetAt = now + LOGIN_RATE_WINDOW_MS;
+    return true;
+  }
+  if (entry.count >= LOGIN_RATE_MAX) return false;
+  entry.count += 1;
+  return true;
+}
+
 export async function ensureAdmin() {
   const { rows } = await db.query('SELECT id, username FROM admin');
   if (rows.length === 0) {
@@ -31,12 +56,19 @@ export async function ensureAdmin() {
 
 router.post('/login', async (req, res) => {
   try {
+    const ip = getClientIp(req);
+    if (!checkLoginRateLimit(ip)) {
+      return res.status(429).json({ error: 'Too many login attempts. Try again later.' });
+    }
     if (!process.env.JWT_SECRET) {
       return res.status(500).json({ error: 'Server misconfiguration: JWT_SECRET not set' });
     }
     const { username, password } = req.body;
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password required' });
+    }
+    if (typeof username !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Username and password must be strings' });
     }
 
     const { rows } = await db.query('SELECT * FROM admin WHERE username = $1', [username]);

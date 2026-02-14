@@ -46,6 +46,10 @@ async function start() {
     console.error('DATABASE_URL is not set. On Railway: add a PostgreSQL service and link it to this service, or set DATABASE_URL in Variables.');
     process.exit(1);
   }
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
+    console.error('JWT_SECRET must be set and at least 16 characters. Admin auth will not work without it.');
+    process.exit(1);
+  }
   await initDb();
   await ensureAdmin();
   const server = app.listen(PORT, () => {

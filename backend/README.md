@@ -35,9 +35,12 @@ Express API for admin authentication and article publishing.
 
 ## Endpoints
 
+**Protected (admin) endpoints** require `Authorization: Bearer <JWT>` and return 401/403 without a valid admin token. Login is rate-limited (10 attempts per 15 min per IP). The server will not start without a `JWT_SECRET` of at least 16 characters.
+
 ### Auth
 
-- `POST /api/auth/login` – Admin login. Body: `{ username, password }`. Returns `{ token, username }`.
+- `POST /api/auth/login` – Admin login. Body: `{ username, password }`. Returns `{ token, username }`. Rate-limited.
+- `POST /api/auth/admins` – **Protected.** Create another admin. Body: `{ username, password }`.
 
 ### Articles
 
@@ -51,7 +54,13 @@ Express API for admin authentication and article publishing.
 
 ### Work with us
 
+- `GET /api/work-with-us` – **Protected.** List all submissions.
 - `POST /api/work-with-us` – Public. Submits a “Work with us” application. Body: `{ name, phone, email, introduction }`. Stored in PostgreSQL. Rate limited by IP (5 per 15 min). Returns `201 { ok: true }` or `4xx` with `{ error }`.
+
+### Newsletter signups
+
+- `GET /api/newsletter-signups` – **Protected.** List all signups. `?format=csv` returns CSV download.
+- `POST /api/newsletter-signups` – Public. Body: `{ name, email, cell }`. Rate limited by IP.
 
 ## Data
 

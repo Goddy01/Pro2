@@ -56,6 +56,12 @@ export default function AdminDashboard() {
   const [watchVideoId, setWatchVideoId] = useState('');
   const [watchDuration, setWatchDuration] = useState('Video');
 
+  const [newAdminUsername, setNewAdminUsername] = useState('');
+  const [newAdminPassword, setNewAdminPassword] = useState('');
+  const [addAdminError, setAddAdminError] = useState('');
+  const [addAdminSuccess, setAddAdminSuccess] = useState('');
+  const [addAdminLoading, setAddAdminLoading] = useState(false);
+
   if (!isAuthenticated) return <Navigate to="/superuser" replace />;
 
   function clearMessages() {
@@ -241,6 +247,40 @@ export default function AdminDashboard() {
       setError('Could not connect to server');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleAddAdmin(e: FormEvent) {
+    e.preventDefault();
+    setAddAdminError('');
+    setAddAdminSuccess('');
+    if (!newAdminUsername.trim() || !newAdminPassword.trim()) {
+      setAddAdminError('Username and password required');
+      return;
+    }
+    if (newAdminPassword.length < 6) {
+      setAddAdminError('Password must be at least 6 characters');
+      return;
+    }
+    setAddAdminLoading(true);
+    try {
+      const res = await fetch(apiUrl('/api/auth/admins'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ username: newAdminUsername.trim(), password: newAdminPassword }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAddAdminError(data.error || 'Failed to add admin');
+        return;
+      }
+      setAddAdminSuccess(`Admin "${newAdminUsername.trim()}" created. They can log in from another device.`);
+      setNewAdminUsername('');
+      setNewAdminPassword('');
+    } catch {
+      setAddAdminError('Could not connect to server');
+    } finally {
+      setAddAdminLoading(false);
     }
   }
 
@@ -499,6 +539,26 @@ export default function AdminDashboard() {
             </button>
           </form>
         )}
+
+        <section className="mt-12 pt-8 border-t border-offwhite/10">
+          <h2 className="text-offwhite font-semibold text-lg mb-2">Add another admin</h2>
+          <p className="text-offwhite/60 text-sm mb-4">Multiple admins can be logged in at the same time. Create a new account for another person.</p>
+          {addAdminError && <p className="text-red-400 text-sm mb-2">{addAdminError}</p>}
+          {addAdminSuccess && <p className="text-lime text-sm mb-2">{addAdminSuccess}</p>}
+          <form onSubmit={handleAddAdmin} className="flex flex-wrap items-end gap-4">
+            <label className="block min-w-[140px]">
+              <span className={labelClass}>Username</span>
+              <input type="text" value={newAdminUsername} onChange={(e) => setNewAdminUsername(e.target.value)} className={inputClass} placeholder="newadmin" autoComplete="off" />
+            </label>
+            <label className="block min-w-[140px]">
+              <span className={labelClass}>Password</span>
+              <input type="password" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} className={inputClass} placeholder="min 6 characters" autoComplete="new-password" minLength={6} />
+            </label>
+            <button type="submit" disabled={addAdminLoading} className="btn-premium py-3 px-6 disabled:opacity-50">
+              {addAdminLoading ? 'Adding...' : 'Add admin'}
+            </button>
+          </form>
+        </section>
       </div>
     </div>
   );

@@ -366,7 +366,7 @@ export default function Home() {
                   className="btn-outline-premium inline-flex items-center gap-2"
                 >
                   <Headphones className="w-4 h-4" />
-                  Listen to Podcast
+                  Listen to Show
                 </button>
               </div>
               {showPodcastPlatforms && (
@@ -590,7 +590,7 @@ export default function Home() {
                 ))}
               </div>
 
-              <p className="text-offwhite/60 text-sm mb-3">Listen to out Podcasts on </p>
+              <p className="text-offwhite/60 text-sm mb-3">Listen to our shows on </p>
               <div className="flex flex-wrap gap-3">
                 <a 
                   href="https://www.youtube.com/@sidelinesports3840" 

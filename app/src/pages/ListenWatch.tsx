@@ -96,7 +96,7 @@ export default function ListenWatch() {
           <div className="text-center mb-16">
             <span className="label-mono text-lime mb-4 block">Listen & Watch</span>
             <h1 className="headline-section text-offwhite text-4xl lg:text-5xl mb-4">
-              Podcast &amp; Video
+              Show &amp; Video
             </h1>
             <p className="body-large text-offwhite/60 max-w-2xl mx-auto">
               Episodes and videos by show. As the network grows, each show has its own section below.
@@ -109,7 +109,7 @@ export default function ListenWatch() {
 
           {empty && (
             <p className="text-offwhite/60 text-center py-12">
-              No podcast episodes or videos yet. Check back soon.
+              No show episodes or videos yet. Check back soon.
             </p>
           )}
 
@@ -127,7 +127,7 @@ export default function ListenWatch() {
                   <div className="mb-10">
                     <h3 className="flex items-center gap-2 text-lime font-display font-bold text-lg uppercase tracking-wider mb-6">
                       <Headphones className="w-4 h-4" />
-                      Podcast
+                      Show
                     </h3>
                     <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {episodes.map((ep) => (

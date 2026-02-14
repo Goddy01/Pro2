@@ -306,7 +306,7 @@ export default function Layout() {
             <div>
               <h4 className="text-offwhite font-semibold mb-6">Quick Links</h4>
               <ul className="space-y-3">
-                {['Latest Stories', 'Podcast', 'Video', 'Events', 'About Us', 'Careers'].map((link, i) => (
+                {['Latest Stories', 'Show', 'Video', 'Events', 'About Us', 'Careers'].map((link, i) => (
                   <li key={i}>
                     <a href="/#" className="text-offwhite/50 hover:text-lime text-sm transition-colors">{link}</a>
                   </li>

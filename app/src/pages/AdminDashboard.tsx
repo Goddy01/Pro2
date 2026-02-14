@@ -11,7 +11,7 @@ const TABS = [
   { id: 'articles', label: 'Articles', icon: FileText },
   { id: 'gallery', label: 'Gallery', icon: Image },
   { id: 'events', label: 'Events', icon: Calendar },
-  { id: 'podcast', label: 'Podcast', icon: Headphones },
+  { id: 'podcast', label: 'Show', icon: Headphones },
   { id: 'watch', label: 'Watch', icon: Video },
 ] as const;
 
@@ -210,7 +210,7 @@ export default function AdminDashboard() {
   }
 
   async function deletePodcast(id: number) {
-    if (!confirm('Delete this podcast episode?')) return;
+    if (!confirm('Delete this show episode?')) return;
     try {
       const res = await fetch(apiUrl(`/api/podcast/${id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) {
@@ -486,7 +486,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     clearMessages();
     if (!podcastType) {
-      setError('Choose audio or video podcast first');
+      setError('Choose audio or video show first');
       return;
     }
     if (!podcastTitle.trim()) {
@@ -522,7 +522,7 @@ export default function AdminDashboard() {
         setError(data.error || 'Failed to add episode');
         return;
       }
-      setSuccess(editingPodcastId ? 'Podcast episode updated.' : 'Podcast episode added.');
+      setSuccess(editingPodcastId ? 'Show episode updated.' : 'Show episode added.');
       setEditingPodcastId(null);
       setPodcastType(null);
       setPodcastTitle('');
@@ -707,7 +707,7 @@ export default function AdminDashboard() {
         )}
 
         <h1 className="text-offwhite font-editorial font-bold text-2xl mb-2">Admin</h1>
-        <p className="text-offwhite/60 text-sm mb-6">Upload articles, gallery photos, events, and podcast episodes.</p>
+        <p className="text-offwhite/60 text-sm mb-6">Upload articles, gallery photos, events, and show episodes.</p>
 
         <div className="flex flex-wrap gap-2 mb-8 border-b border-offwhite/10 pb-4">
           {TABS.map((tab) => (
@@ -779,7 +779,7 @@ export default function AdminDashboard() {
                 <option value="Features">Features</option>
                 <option value="Analysis">Analysis</option>
                 <option value="Events">Events</option>
-                <option value="Podcast">Podcast</option>
+                <option value="Podcast">Show</option>
                 <option value="Video">Video</option>
               </select>
             </label>
@@ -933,14 +933,14 @@ export default function AdminDashboard() {
                     onClick={() => setPodcastType('audio')}
                     className="px-6 py-4 border-2 border-offwhite/30 text-offwhite hover:border-lime hover:text-lime transition-colors font-medium"
                   >
-                    Audio podcast
+                    Audio show
                   </button>
                   <button
                     type="button"
                     onClick={() => setPodcastType('video')}
                     className="px-6 py-4 border-2 border-offwhite/30 text-offwhite hover:border-lime hover:text-lime transition-colors font-medium"
                   >
-                    Video podcast
+                    Video show
                   </button>
                 </div>
               </>
@@ -951,7 +951,7 @@ export default function AdminDashboard() {
                     {editingPodcastId ? (
                       <>Editing episode. <button type="button" onClick={() => { setEditingPodcastId(null); setPodcastType(null); setPodcastTitle(''); setPodcastDescription(''); setPodcastDuration(''); setPodcastGuests(''); setPodcastAudioUrl(''); setPodcastVideoUrl(''); setPodcastShowName(''); }} className="text-lime underline">Cancel</button></>
                     ) : (
-                      <button type="button" onClick={() => setPodcastType(null)} className="text-lime hover:underline">← Change to {podcastType === 'audio' ? 'video' : 'audio'} podcast</button>
+                      <button type="button" onClick={() => setPodcastType(null)} className="text-lime hover:underline">← Change to {podcastType === 'audio' ? 'video' : 'audio'} show</button>
                     )}
                   </p>
                 )}
@@ -988,7 +988,7 @@ export default function AdminDashboard() {
                   </label>
                 )}
                 <button type="submit" disabled={loading} className="btn-premium py-4 px-8 disabled:opacity-50">
-                  {loading ? (editingPodcastId ? 'Updating...' : 'Adding...') : (editingPodcastId ? 'Update Episode' : 'Add Podcast Episode')}
+                  {loading ? (editingPodcastId ? 'Updating...' : 'Adding...') : (editingPodcastId ? 'Update Episode' : 'Add Show Episode')}
                 </button>
               </form>
             )}

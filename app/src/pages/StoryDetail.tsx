@@ -112,18 +112,22 @@ export default function StoryDetail() {
 
   return (
     <div className="min-h-screen bg-forest">
-      {/* Cover image at top – full width */}
+      {/* Cover image at top – full width, gradient fade into content */}
       {article.image && (
-        <div className="relative w-full h-[45vh] min-h-[280px] max-h-[520px] overflow-hidden">
+        <div className="relative w-full aspect-[16/9] min-h-[280px] max-h-[55vh] overflow-hidden bg-forest/30">
           <img
             src={article.image}
             alt=""
-            className="w-full h-full object-cover object-top"
+            className="absolute inset-0 w-full h-full object-cover object-center"
             loading="eager"
+            decoding="async"
+            fetchPriority="high"
           />
+          {/* Gradient so image fades into page background */}
+          <div className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none bg-gradient-to-t from-forest to-transparent" aria-hidden />
           <Link
             to="/stories"
-            className="absolute top-4 left-4 lg:left-8 inline-flex items-center gap-2 px-3 py-2 rounded bg-forest/80 text-offwhite/90 hover:text-lime hover:bg-forest transition-colors text-sm"
+            className="absolute top-4 left-4 lg:left-8 z-10 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-black/50 backdrop-blur-sm text-offwhite/95 hover:text-lime hover:bg-black/70 transition-colors text-sm border border-white/10"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Stories

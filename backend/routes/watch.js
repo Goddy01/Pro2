@@ -26,7 +26,8 @@ function extractYoutubeId(urlOrId) {
   if (!urlOrId || typeof urlOrId !== 'string') return null;
   const s = urlOrId.trim();
   if (/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
-  const m = s.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  // Match YouTube ID from watch?v=, youtu.be/, /live/, /embed/, /v/
+  const m = s.match(/(?:youtube\.com\/(?:watch\?v=|live\/|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   return m ? m[1] : null;
 }
 
@@ -82,7 +83,11 @@ router.post('/', authMiddleware, upload.single('video'), async (req, res) => {
 
     if (!title) return res.status(400).json({ error: 'Title is required' });
 
-    let videoId = bodyVideoId ? (extractYoutubeId(bodyVideoId) || bodyVideoId) : null;
+    let videoId = bodyVideoId ? extractYoutubeId(bodyVideoId) : null;
+    if (bodyVideoId && !videoId && bodyVideoId.length > 20) {
+      return res.status(400).json({ error: 'Could not find YouTube video ID in that URL. Use a link like youtube.com/watch?v=... or youtube.com/live/... or paste the 11-character video ID.' });
+    }
+    if (bodyVideoId && !videoId) videoId = bodyVideoId.slice(0, 20);
     let videoUrl = bodyVideoUrl || null;
 
     if (req.file && hasCloudinaryConfig()) {

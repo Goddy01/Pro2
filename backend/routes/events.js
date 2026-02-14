@@ -102,4 +102,53 @@ router.post('/', authMiddleware, upload.array('images', 50), async (req, res) =>
   }
 });
 
+router.put('/:slug', authMiddleware, upload.array('images', 50), async (req, res) => {
+  try {
+    const slug = (req.params.slug || '').trim();
+    if (!slug) return res.status(400).json({ error: 'Slug is required' });
+    const title = typeof req.body?.title === 'string' ? req.body.title.trim() : '';
+    const description = typeof req.body?.description === 'string' ? req.body.description.trim() : '';
+    if (!title) return res.status(400).json({ error: 'Title is required' });
+
+    const { rows: existing } = await db.query('SELECT id FROM events WHERE slug = $1', [slug]);
+    if (!existing.length) return res.status(404).json({ error: 'Event not found' });
+    const eventId = existing[0].id;
+
+    await db.query('UPDATE events SET title = $1, description = $2 WHERE id = $3', [title, description, eventId]);
+
+    if (req.files?.length) {
+      if (!hasCloudinaryConfig()) return res.status(503).json({ error: 'Image upload is not configured.' });
+      const maxOrder = await db.query('SELECT COALESCE(MAX(sort_order), -1) AS m FROM event_images WHERE event_id = $1', [eventId]);
+      let nextOrder = (maxOrder.rows[0]?.m ?? -1) + 1;
+      for (const file of req.files) {
+        const result = await uploadImageBuffer(file.buffer, 'sideline-events', { upload_preset: 'Sideline.Events' });
+        await db.query('INSERT INTO event_images (event_id, image_url, sort_order) VALUES ($1, $2, $3)', [eventId, result.secure_url, nextOrder++]);
+      }
+    }
+
+    const { rows: full } = await db.query(
+      `SELECT e.slug AS id, e.title, e.description,
+        (SELECT json_agg(ei.image_url ORDER BY ei.sort_order) FROM event_images ei WHERE ei.event_id = e.id) AS images
+       FROM events e WHERE e.id = $1`,
+      [eventId]
+    );
+    res.json(full[0]);
+  } catch (err) {
+    console.error('Events update error:', err);
+    res.status(500).json({ error: err.message || 'Failed to update event' });
+  }
+});
+
+router.delete('/:slug', authMiddleware, async (req, res) => {
+  try {
+    const slug = (req.params.slug || '').trim();
+    if (!slug) return res.status(400).json({ error: 'Slug is required' });
+    const { rowCount } = await db.query('DELETE FROM events WHERE slug = $1', [slug]);
+    if (rowCount === 0) return res.status(404).json({ error: 'Event not found' });
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

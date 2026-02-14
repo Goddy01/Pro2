@@ -37,12 +37,35 @@ router.get('/', async (req, res) => {
     );
     res.json(
       rows.map((r) => ({
+        id: r.id,
         title: r.title,
         videoId: r.video_id || (r.video_url && extractYoutubeId(r.video_url)) || null,
         videoUrl: r.video_url,
         duration: r.duration_label || 'Video',
       }))
     );
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid video ID' });
+    const { rows } = await db.query(
+      'SELECT id, title, video_id, video_url, duration_label FROM watch_videos WHERE id = $1',
+      [id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Video not found' });
+    const r = rows[0];
+    res.json({
+      id: r.id,
+      title: r.title,
+      videoId: r.video_id || (r.video_url && extractYoutubeId(r.video_url)) || null,
+      videoUrl: r.video_url,
+      duration: r.duration_label || 'Video',
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -80,6 +103,56 @@ router.post('/', authMiddleware, upload.single('video'), async (req, res) => {
   } catch (err) {
     console.error('Watch video create error:', err);
     res.status(500).json({ error: err.message || 'Failed to add video' });
+  }
+});
+
+router.put('/:id', authMiddleware, upload.single('video'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid video ID' });
+    const body = req.body || {};
+    const title = typeof body.title === 'string' ? body.title.trim() : '';
+    if (!title) return res.status(400).json({ error: 'Title is required' });
+    const bodyVideoId = typeof body.video_id === 'string' ? body.video_id.trim() : '';
+    const bodyVideoUrl = typeof body.video_url === 'string' ? body.video_url.trim() : null;
+    const durationLabel = typeof body.duration_label === 'string' ? body.duration_label.trim() || 'Video' : 'Video';
+
+    let videoId = bodyVideoId ? (extractYoutubeId(bodyVideoId) || bodyVideoId) : null;
+    let videoUrl = bodyVideoUrl || null;
+    if (req.file && hasCloudinaryConfig()) {
+      const result = await uploadVideoBuffer(req.file.buffer, 'sideline-watch');
+      videoUrl = result.secure_url;
+      videoId = null;
+    }
+
+    const { rows: existing } = await db.query('SELECT id, video_url, video_id FROM watch_videos WHERE id = $1', [id]);
+    if (!existing.length) return res.status(404).json({ error: 'Video not found' });
+    if (!videoId && !videoUrl) {
+      videoUrl = existing[0].video_url;
+      videoId = existing[0].video_id;
+    }
+    if (!videoId && !videoUrl) return res.status(400).json({ error: 'Provide either YouTube ID/URL or video file' });
+
+    const { rows } = await db.query(
+      'UPDATE watch_videos SET title = $1, video_id = $2, video_url = $3, duration_label = $4 WHERE id = $5 RETURNING id, title, video_id, video_url, duration_label',
+      [title, videoId, videoUrl, durationLabel, id]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Watch update error:', err);
+    res.status(500).json({ error: err.message || 'Failed to update video' });
+  }
+});
+
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid video ID' });
+    const { rowCount } = await db.query('DELETE FROM watch_videos WHERE id = $1', [id]);
+    if (rowCount === 0) return res.status(404).json({ error: 'Video not found' });
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

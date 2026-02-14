@@ -10,14 +10,25 @@ gsap.registerPlugin(ScrollTrigger);
 const INITIAL_VISIBLE = 12;
 const LOAD_MORE_STEP = 12;
 
-const FALLBACK_GALLERY = [
-  { src: '/media/1.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/2.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/3.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/DSC04893.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/DSC07660.jpg', alt: 'Sideline Sports & Entertainment' },
-  { src: '/media/DSC08405.jpg', alt: 'Sideline Sports & Entertainment' },
-];
+const DEFAULT_ALT = 'Sideline Sports & Entertainment';
+
+/** All images in app/public/media/ – shown in gallery alongside admin-uploaded images */
+const STATIC_MEDIA_IMAGES: { src: string; alt: string }[] = [
+  '1.jpg', '2.jpg', '3.jpg',
+  '1532646176157624422.jpg', '2359157038716308892.jpg', '2692397244325096066.jpg',
+  '2761035603652569794.jpg', '2772238397044479159.jpg', '2899172770795387.jpg',
+  '3510623865048350093.jpg', '3825053133675075935.jpg', '4044688110347809626.jpg',
+  '4142831271204609322.jpg', '5990357541264182351.jpg', '7054099196915847454.jpg',
+  '8236872768832652205.jpg', '8430488630247374580.jpg', '8688937658204051989.jpg',
+  '9211792278450370841.jpg',
+  'DSC00013-3.jpg', 'DSC00073.jpg', 'DSC04893.jpg', 'DSC07660.jpg', 'DSC08405.jpg',
+  'DSC09404.jpg', 'DSC09569-3.jpg',
+  '_DSC1198-Enhanced-NR.jpg', '_DSC1723-Enhanced-NR.jpg', '_DSC1887-Enhanced-NR.jpg',
+  '_DSC1934-Enhanced-NR.jpg', '_DSC2074-Enhanced-NR.jpg', '_DSC2546-Enhanced-NR.jpg',
+  '_DSC2661-Enhanced-NR.jpg', '_DSC2783-Enhanced-NR.jpg', '_DSC3101-Enhanced-NR 2.jpg',
+  '_DSC4127-Enhanced-NR.jpg', '_DSC4274-Enhanced-NR.jpg', '_DSC5631-Enhanced-NR.jpg',
+  '_DSC5750-Enhanced-NR.jpg', '_DSC8587-Enhanced-NR.jpg',
+].map((file) => ({ src: `/media/${file}`, alt: DEFAULT_ALT }));
 
 export default function Gallery() {
   const mainRef = useRef<HTMLDivElement>(null);
@@ -28,16 +39,15 @@ export default function Gallery() {
     fetch(apiUrl('/api/gallery'))
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setImages(data.map((x: { src: string; alt?: string }) => ({ src: x.src, alt: x.alt || 'Sideline Sports & Entertainment' })));
-        } else {
-          setImages(FALLBACK_GALLERY);
-        }
+        const fromApi = Array.isArray(data)
+          ? data.map((x: { src: string; alt?: string }) => ({ src: x.src, alt: x.alt || DEFAULT_ALT }))
+          : [];
+        setImages([...fromApi, ...STATIC_MEDIA_IMAGES]);
       })
-      .catch(() => setImages(FALLBACK_GALLERY));
+      .catch(() => setImages(STATIC_MEDIA_IMAGES));
   }, []);
 
-  const galleryImages = images.length > 0 ? images : FALLBACK_GALLERY;
+  const galleryImages = images.length > 0 ? images : STATIC_MEDIA_IMAGES;
   const canLoadMore = visibleCount < galleryImages.length;
 
   useEffect(() => {

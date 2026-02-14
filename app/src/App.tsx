@@ -13,6 +13,7 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminWorkWithUsSubmissions from './pages/AdminWorkWithUsSubmissions';
 import WorkWithUs from './pages/WorkWithUs';
+import ListenWatch from './pages/ListenWatch';
 import './App.css';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
             <Route path="events" element={<Events />} />
             <Route path="team" element={<Team />} />
             <Route path="gallery" element={<Gallery />} />
+            <Route path="listen-watch" element={<ListenWatch />} />
             <Route path="work-with-us" element={<WorkWithUs />} />
           </Route>
           <Route path="superuser" element={<AdminLogin />} />

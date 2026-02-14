@@ -1,5 +1,4 @@
-
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { apiUrl } from '../lib/api';
@@ -9,6 +8,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const INITIAL_VISIBLE = 12;
 const LOAD_MORE_STEP = 12;
+const LCP_IMAGE_COUNT = 3; // first N images get high fetch priority
 
 const DEFAULT_ALT = 'Sideline Sports & Entertainment';
 
@@ -34,9 +34,12 @@ export default function Gallery() {
   const mainRef = useRef<HTMLDivElement>(null);
   const [images, setImages] = useState<{ src: string; alt: string }[]>([]);
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
+  const gridTriggerCreated = useRef(false);
+  const prevVisibleRef = useRef(INITIAL_VISIBLE);
 
   useEffect(() => {
-    fetch(apiUrl('/api/gallery'))
+    const ac = new AbortController();
+    fetch(apiUrl('/api/gallery'), { signal: ac.signal })
       .then((r) => r.json())
       .then((data) => {
         const fromApi = Array.isArray(data)
@@ -44,15 +47,24 @@ export default function Gallery() {
           : [];
         setImages([...fromApi, ...STATIC_MEDIA_IMAGES]);
       })
-      .catch(() => setImages(STATIC_MEDIA_IMAGES));
+      .catch((err) => {
+        if (err?.name !== 'AbortError') setImages(STATIC_MEDIA_IMAGES);
+      });
+    return () => ac.abort();
   }, []);
 
-  const galleryImages = images.length > 0 ? images : STATIC_MEDIA_IMAGES;
+  const galleryImages = useMemo(
+    () => (images.length > 0 ? images : STATIC_MEDIA_IMAGES),
+    [images]
+  );
   const canLoadMore = visibleCount < galleryImages.length;
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.utils.toArray<HTMLElement>('.reveal-section').forEach((section) => {
+      const el = mainRef.current;
+      if (!el) return;
+
+      gsap.utils.toArray<HTMLElement>('.reveal-section', el).forEach((section) => {
         gsap.fromTo(
           section,
           { y: 80, opacity: 0 },
@@ -69,27 +81,36 @@ export default function Gallery() {
           }
         );
       });
-      gsap.utils.toArray<HTMLElement>('.stagger-card').forEach((card, i) => {
+
+      const grid = el.querySelector<HTMLElement>('[data-gallery-grid]');
+      const children = grid ? (Array.from(grid.children) as HTMLElement[]) : [];
+
+      if (grid && !gridTriggerCreated.current && children.length >= INITIAL_VISIBLE) {
+        gridTriggerCreated.current = true;
+        ScrollTrigger.create({
+          trigger: grid,
+          start: 'top 88%',
+          once: true,
+          onEnter: () => {
+            const initial = children.slice(0, INITIAL_VISIBLE);
+            gsap.fromTo(
+              initial,
+              { y: 60, opacity: 0 },
+              { y: 0, opacity: 1, duration: 0.7, stagger: 0.08, ease: 'power3.out' }
+            );
+          },
+        });
+      }
+
+      if (visibleCount > prevVisibleRef.current && children.length >= visibleCount) {
+        const newBatch = children.slice(prevVisibleRef.current, visibleCount);
         gsap.fromTo(
-          card,
-          { y: 60, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.7,
-            delay: (i % 12) * 0.08,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: card,
-              start: 'top 90%',
-              toggleActions: 'play none none reverse',
-            },
-          }
+          newBatch,
+          { y: 40, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.6, stagger: 0.05, ease: 'power3.out' }
         );
-      });
-      gsap.utils.toArray<HTMLElement>('.gallery-card-late').forEach((card, i) => {
-        gsap.fromTo(card, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, delay: i * 0.05, ease: 'power3.out' });
-      });
+        prevVisibleRef.current = visibleCount;
+      }
     }, mainRef);
     return () => ctx.revert();
   }, [visibleCount]);
@@ -111,18 +132,19 @@ export default function Gallery() {
             </p>
           </div>
 
-          <div className="reveal-section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-10">
+          <div
+            className="reveal-section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-10"
+            data-gallery-grid
+          >
             {galleryImages.slice(0, visibleCount).map((image, i) => (
-              <figure
-                key={i}
-                className={`overflow-hidden card-editorial group ${i < INITIAL_VISIBLE ? 'stagger-card' : 'gallery-card-late'}`}
-              >
+              <figure key={image.src} className="overflow-hidden card-editorial group">
                 <div className="relative aspect-[3/4] min-h-[320px]">
                   <img
                     src={image.src}
-                    alt=""
-                    loading="lazy"
+                    alt={image.alt}
+                    loading={i < LCP_IMAGE_COUNT ? 'eager' : 'lazy'}
                     decoding="async"
+                    fetchPriority={i < LCP_IMAGE_COUNT ? 'high' : undefined}
                     className="w-full h-full object-cover object-center img-editorial transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-forest/85 via-forest/10 to-transparent" />

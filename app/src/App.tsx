@@ -4,6 +4,7 @@ import Layout from './Layout';
 import Home from './pages/Home';
 import Team from './pages/Team';
 import Stories from './pages/Stories';
+import StoryDetail from './pages/StoryDetail';
 import Coverage from './pages/Coverage';
 import EventGallery from './pages/EventGallery';
 import Events from './pages/Events';
@@ -22,6 +23,7 @@ function App() {
           <Route element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="stories" element={<Stories />} />
+            <Route path="stories/:id" element={<StoryDetail />} />
             <Route path="coverage" element={<Coverage />} />
             <Route path="coverage/event/:eventId" element={<EventGallery />} />
             <Route path="events" element={<Events />} />

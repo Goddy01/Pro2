@@ -31,9 +31,29 @@ const FALLBACK_WATCH: WatchVideo[] = [
   { title: 'Exclusive Interview with Kenny Einhorn: 20+ Years as Eagles Statistician | Super Bowl LII Champion', videoId: 'ymupY14vvCs', duration: 'Video' },
 ];
 
+type ArticleFromApi = { id: number; title: string; image: string; content: string; category: string; author: string; created_at: string };
+function articleExcerpt(html: string, maxLen = 200) {
+  const text = (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return text.length <= maxLen ? text : text.slice(0, maxLen) + '…';
+}
+function articleReadTime(html: string) {
+  const text = (html || '').replace(/<[^>]*>/g, '');
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  const mins = Math.max(1, Math.round(words / 200));
+  return `${mins} min read`;
+}
+function formatArticleDate(iso: string) {
+  try {
+    return new Date(iso).toLocaleDateString(undefined, { dateStyle: 'long' });
+  } catch {
+    return iso;
+  }
+}
+
 export default function Home() {
   const [watchVideos, setWatchVideos] = useState<WatchVideo[]>([]);
   const [podcastEpisodesFromApi, setPodcastEpisodesFromApi] = useState<{ title: string; description: string; duration: string; guests?: string[] }[]>([]);
+  const [articlesFromApi, setArticlesFromApi] = useState<ArticleFromApi[]>([]);
   const [showPodcastPlatforms, setShowPodcastPlatforms] = useState(false);
   const [testimonialForm, setTestimonialForm] = useState({
     name: '',
@@ -80,50 +100,36 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  const featuredArticles = [
-    {
-      id: 1,
-      title: 'The Trade That Makes Sense: Breaking Down the Fit, the Risk, and the Ceiling',
-      category: 'Analysis',
-      excerpt: 'When the rumors started swirling about a potential blockbuster trade, most fans dismissed it as offseason speculation. But beneath the surface, the pieces were falling into place. We spent three weeks analyzing film, speaking with sources close to the organization, and examining the salary cap implications to understand why this move could redefine the franchise\'s trajectory.',
-      author: 'Jordan Thomas',
-      authorRole: 'Senior NBA Analyst',
-      image: '/article-1-image.jpg',
-      date: 'January 15, 2026',
-      readTime: '12 min read',
-      featured: true
-    },
-    {
-      id: 2,
-      title: 'Inside the Facility: A Day With the Team Behind the Team',
-      category: 'Features',
-      excerpt: 'At 4:47 AM, while most of the city sleeps, the facility comes alive. Trainers, analysts, and support staff begin their meticulous preparation for another day of professional sports. We were granted unprecedented access to document the invisible army that keeps a championship-caliber organization running.',
-      author: 'Maya Rodriguez',
-      authorRole: 'Staff Writer',
-      image: '/grid_2.jpg',
-      date: 'January 14, 2026',
-      readTime: '18 min read',
-      featured: true
-    },
-    {
-      id: 3,
-      title: 'Postgame: Week 4 — Highlights, Quotes, and What\'s Next',
-      category: 'Video',
-      excerpt: 'The locker room was unusually quiet after the game. Players sat in their stalls, some staring at their phones, others engaging in hushed conversations with position coaches. But when the media entered, the tone shifted. We captured the raw emotion, the unfiltered quotes, and the first signs of what this team might become.',
-      author: 'Jordan Thomas',
-      authorRole: 'Senior NFL Analyst',
-      image: '/grid_3.jpg',
-      date: 'January 12, 2026',
-      readTime: '8 min read',
-      featured: false
-    }
-  ];
+  useEffect(() => {
+    fetch(apiUrl('/api/articles'))
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setArticlesFromApi(data);
+      })
+      .catch(() => {});
+  }, []);
 
-  const articleCards = [
-    { id: 4, title: 'Preview Show Ep. 12: Playoffs, Predictions, and Guest Takes', category: 'Podcast', excerpt: 'This week, we\'re joined by former Pro Bowl linebacker Marcus Williams to break down the playoff picture. We discuss the teams that surprised us, the ones that disappointed, and make our bold predictions for the road to the championship. Plus, we answer listener questions about the biggest storylines heading into the postseason.', author: 'Sideline Sports & Entertainment Team', image: '/grid_4.jpg', date: 'January 10, 2026', readTime: '45 min listen' },
-    { id: 5, title: 'Photo Essay: Under the Lights — Moments From the Night Game', category: 'Events', excerpt: 'There\'s something magical about night games. The stadium lights cutting through the darkness, the breath visible in the cold air, the roar of the crowd echoing into the night. Our photography team spent the entire game capturing the moments that define why we love this sport — the tension, the joy, the heartbreak, and the triumph.', author: 'Sarah Chen', authorRole: 'Photo Editor', image: '/grid_5.jpg', date: 'January 8, 2026', readTime: '6 min read' },
-    { id: 6, title: 'By the Numbers: What the Defense Stats Actually Say', category: 'Analysis', excerpt: 'Traditional statistics tell one story, but advanced analytics reveal another. We dove deep into the data — pressure rates, coverage grades, tackling efficiency, and more — to understand why this defense has been so effective. The numbers might surprise you, and they definitely challenge some conventional wisdom.', author: 'David Park', authorRole: 'Analytics Director', image: '/grid_6.jpg', date: 'January 5, 2026', readTime: '10 min read' },
-  ];
+  const featuredArticles = articlesFromApi.slice(0, 3).map((a) => ({
+    id: a.id,
+    title: a.title,
+    category: a.category || 'Features',
+    excerpt: articleExcerpt(a.content),
+    author: a.author,
+    authorRole: '' as string,
+    image: a.image,
+    date: formatArticleDate(a.created_at),
+    readTime: articleReadTime(a.content),
+  }));
+  const articleCards = articlesFromApi.slice(3, 6).map((a) => ({
+    id: a.id,
+    title: a.title,
+    category: a.category || 'Features',
+    excerpt: articleExcerpt(a.content),
+    author: a.author,
+    image: a.image,
+    date: formatArticleDate(a.created_at),
+    readTime: articleReadTime(a.content),
+  }));
 
   const staticPodcastEpisodes = [
     {
@@ -406,92 +412,97 @@ export default function Home() {
                 This Week's Best<br />Stories
               </h2>
             </div>
-            <a href="#" className="btn-outline-premium mt-6 lg:mt-0 self-start">
+            <Link to="/stories" className="btn-outline-premium mt-6 lg:mt-0 self-start">
               View All Articles
               <ArrowUpRight className="w-4 h-4" />
-            </a>
+            </Link>
           </div>
 
           {/* Main Featured Article */}
-          <div className="reveal-section mb-12">
-            <article className="card-editorial grid lg:grid-cols-2 gap-0 overflow-hidden group cursor-pointer">
-              <div className="relative overflow-hidden h-[400px] lg:h-[500px]">
-                <img 
-                  src={featuredArticles[0].image} 
-                  alt=""
-                  className="w-full h-full object-cover img-editorial"
-                  loading="eager"
-                  decoding="async"
-                  fetchPriority="high"
-                />
-                <div className="absolute top-6 left-6">
-                  <span className="tag-premium">{featuredArticles[0].category}</span>
-                </div>
-              </div>
-              <div className="p-8 lg:p-12 flex flex-col justify-center">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-10 h-10 rounded-full bg-offwhite/10 flex items-center justify-center">
-                    <User className="w-5 h-5 text-offwhite/60" />
+          {featuredArticles.length > 0 && (
+            <div className="reveal-section mb-12">
+              <Link to={`/stories/${featuredArticles[0].id}`} className="block">
+                <article className="card-editorial grid lg:grid-cols-2 gap-0 overflow-hidden group cursor-pointer">
+                  <div className="relative overflow-hidden h-[400px] lg:h-[500px]">
+                    <img 
+                      src={featuredArticles[0].image} 
+                      alt=""
+                      className="w-full h-full object-cover img-editorial"
+                      loading="eager"
+                      decoding="async"
+                      fetchPriority="high"
+                    />
+                    <div className="absolute top-6 left-6">
+                      <span className="tag-premium">{featuredArticles[0].category}</span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-offwhite text-sm font-medium">{featuredArticles[0].author}</p>
-                    <p className="text-offwhite/50 text-xs">{featuredArticles[0].authorRole}</p>
+                  <div className="p-8 lg:p-12 flex flex-col justify-center">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-10 h-10 rounded-full bg-offwhite/10 flex items-center justify-center">
+                        <User className="w-5 h-5 text-offwhite/60" />
+                      </div>
+                      <div>
+                        <p className="text-offwhite text-sm font-medium">{featuredArticles[0].author}</p>
+                        {featuredArticles[0].authorRole && <p className="text-offwhite/50 text-xs">{featuredArticles[0].authorRole}</p>}
+                      </div>
+                    </div>
+                    <h3 className="headline-article text-offwhite text-2xl lg:text-3xl mb-4 group-hover:text-lime transition-colors">
+                      {featuredArticles[0].title}
+                    </h3>
+                    <p className="body-editorial text-offwhite/60 mb-6">
+                      {featuredArticles[0].excerpt}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-offwhite/40 text-sm">
+                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> {featuredArticles[0].date}</span>
+                        <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {featuredArticles[0].readTime}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="p-2 text-offwhite/40"><Bookmark className="w-5 h-5" /></span>
+                        <span className="p-2 text-offwhite/40"><Share2 className="w-5 h-5" /></span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                
-                <h3 className="headline-article text-offwhite text-2xl lg:text-3xl mb-4 group-hover:text-lime transition-colors">
-                  {featuredArticles[0].title}
-                </h3>
-                
-                <p className="body-editorial text-offwhite/60 mb-6">
-                  {featuredArticles[0].excerpt}
-                </p>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4 text-offwhite/40 text-sm">
-                    <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> {featuredArticles[0].date}</span>
-                    <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {featuredArticles[0].readTime}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button className="p-2 text-offwhite/40 hover:text-lime transition-colors"><Bookmark className="w-5 h-5" /></button>
-                    <button className="p-2 text-offwhite/40 hover:text-lime transition-colors"><Share2 className="w-5 h-5" /></button>
-                  </div>
-                </div>
-              </div>
-            </article>
-          </div>
+                </article>
+              </Link>
+            </div>
+          )}
 
           {/* Secondary Featured Articles */}
-          <div className="grid lg:grid-cols-2 gap-8">
-            {featuredArticles.slice(1, 3).map((article) => (
-              <article key={article.id} className="stagger-card card-editorial overflow-hidden group cursor-pointer">
-                <div className="relative overflow-hidden h-[250px]">
-                  <img 
-                    src={article.image} 
-                    alt=""
-                    className="w-full h-full object-cover img-editorial"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <span className="tag-premium text-[10px]">{article.category}</span>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="headline-article text-offwhite text-xl mb-3 group-hover:text-lime transition-colors">
-                    {article.title}
-                  </h3>
-                  <p className="text-offwhite/50 text-sm mb-4 line-clamp-2">
-                    {article.excerpt}
-                  </p>
-                  <div className="flex items-center justify-between text-offwhite/40 text-xs">
-                    <span>{article.author}</span>
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {article.readTime}</span>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          {featuredArticles.length > 1 && (
+            <div className="grid lg:grid-cols-2 gap-8">
+              {featuredArticles.slice(1, 3).map((article) => (
+                <Link key={article.id} to={`/stories/${article.id}`} className="block">
+                  <article className="stagger-card card-editorial overflow-hidden group cursor-pointer">
+                    <div className="relative overflow-hidden h-[250px]">
+                      <img 
+                        src={article.image} 
+                        alt=""
+                        className="w-full h-full object-cover img-editorial"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div className="absolute top-4 left-4">
+                        <span className="tag-premium text-[10px]">{article.category}</span>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <h3 className="headline-article text-offwhite text-xl mb-3 group-hover:text-lime transition-colors">
+                        {article.title}
+                      </h3>
+                      <p className="text-offwhite/50 text-sm mb-4 line-clamp-2">
+                        {article.excerpt}
+                      </p>
+                      <div className="flex items-center justify-between text-offwhite/40 text-xs">
+                        <span>{article.author}</span>
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {article.readTime}</span>
+                      </div>
+                    </div>
+                  </article>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -507,32 +518,34 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {articleCards.map((card) => (
-              <article key={card.id} className="stagger-card group cursor-pointer">
-                <div className="bg-offwhite border border-forest/10 overflow-hidden hover:shadow-2xl transition-shadow duration-500">
-                  <div className="relative overflow-hidden h-[220px]">
-                    <img src={card.image} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-lime text-forest text-[10px] font-bold uppercase tracking-wider px-2 py-1">{card.category}</span>
+              <Link key={card.id} to={`/stories/${card.id}`} className="stagger-card group block">
+                <article className="cursor-pointer h-full">
+                  <div className="bg-offwhite border border-forest/10 overflow-hidden hover:shadow-2xl transition-shadow duration-500 h-full">
+                    <div className="relative overflow-hidden h-[220px]">
+                      <img src={card.image} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
+                      <div className="absolute top-4 left-4">
+                        <span className="bg-lime text-forest text-[10px] font-bold uppercase tracking-wider px-2 py-1">{card.category}</span>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <h3 className="font-editorial font-semibold text-forest text-lg mb-3 group-hover:text-forest/70 transition-colors line-clamp-2">{card.title}</h3>
+                      <p className="text-forest/60 text-sm mb-4 line-clamp-3">{card.excerpt}</p>
+                      <div className="flex items-center justify-between text-forest/40 text-xs">
+                        <span>{card.author}</span>
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {card.readTime}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="p-6">
-                    <h3 className="font-editorial font-semibold text-forest text-lg mb-3 group-hover:text-forest/70 transition-colors line-clamp-2">{card.title}</h3>
-                    <p className="text-forest/60 text-sm mb-4 line-clamp-3">{card.excerpt}</p>
-                    <div className="flex items-center justify-between text-forest/40 text-xs">
-                      <span>{card.author}</span>
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {card.readTime}</span>
-                    </div>
-                  </div>
-                </div>
-              </article>
+                </article>
+              </Link>
             ))}
           </div>
 
           <div className="reveal-section text-center">
-            <a href="/stories" className="btn-premium inline-flex items-center gap-2">
+            <Link to="/stories" className="btn-premium inline-flex items-center gap-2">
               Read More Stories
               <ArrowUpRight className="w-4 h-4" />
-            </a>
+            </Link>
           </div>
         </div>
       </section>

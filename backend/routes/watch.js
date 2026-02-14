@@ -33,9 +33,15 @@ function extractYoutubeId(urlOrId) {
 
 router.get('/', async (req, res) => {
   try {
-    const { rows } = await db.query(
-      'SELECT id, title, video_id, video_url, duration_label, sort_order, created_at FROM watch_videos ORDER BY sort_order ASC, created_at DESC'
-    );
+    const showFilter = typeof req.query.show === 'string' ? req.query.show.trim() || null : null;
+    const { rows } = showFilter
+      ? await db.query(
+          'SELECT id, title, video_id, video_url, duration_label, sort_order, show_name, created_at FROM watch_videos WHERE TRIM(COALESCE(show_name, \'\')) = $1 ORDER BY sort_order ASC, created_at DESC',
+          [showFilter]
+        )
+      : await db.query(
+          'SELECT id, title, video_id, video_url, duration_label, sort_order, show_name, created_at FROM watch_videos ORDER BY sort_order ASC, created_at DESC'
+        );
     res.json(
       rows.map((r) => ({
         id: r.id,
@@ -43,6 +49,7 @@ router.get('/', async (req, res) => {
         videoId: r.video_id || (r.video_url && extractYoutubeId(r.video_url)) || null,
         videoUrl: r.video_url,
         duration: r.duration_label || 'Video',
+        show_name: r.show_name,
       }))
     );
   } catch (err) {
@@ -55,7 +62,7 @@ router.get('/:id', async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid video ID' });
     const { rows } = await db.query(
-      'SELECT id, title, video_id, video_url, duration_label FROM watch_videos WHERE id = $1',
+      'SELECT id, title, video_id, video_url, duration_label, show_name FROM watch_videos WHERE id = $1',
       [id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Video not found' });
@@ -66,13 +73,14 @@ router.get('/:id', async (req, res) => {
       videoId: r.video_id || (r.video_url && extractYoutubeId(r.video_url)) || null,
       videoUrl: r.video_url,
       duration: r.duration_label || 'Video',
+      show_name: r.show_name,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Stored columns: watch_videos.title, video_id, video_url, duration_label, sort_order
+// Stored columns: watch_videos.title, video_id, video_url, duration_label, sort_order, show_name
 router.post('/', authMiddleware, upload.single('video'), async (req, res) => {
   try {
     const body = req.body || {};
@@ -80,6 +88,7 @@ router.post('/', authMiddleware, upload.single('video'), async (req, res) => {
     const bodyVideoId = typeof body.video_id === 'string' ? body.video_id.trim() : '';
     const bodyVideoUrl = typeof body.video_url === 'string' ? body.video_url.trim() : null;
     const durationLabel = typeof body.duration_label === 'string' ? body.duration_label.trim() || 'Video' : 'Video';
+    const showName = typeof body.show_name === 'string' ? body.show_name.trim().slice(0, 200) || null : null;
 
     if (!title) return res.status(400).json({ error: 'Title is required' });
 
@@ -99,10 +108,10 @@ router.post('/', authMiddleware, upload.single('video'), async (req, res) => {
     if (!videoId && !videoUrl) return res.status(400).json({ error: 'Provide either YouTube video ID/URL or upload a video file' });
 
     const { rows } = await db.query(
-      `INSERT INTO watch_videos (title, video_id, video_url, duration_label, sort_order)
-       VALUES ($1, $2, $3, $4, COALESCE((SELECT MAX(sort_order) + 1 FROM watch_videos), 0))
-       RETURNING id, title, video_id, video_url, duration_label`,
-      [title, videoId, videoUrl, durationLabel]
+      `INSERT INTO watch_videos (title, video_id, video_url, duration_label, sort_order, show_name)
+       VALUES ($1, $2, $3, $4, COALESCE((SELECT MAX(sort_order) + 1 FROM watch_videos), 0), $5)
+       RETURNING id, title, video_id, video_url, duration_label, show_name`,
+      [title, videoId, videoUrl, durationLabel, showName]
     );
     res.status(201).json(rows[0]);
   } catch (err) {
@@ -130,17 +139,18 @@ router.put('/:id', authMiddleware, upload.single('video'), async (req, res) => {
       videoId = null;
     }
 
-    const { rows: existing } = await db.query('SELECT id, video_url, video_id FROM watch_videos WHERE id = $1', [id]);
+    const { rows: existing } = await db.query('SELECT id, video_url, video_id, show_name FROM watch_videos WHERE id = $1', [id]);
     if (!existing.length) return res.status(404).json({ error: 'Video not found' });
     if (!videoId && !videoUrl) {
       videoUrl = existing[0].video_url;
       videoId = existing[0].video_id;
     }
     if (!videoId && !videoUrl) return res.status(400).json({ error: 'Provide either YouTube ID/URL or video file' });
+    const showName = typeof body.show_name === 'string' ? body.show_name.trim().slice(0, 200) || null : existing[0].show_name;
 
     const { rows } = await db.query(
-      'UPDATE watch_videos SET title = $1, video_id = $2, video_url = $3, duration_label = $4 WHERE id = $5 RETURNING id, title, video_id, video_url, duration_label',
-      [title, videoId, videoUrl, durationLabel, id]
+      'UPDATE watch_videos SET title = $1, video_id = $2, video_url = $3, duration_label = $4, show_name = $5 WHERE id = $6 RETURNING id, title, video_id, video_url, duration_label, show_name',
+      [title, videoId, videoUrl, durationLabel, showName, id]
     );
     res.json(rows[0]);
   } catch (err) {

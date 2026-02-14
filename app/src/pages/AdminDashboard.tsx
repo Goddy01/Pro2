@@ -52,10 +52,12 @@ export default function AdminDashboard() {
   const [podcastGuests, setPodcastGuests] = useState('');
   const [podcastAudioUrl, setPodcastAudioUrl] = useState('');
   const [podcastVideoUrl, setPodcastVideoUrl] = useState('');
+  const [podcastShowName, setPodcastShowName] = useState('');
 
   const [watchTitle, setWatchTitle] = useState('');
   const [watchVideoId, setWatchVideoId] = useState('');
   const [watchDuration, setWatchDuration] = useState('Video');
+  const [watchShowName, setWatchShowName] = useState('');
 
   const [addAdminModalOpen, setAddAdminModalOpen] = useState(false);
   const [newAdminUsername, setNewAdminUsername] = useState('');
@@ -226,6 +228,7 @@ export default function AdminDashboard() {
         setPodcastGuests('');
         setPodcastAudioUrl('');
         setPodcastVideoUrl('');
+        setPodcastShowName('');
       }
       refetchLists();
     } catch {
@@ -248,6 +251,7 @@ export default function AdminDashboard() {
         setWatchTitle('');
         setWatchVideoId('');
         setWatchDuration('Video');
+        setWatchShowName('');
       }
       refetchLists();
     } catch {
@@ -304,6 +308,7 @@ export default function AdminDashboard() {
       setPodcastGuests(data.guests || '');
       setPodcastAudioUrl(data.audio_url || '');
       setPodcastVideoUrl(data.video_url || '');
+      setPodcastShowName(data.show_name || '');
       setPodcastType(data.audio_url ? 'audio' : 'video');
       setEditingPodcastId(id);
     } catch {
@@ -319,6 +324,7 @@ export default function AdminDashboard() {
       setWatchTitle(data.title || '');
       setWatchVideoId(data.videoId || data.video_id || '');
       setWatchDuration(data.duration || 'Video');
+      setWatchShowName(data.show_name || '');
       setEditingWatchId(id);
     } catch {
       setError('Could not load video');
@@ -502,6 +508,7 @@ export default function AdminDashboard() {
       form.append('description', podcastDescription.trim());
       form.append('duration_label', podcastDuration.trim());
       form.append('guests', podcastGuests.trim());
+      if (podcastShowName.trim()) form.append('show_name', podcastShowName.trim());
       if (podcastType === 'audio' && podcastAudioUrl.trim()) form.append('audio_url', podcastAudioUrl.trim());
       if (podcastType === 'video' && podcastVideoUrl.trim()) form.append('video_url', podcastVideoUrl.trim());
       const url = editingPodcastId ? apiUrl(`/api/podcast/${editingPodcastId}`) : apiUrl('/api/podcast');
@@ -524,6 +531,7 @@ export default function AdminDashboard() {
       setPodcastGuests('');
       setPodcastAudioUrl('');
       setPodcastVideoUrl('');
+      setPodcastShowName('');
       refetchLists();
     } catch {
       setError('Could not connect to server');
@@ -542,6 +550,7 @@ export default function AdminDashboard() {
         form.append('title', watchTitle.trim());
         form.append('duration_label', watchDuration.trim());
         form.append('video_id', watchVideoId.trim());
+        if (watchShowName.trim()) form.append('show_name', watchShowName.trim());
         const res = await fetch(apiUrl(`/api/watch/${editingWatchId}`), {
           method: 'PUT',
           headers: { Authorization: `Bearer ${token}` },
@@ -580,6 +589,7 @@ export default function AdminDashboard() {
       form.append('title', watchTitle.trim());
       form.append('duration_label', watchDuration.trim());
       form.append('video_id', watchVideoId.trim());
+      if (watchShowName.trim()) form.append('show_name', watchShowName.trim());
       const res = await fetch(apiUrl('/api/watch'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -594,6 +604,7 @@ export default function AdminDashboard() {
       setWatchTitle('');
       setWatchVideoId('');
       setWatchDuration('Video');
+      setWatchShowName('');
       refetchLists();
     } catch {
       setError('Could not connect to server');
@@ -938,7 +949,7 @@ export default function AdminDashboard() {
                 {(podcastType != null || editingPodcastId) && (
                   <p className="text-offwhite/70 text-sm">
                     {editingPodcastId ? (
-                      <>Editing episode. <button type="button" onClick={() => { setEditingPodcastId(null); setPodcastType(null); setPodcastTitle(''); setPodcastDescription(''); setPodcastDuration(''); setPodcastGuests(''); setPodcastAudioUrl(''); setPodcastVideoUrl(''); }} className="text-lime underline">Cancel</button></>
+                      <>Editing episode. <button type="button" onClick={() => { setEditingPodcastId(null); setPodcastType(null); setPodcastTitle(''); setPodcastDescription(''); setPodcastDuration(''); setPodcastGuests(''); setPodcastAudioUrl(''); setPodcastVideoUrl(''); setPodcastShowName(''); }} className="text-lime underline">Cancel</button></>
                     ) : (
                       <button type="button" onClick={() => setPodcastType(null)} className="text-lime hover:underline">← Change to {podcastType === 'audio' ? 'video' : 'audio'} podcast</button>
                     )}
@@ -959,6 +970,10 @@ export default function AdminDashboard() {
                 <label className="block">
                   <span className={labelClass}>Guests (comma-separated)</span>
                   <input type="text" value={podcastGuests} onChange={(e) => setPodcastGuests(e.target.value)} className={inputClass} placeholder="Name 1, Name 2" />
+                </label>
+                <label className="block">
+                  <span className={labelClass}>Show (optional – for multiple shows on the network)</span>
+                  <input type="text" value={podcastShowName} onChange={(e) => setPodcastShowName(e.target.value)} className={inputClass} placeholder="e.g. Sideline Sports Weekly" />
                 </label>
                 {podcastType === 'audio' && (
                   <label className="block">
@@ -1004,7 +1019,7 @@ export default function AdminDashboard() {
             )}
             <form onSubmit={handleWatchSubmit} className="space-y-6">
               {editingWatchId && (
-                <p className="text-lime text-sm">Editing video. <button type="button" onClick={() => { setEditingWatchId(null); setWatchTitle(''); setWatchVideoId(''); setWatchDuration('Video'); }} className="underline">Cancel</button></p>
+                <p className="text-lime text-sm">Editing video. <button type="button" onClick={() => { setEditingWatchId(null); setWatchTitle(''); setWatchVideoId(''); setWatchDuration('Video'); setWatchShowName(''); }} className="underline">Cancel</button></p>
               )}
             <label className="block">
               <span className={labelClass}>Video title *</span>
@@ -1017,6 +1032,10 @@ export default function AdminDashboard() {
             <label className="block">
               <span className={labelClass}>Duration label</span>
               <input type="text" value={watchDuration} onChange={(e) => setWatchDuration(e.target.value)} className={inputClass} placeholder="Video or Shorts" />
+            </label>
+            <label className="block">
+              <span className={labelClass}>Show (optional – for multiple shows on the network)</span>
+              <input type="text" value={watchShowName} onChange={(e) => setWatchShowName(e.target.value)} className={inputClass} placeholder="e.g. Sideline Sports Weekly" />
             </label>
             <button type="submit" disabled={loading} className="btn-premium py-4 px-8 disabled:opacity-50">
               {loading ? (editingWatchId ? 'Updating...' : 'Adding...') : (editingWatchId ? 'Update Video' : 'Add Video')}

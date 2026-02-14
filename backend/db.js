@@ -82,6 +82,7 @@ export async function initDb() {
         audio_url TEXT,
         video_url TEXT,
         thumbnail_url TEXT,
+        show_name VARCHAR(200),
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
@@ -92,6 +93,7 @@ export async function initDb() {
         video_url TEXT,
         duration_label VARCHAR(50) DEFAULT 'Video',
         sort_order INT DEFAULT 0,
+        show_name VARCHAR(200),
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
@@ -102,6 +104,10 @@ export async function initDb() {
         cell VARCHAR(30) NOT NULL,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+    `);
+    await client.query(`
+      ALTER TABLE podcast_episodes ADD COLUMN IF NOT EXISTS show_name VARCHAR(200);
+      ALTER TABLE watch_videos ADD COLUMN IF NOT EXISTS show_name VARCHAR(200);
     `);
     // Seed 3 test submissions when table is empty (for testing)
     const { rows: countRows } = await client.query('SELECT COUNT(*) AS c FROM work_with_us');

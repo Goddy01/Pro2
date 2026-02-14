@@ -29,9 +29,15 @@ const upload = multer({
 
 router.get('/', async (req, res) => {
   try {
-    const { rows } = await db.query(
-      'SELECT id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, created_at FROM podcast_episodes ORDER BY created_at DESC'
-    );
+    const showFilter = typeof req.query.show === 'string' ? req.query.show.trim() || null : null;
+    const { rows } = showFilter
+      ? await db.query(
+          'SELECT id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name, created_at FROM podcast_episodes WHERE TRIM(COALESCE(show_name, \'\')) = $1 ORDER BY created_at DESC',
+          [showFilter]
+        )
+      : await db.query(
+          'SELECT id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name, created_at FROM podcast_episodes ORDER BY created_at DESC'
+        );
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -43,7 +49,7 @@ router.get('/:id', async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid episode ID' });
     const { rows } = await db.query(
-      'SELECT id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, created_at FROM podcast_episodes WHERE id = $1',
+      'SELECT id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name, created_at FROM podcast_episodes WHERE id = $1',
       [id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Episode not found' });
@@ -53,7 +59,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Stored columns: podcast_episodes.title, description, duration_label, guests, audio_url, video_url, thumbnail_url
+// Stored columns: podcast_episodes.title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name
 router.post('/', authMiddleware, upload.fields([{ name: 'audio', maxCount: 1 }, { name: 'video', maxCount: 1 }, { name: 'thumbnail', maxCount: 1 }]), async (req, res) => {
   try {
     const body = req.body || {};
@@ -61,6 +67,7 @@ router.post('/', authMiddleware, upload.fields([{ name: 'audio', maxCount: 1 }, 
     const description = typeof body.description === 'string' ? body.description.trim() : null;
     const durationLabel = typeof body.duration_label === 'string' ? body.duration_label.trim() || null : null;
     const guests = typeof body.guests === 'string' ? body.guests.trim() || null : null;
+    const showName = typeof body.show_name === 'string' ? body.show_name.trim().slice(0, 200) || null : null;
     let audioUrl = typeof body.audio_url === 'string' ? body.audio_url.trim() || null : null;
     let videoUrl = typeof body.video_url === 'string' ? body.video_url.trim() || null : null;
     let thumbnailUrl = null;
@@ -86,9 +93,9 @@ router.post('/', authMiddleware, upload.fields([{ name: 'audio', maxCount: 1 }, 
     if (!audioUrl && !videoUrl) return res.status(400).json({ error: 'Provide either audio file/URL or video file/URL' });
 
     const { rows } = await db.query(
-      `INSERT INTO podcast_episodes (title, description, duration_label, guests, audio_url, video_url, thumbnail_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, created_at`,
-      [title, description, durationLabel, guests, audioUrl, videoUrl, thumbnailUrl]
+      `INSERT INTO podcast_episodes (title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name, created_at`,
+      [title, description, durationLabel, guests, audioUrl, videoUrl, thumbnailUrl, showName]
     );
     res.status(201).json(rows[0]);
   } catch (err) {
@@ -106,12 +113,13 @@ router.put('/:id', authMiddleware, upload.fields([{ name: 'audio', maxCount: 1 }
     if (!title) return res.status(400).json({ error: 'Title is required' });
 
     const { rows: existing } = await db.query(
-      'SELECT id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url FROM podcast_episodes WHERE id = $1',
+      'SELECT id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name FROM podcast_episodes WHERE id = $1',
       [id]
     );
     if (!existing.length) return res.status(404).json({ error: 'Episode not found' });
     const current = existing[0];
 
+    const showName = typeof body.show_name === 'string' ? body.show_name.trim().slice(0, 200) || null : current.show_name;
     let description = typeof body.description === 'string' ? body.description.trim() || null : current.description;
     let durationLabel = typeof body.duration_label === 'string' ? body.duration_label.trim() || null : current.duration_label;
     let guests = typeof body.guests === 'string' ? body.guests.trim() || null : current.guests;
@@ -137,9 +145,9 @@ router.put('/:id', authMiddleware, upload.fields([{ name: 'audio', maxCount: 1 }
     if (!audioUrl && !videoUrl) return res.status(400).json({ error: 'Provide either audio or video URL/file' });
 
     const { rows } = await db.query(
-      `UPDATE podcast_episodes SET title = $1, description = $2, duration_label = $3, guests = $4, audio_url = $5, video_url = $6, thumbnail_url = $7 WHERE id = $8
-       RETURNING id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, created_at`,
-      [title, description, durationLabel, guests, audioUrl, videoUrl, thumbnailUrl, id]
+      `UPDATE podcast_episodes SET title = $1, description = $2, duration_label = $3, guests = $4, audio_url = $5, video_url = $6, thumbnail_url = $7, show_name = $8 WHERE id = $9
+       RETURNING id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name, created_at`,
+      [title, description, durationLabel, guests, audioUrl, videoUrl, thumbnailUrl, showName, id]
     );
     res.json(rows[0]);
   } catch (err) {

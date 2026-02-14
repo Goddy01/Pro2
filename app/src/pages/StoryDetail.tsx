@@ -118,7 +118,7 @@ export default function StoryDetail() {
           <img
             src={article.image}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover object-center"
+            className="absolute inset-0 w-full h-full object-cover object-top"
             loading="eager"
             decoding="async"
             fetchPriority="high"

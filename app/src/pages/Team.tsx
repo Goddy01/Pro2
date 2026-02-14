@@ -40,7 +40,7 @@ const teamMembers = [
   {
     name: 'Jay Nelson',
     role: 'Sports Personality & Media Executive',
-    bio: 'Will Peralta is a Multimedia Photographer for Sideline Sports & Entertainment, covering professional sports and entertainment events. He has photographed the NBA, NFL, MLB, and major artists, focusing on capturing authentic moments that reflect the atmosphere and story of each client and event.',
+    bio: 'Jay Nelson, aka “Denzel Snipes,” (born Jamon La Roi Nelson) is a Sideline Sports personality and media executive. A 12-year U.S. Air Force veteran with multiple duty stations and deployments, he earned a BS in Convergence Journalism from Abilene Christian University. Nelson has covered major live events including the NFL Hall of Fame and multiple Super Bowls. He currently produces and/or co-hosts six shows and serves as President of Production for the network.',
     image: '/JAY.jpg',
     socials: { instagram: 'https://www.instagram.com/unconv3ntionalking13' },
   },

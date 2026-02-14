@@ -14,11 +14,14 @@ type Submission = {
   created_at: string;
 };
 
+const PER_PAGE = 3;
+
 export default function AdminWorkWithUsSubmissions() {
   const { token, isAuthenticated } = useAuth();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     if (!token) return;
@@ -34,7 +37,10 @@ export default function AdminWorkWithUsSubmissions() {
           return;
         }
         const data = await res.json();
-        if (!cancelled) setSubmissions(Array.isArray(data) ? data : []);
+        if (!cancelled) {
+          setSubmissions(Array.isArray(data) ? data : []);
+          setPage(1);
+        }
       } catch {
         if (!cancelled) setError('Could not connect to server');
       } finally {
@@ -53,6 +59,10 @@ export default function AdminWorkWithUsSubmissions() {
       return s;
     }
   };
+
+  const totalPages = Math.max(1, Math.ceil(submissions.length / PER_PAGE));
+  const start = (page - 1) * PER_PAGE;
+  const paginatedSubmissions = submissions.slice(start, start + PER_PAGE);
 
   return (
     <div className="min-h-screen bg-forest px-6 py-12">
@@ -74,8 +84,9 @@ export default function AdminWorkWithUsSubmissions() {
         ) : submissions.length === 0 ? (
           <p className="text-offwhite/60">No submissions yet.</p>
         ) : (
-          <div className="space-y-6">
-            {submissions.map((s) => (
+          <>
+            <div className="space-y-6">
+              {paginatedSubmissions.map((s) => (
               <article
                 key={s.id}
                 className="border border-offwhite/20 bg-offwhite/5 p-5 rounded text-offwhite"
@@ -99,8 +110,32 @@ export default function AdminWorkWithUsSubmissions() {
                   <p className="text-offwhite whitespace-pre-wrap">{s.introduction}</p>
                 </div>
               </article>
-            ))}
-          </div>
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="px-4 py-2 border border-offwhite/30 text-offwhite disabled:opacity-40 disabled:cursor-not-allowed hover:border-lime hover:text-lime transition-colors"
+                >
+                  Previous
+                </button>
+                <span className="text-offwhite/70 text-sm">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="px-4 py-2 border border-offwhite/30 text-offwhite disabled:opacity-40 disabled:cursor-not-allowed hover:border-lime hover:text-lime transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

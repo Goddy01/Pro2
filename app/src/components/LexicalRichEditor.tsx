@@ -9,7 +9,7 @@ import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { $generateHtmlFromNodes } from '@lexical/html';
-import { $getRoot, $getSelection, $isRangeSelection, COMMAND_PRIORITY_LOW, FORMAT_TEXT_COMMAND } from 'lexical';
+import { $getRoot, $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND } from 'lexical';
 import { $generateNodesFromDOM } from '@lexical/html';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { ListNode, ListItemNode, INSERT_UNORDERED_LIST_COMMAND, INSERT_ORDERED_LIST_COMMAND } from '@lexical/list';
@@ -179,6 +179,7 @@ export default function LexicalRichEditor({
               <ContentEditable
                 className="min-h-[8rem] px-4 py-3 text-offwhite placeholder:text-offwhite/40 focus:outline-none prose prose-invert max-w-none [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-lg [&_h3]:font-semibold [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6 [&_a]:text-lime [&_a]:underline"
                 aria-placeholder={placeholder}
+                placeholder={<div className="absolute top-4 left-4 text-offwhite/40 pointer-events-none">{placeholder}</div>}
               />
             }
             placeholder={

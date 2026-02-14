@@ -306,9 +306,17 @@ export default function Layout() {
             <div>
               <h4 className="text-offwhite font-semibold mb-6">Quick Links</h4>
               <ul className="space-y-3">
-                {['Latest Stories', 'Show', 'Video', 'Events', 'About Us', 'Careers'].map((link, i) => (
+                {navItems.map((item, i) => (
                   <li key={i}>
-                    <a href="/#" className="text-offwhite/50 hover:text-lime text-sm transition-colors">{link}</a>
+                    {'to' in item && item.to ? (
+                      <Link to={item.to} className="text-offwhite/50 hover:text-lime text-sm transition-colors">
+                        {item.label}
+                      </Link>
+                    ) : (
+                      <a href={'href' in item ? item.href : '#'} className="text-offwhite/50 hover:text-lime text-sm transition-colors">
+                        {item.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>

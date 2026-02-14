@@ -771,7 +771,7 @@ export default function AdminDashboard() {
             </label>
             <label className="block">
               <span className={labelClass}>Content *</span>
-              <RichTextEditor value={content} onChange={setContent} placeholder="Article content..." minHeight="32rem" />
+              <RichTextEditor key={editingArticleId ?? 'new'} value={content} onChange={setContent} placeholder="Article content..." minHeight="32rem" />
             </label>
             <label className="block">
               <span className={labelClass}>Category</span>

@@ -287,6 +287,12 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Write y
     if (!editor) return;
     if (value === '' && editor.getHTML() !== '<p></p>') {
       editor.commands.setContent('');
+      return;
+    }
+    const current = editor.getHTML();
+    const empty = !current || current === '<p></p>' || current.trim() === '<p></p>';
+    if (value && value.trim() !== '' && empty) {
+      editor.commands.setContent(value);
     }
   }, [value, editor]);
 

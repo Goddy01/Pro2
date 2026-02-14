@@ -21,6 +21,7 @@ function Toolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
 
   return (
     <div className="flex flex-wrap items-center gap-1 p-2 border border-b-0 border-offwhite/20 bg-offwhite/5 rounded-t">
+      {/* Text format */}
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleBold().run()}
@@ -39,6 +40,40 @@ function Toolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
       </button>
       <button
         type="button"
+        onClick={() => editor.chain().focus().toggleUnderline().run()}
+        className={`${toolbarBtnClass} ${editor.isActive('underline') ? 'text-lime bg-offwhite/10' : ''}`}
+        title="Underline"
+      >
+        <span className="underline">U</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleStrike().run()}
+        className={`${toolbarBtnClass} ${editor.isActive('strike') ? 'text-lime bg-offwhite/10' : ''}`}
+        title="Strikethrough"
+      >
+        <span className="line-through">S</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleCode().run()}
+        className={`${toolbarBtnClass} ${editor.isActive('code') ? 'text-lime bg-offwhite/10' : ''}`}
+        title="Inline code"
+      >
+        &lt;/&gt;
+      </button>
+      <span className="w-px h-5 bg-offwhite/20" />
+      {/* Headings */}
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        className={`${toolbarBtnClass} ${editor.isActive('heading', { level: 1 }) ? 'text-lime bg-offwhite/10' : ''}`}
+        title="Heading 1"
+      >
+        H1
+      </button>
+      <button
+        type="button"
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
         className={`${toolbarBtnClass} ${editor.isActive('heading', { level: 2 }) ? 'text-lime bg-offwhite/10' : ''}`}
         title="Heading 2"
@@ -54,6 +89,7 @@ function Toolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
         H3
       </button>
       <span className="w-px h-5 bg-offwhite/20" />
+      {/* Lists */}
       <button
         type="button"
         onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -69,6 +105,32 @@ function Toolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
         title="Numbered list"
       >
         1.
+      </button>
+      <span className="w-px h-5 bg-offwhite/20" />
+      {/* Block elements */}
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        className={`${toolbarBtnClass} ${editor.isActive('blockquote') ? 'text-lime bg-offwhite/10' : ''}`}
+        title="Blockquote"
+      >
+        “
+      </button>
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+        className={`${toolbarBtnClass} ${editor.isActive('codeBlock') ? 'text-lime bg-offwhite/10' : ''}`}
+        title="Code block"
+      >
+        {'{ }'}
+      </button>
+      <button
+        type="button"
+        onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        className={toolbarBtnClass}
+        title="Horizontal rule"
+      >
+        —
       </button>
       <span className="w-px h-5 bg-offwhite/20" />
       <button
@@ -103,7 +165,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Write y
     editorProps: {
       attributes: {
         class:
-          'prose prose-invert max-w-none min-h-[8rem] px-4 py-3 text-offwhite placeholder:text-offwhite/40 focus:outline-none [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-lg [&_h3]:font-semibold [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6',
+          'prose prose-invert max-w-none min-h-[8rem] px-4 py-3 text-offwhite placeholder:text-offwhite/40 focus:outline-none [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-lg [&_h3]:font-semibold [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-lime [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-offwhite/80 [&_code]:bg-offwhite/10 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-offwhite/10 [&_pre]:p-4 [&_pre]:rounded [&_pre]:overflow-x-auto [&_hr]:border-offwhite/20',
       },
     },
   });

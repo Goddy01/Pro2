@@ -37,7 +37,7 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'Image is required' });
     if (!hasCloudinaryConfig()) return res.status(503).json({ error: 'Image upload is not configured. Set CLOUDINARY_* env vars.' });
 
-    const result = await uploadImageBuffer(req.file.buffer, 'sideline-gallery');
+    const result = await uploadImageBuffer(req.file.buffer, 'sideline-gallery', { upload_preset: 'Sideline.Gallery' });
     const caption = (req.body.caption || '').trim() || null;
     const { rows } = await db.query(
       'INSERT INTO gallery_images (image_url, caption, sort_order) VALUES ($1, $2, COALESCE((SELECT MAX(sort_order) + 1 FROM gallery_images), 0)) RETURNING id, image_url, caption',

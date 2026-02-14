@@ -6,10 +6,17 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export function uploadImageBuffer(buffer, folder = 'sideline') {
+/**
+ * @param {Buffer} buffer
+ * @param {string} [folder='sideline']
+ * @param {{ upload_preset?: string }} [options]
+ */
+export function uploadImageBuffer(buffer, folder = 'sideline', options = {}) {
+  const uploadOptions = { folder, resource_type: 'image' };
+  if (options.upload_preset) uploadOptions.upload_preset = options.upload_preset;
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: 'image' },
+      uploadOptions,
       (err, result) => {
         if (err) reject(err);
         else resolve(result);

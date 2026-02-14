@@ -79,7 +79,7 @@ router.post('/', authMiddleware, upload.array('images', 50), async (req, res) =>
     const eventId = eventRows[0].id;
 
     for (let i = 0; i < req.files.length; i++) {
-      const result = await uploadImageBuffer(req.files[i].buffer, 'sideline-events');
+      const result = await uploadImageBuffer(req.files[i].buffer, 'sideline-events', { upload_preset: 'Sideline.Events' });
       await db.query('INSERT INTO event_images (event_id, image_url, sort_order) VALUES ($1, $2, $3)', [
         eventId,
         result.secure_url,

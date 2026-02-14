@@ -3,6 +3,7 @@ import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../lib/api';
 import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video } from 'lucide-react';
+import RichTextEditor from '../components/RichTextEditor';
 import '../App.css';
 
 const TABS = [
@@ -72,7 +73,8 @@ export default function AdminDashboard() {
       setError('Title is required');
       return;
     }
-    if (!content.trim()) {
+    const textOnly = (content || '').replace(/<[^>]*>/g, '').trim();
+    if (!textOnly) {
       setError('Content is required');
       return;
     }
@@ -330,7 +332,7 @@ export default function AdminDashboard() {
             </label>
             <label className="block">
               <span className={labelClass}>Content *</span>
-              <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={12} className={inputClass} placeholder="Article content..." required />
+              <RichTextEditor value={content} onChange={setContent} placeholder="Article content..." minHeight="16rem" />
             </label>
             <label className="block">
               <span className={labelClass}>Category</span>

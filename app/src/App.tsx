@@ -12,6 +12,7 @@ import Gallery from './pages/Gallery';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminWorkWithUsSubmissions from './pages/AdminWorkWithUsSubmissions';
+import AdminNewsletterSignups from './pages/AdminNewsletterSignups';
 import WorkWithUs from './pages/WorkWithUs';
 import ListenWatch from './pages/ListenWatch';
 import './App.css';
@@ -36,6 +37,7 @@ function App() {
           <Route path="superuser" element={<AdminLogin />} />
           <Route path="admin" element={<AdminDashboard />} />
           <Route path="admin/work-with-us-submissions" element={<AdminWorkWithUsSubmissions />} />
+          <Route path="admin/newsletter-signups" element={<AdminNewsletterSignups />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

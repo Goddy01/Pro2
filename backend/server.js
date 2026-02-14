@@ -8,6 +8,7 @@ import { initDb } from './db.js';
 import authRoutes, { ensureAdmin } from './routes/auth.js';
 import articleRoutes from './routes/articles.js';
 import workWithUsRoutes from './routes/workWithUs.js';
+import newsletterSignupsRoutes from './routes/newsletterSignups.js';
 import galleryRoutes from './routes/gallery.js';
 import eventsRoutes from './routes/events.js';
 import podcastRoutes from './routes/podcast.js';
@@ -34,6 +35,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/work-with-us', workWithUsRoutes);
+app.use('/api/newsletter-signups', newsletterSignupsRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/podcast', podcastRoutes);

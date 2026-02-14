@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 import { Zap, Menu, X, Youtube, Instagram } from 'lucide-react';
+import { apiUrl } from './lib/api';
 
 function IconXLogo({ className }: { className?: string }) {
   return (
@@ -55,6 +56,11 @@ export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [marqueeItems, setMarqueeItems] = useState<{ title: string; source: string }[]>([]);
   const [marqueeReady, setMarqueeReady] = useState(false);
+  const [signupName, setSignupName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupCell, setSignupCell] = useState('');
+  const [signupStatus, setSignupStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [signupMessage, setSignupMessage] = useState('');
 
   const marqueeDisplayItems = (() => {
     const items = marqueeItems.length > 0 ? [...marqueeItems] : [];
@@ -111,6 +117,33 @@ export default function Layout() {
       controller.abort();
     };
   }, []);
+
+  async function handleNewsletterSignup(e: FormEvent) {
+    e.preventDefault();
+    setSignupStatus('loading');
+    setSignupMessage('');
+    try {
+      const res = await fetch(apiUrl('/api/newsletter-signups'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: signupName.trim(), email: signupEmail.trim(), cell: signupCell.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSignupStatus('error');
+        setSignupMessage(data.error || 'Something went wrong.');
+        return;
+      }
+      setSignupStatus('success');
+      setSignupMessage('Thanks! You’re signed up for the latest Sideline Sports news.');
+      setSignupName('');
+      setSignupEmail('');
+      setSignupCell('');
+    } catch {
+      setSignupStatus('error');
+      setSignupMessage('Could not sign up. Please try again.');
+    }
+  }
 
   return (
     <div className="relative">
@@ -188,6 +221,47 @@ export default function Layout() {
 
       <footer id="contact" className="section-premium pt-24 pb-12 border-t border-offwhite/5">
         <div className="w-full px-6 lg:px-12">
+          <div className="max-w-2xl mb-16">
+            <h3 className="text-offwhite font-display font-bold text-xl mb-2">Sign up for more information</h3>
+            <p className="text-offwhite/60 text-sm mb-4">
+              Get the latest Sideline Sports news and information. We’ll compile a list of everyone interested.
+            </p>
+            <form onSubmit={handleNewsletterSignup} className="flex flex-col sm:flex-row gap-3 flex-wrap">
+              <input
+                type="text"
+                placeholder="Name"
+                value={signupName}
+                onChange={(e) => setSignupName(e.target.value)}
+                required
+                className="flex-1 min-w-[160px] px-4 py-3 bg-offwhite/5 border border-offwhite/20 text-offwhite placeholder:text-offwhite/40 focus:outline-none focus:border-lime"
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                value={signupEmail}
+                onChange={(e) => setSignupEmail(e.target.value)}
+                required
+                className="flex-1 min-w-[160px] px-4 py-3 bg-offwhite/5 border border-offwhite/20 text-offwhite placeholder:text-offwhite/40 focus:outline-none focus:border-lime"
+              />
+              <input
+                type="tel"
+                placeholder="Cell"
+                value={signupCell}
+                onChange={(e) => setSignupCell(e.target.value)}
+                required
+                className="flex-1 min-w-[140px] px-4 py-3 bg-offwhite/5 border border-offwhite/20 text-offwhite placeholder:text-offwhite/40 focus:outline-none focus:border-lime"
+              />
+              <button
+                type="submit"
+                disabled={signupStatus === 'loading'}
+                className="px-6 py-3 bg-lime text-forest font-display font-bold uppercase tracking-wide hover:bg-lime/90 disabled:opacity-60 transition-colors"
+              >
+                {signupStatus === 'loading' ? 'Signing up…' : 'Sign up'}
+              </button>
+            </form>
+            {signupStatus === 'success' && <p className="mt-3 text-lime text-sm">{signupMessage}</p>}
+            {signupStatus === 'error' && <p className="mt-3 text-red-400 text-sm">{signupMessage}</p>}
+          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-6">

@@ -16,6 +16,7 @@ const pool = new Pool({
  * podcast_episodes: title, description, duration_label, guests, audio_url, video_url, thumbnail_url
  * watch_videos: title, video_id, video_url, duration_label, sort_order
  * work_with_us: name, phone, email, introduction
+ * newsletter_signups: name, email, cell
  * admin: username, password_hash
  */
 
@@ -91,6 +92,14 @@ export async function initDb() {
         video_url TEXT,
         duration_label VARCHAR(50) DEFAULT 'Video',
         sort_order INT DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS newsletter_signups (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(200) NOT NULL,
+        email VARCHAR(254) NOT NULL,
+        cell VARCHAR(30) NOT NULL,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
     `);

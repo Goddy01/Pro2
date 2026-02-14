@@ -48,13 +48,19 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Stored columns: watch_videos.title, video_id, video_url, duration_label, sort_order
 router.post('/', authMiddleware, upload.single('video'), async (req, res) => {
   try {
-    const { title, video_id: bodyVideoId, video_url: bodyVideoUrl, duration_label } = req.body || {};
-    if (!title?.trim()) return res.status(400).json({ error: 'Title is required' });
+    const body = req.body || {};
+    const title = typeof body.title === 'string' ? body.title.trim() : '';
+    const bodyVideoId = typeof body.video_id === 'string' ? body.video_id.trim() : '';
+    const bodyVideoUrl = typeof body.video_url === 'string' ? body.video_url.trim() : null;
+    const durationLabel = typeof body.duration_label === 'string' ? body.duration_label.trim() || 'Video' : 'Video';
 
-    let videoId = bodyVideoId ? extractYoutubeId(bodyVideoId) || bodyVideoId.trim() : null;
-    let videoUrl = (bodyVideoUrl || '').trim() || null;
+    if (!title) return res.status(400).json({ error: 'Title is required' });
+
+    let videoId = bodyVideoId ? (extractYoutubeId(bodyVideoId) || bodyVideoId) : null;
+    let videoUrl = bodyVideoUrl || null;
 
     if (req.file && hasCloudinaryConfig()) {
       const result = await uploadVideoBuffer(req.file.buffer, 'sideline-watch');
@@ -64,12 +70,11 @@ router.post('/', authMiddleware, upload.single('video'), async (req, res) => {
 
     if (!videoId && !videoUrl) return res.status(400).json({ error: 'Provide either YouTube video ID/URL or upload a video file' });
 
-    const duration = (duration_label || '').trim() || 'Video';
     const { rows } = await db.query(
       `INSERT INTO watch_videos (title, video_id, video_url, duration_label, sort_order)
        VALUES ($1, $2, $3, $4, COALESCE((SELECT MAX(sort_order) + 1 FROM watch_videos), 0))
        RETURNING id, title, video_id, video_url, duration_label`,
-      [title.trim(), videoId, videoUrl, duration]
+      [title, videoId, videoUrl, durationLabel]
     );
     res.status(201).json(rows[0]);
   } catch (err) {

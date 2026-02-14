@@ -54,6 +54,7 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Stored columns: articles.title, articles.image, articles.content, articles.category, articles.author
 router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
   try {
     const { title, content, category, author } = req.body;

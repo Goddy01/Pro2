@@ -38,14 +38,19 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Stored columns: podcast_episodes.title, description, duration_label, guests, audio_url, video_url, thumbnail_url
 router.post('/', authMiddleware, upload.fields([{ name: 'audio', maxCount: 1 }, { name: 'video', maxCount: 1 }, { name: 'thumbnail', maxCount: 1 }]), async (req, res) => {
   try {
-    const { title, description, duration_label, guests, audio_url: bodyAudioUrl, video_url: bodyVideoUrl } = req.body || {};
-    if (!title?.trim()) return res.status(400).json({ error: 'Title is required' });
-
-    let audioUrl = (bodyAudioUrl || '').trim() || null;
-    let videoUrl = (bodyVideoUrl || '').trim() || null;
+    const body = req.body || {};
+    const title = typeof body.title === 'string' ? body.title.trim() : '';
+    const description = typeof body.description === 'string' ? body.description.trim() : null;
+    const durationLabel = typeof body.duration_label === 'string' ? body.duration_label.trim() || null : null;
+    const guests = typeof body.guests === 'string' ? body.guests.trim() || null : null;
+    let audioUrl = typeof body.audio_url === 'string' ? body.audio_url.trim() || null : null;
+    let videoUrl = typeof body.video_url === 'string' ? body.video_url.trim() || null : null;
     let thumbnailUrl = null;
+
+    if (!title) return res.status(400).json({ error: 'Title is required' });
 
     if (hasCloudinaryConfig()) {
       const files = req.files || {};
@@ -65,12 +70,10 @@ router.post('/', authMiddleware, upload.fields([{ name: 'audio', maxCount: 1 }, 
 
     if (!audioUrl && !videoUrl) return res.status(400).json({ error: 'Provide either audio file/URL or video file/URL' });
 
-    const guestsStr = (guests || '').trim() || null;
-    const duration = (duration_label || '').trim() || null;
     const { rows } = await db.query(
       `INSERT INTO podcast_episodes (title, description, duration_label, guests, audio_url, video_url, thumbnail_url)
        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, created_at`,
-      [title.trim(), (description || '').trim(), duration, guestsStr, audioUrl, videoUrl, thumbnailUrl]
+      [title, description, durationLabel, guests, audioUrl, videoUrl, thumbnailUrl]
     );
     res.status(201).json(rows[0]);
   } catch (err) {

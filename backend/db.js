@@ -6,6 +6,19 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+/**
+ * Schema reference – submitted data must map only to these columns:
+ *
+ * articles: title, image, content, category, author
+ * gallery_images: image_url, caption, sort_order
+ * events: slug, title, description
+ * event_images: event_id, image_url, sort_order
+ * podcast_episodes: title, description, duration_label, guests, audio_url, video_url, thumbnail_url
+ * watch_videos: title, video_id, video_url, duration_label, sort_order
+ * work_with_us: name, phone, email, introduction
+ * admin: username, password_hash
+ */
+
 export async function initDb() {
   const client = await pool.connect();
   try {

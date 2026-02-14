@@ -63,18 +63,20 @@ router.get('/:slug', async (req, res) => {
   }
 });
 
+// Stored columns: events.slug, events.title, events.description; event_images.event_id, event_images.image_url, event_images.sort_order
 router.post('/', authMiddleware, upload.array('images', 50), async (req, res) => {
   try {
-    const { title, description, slug } = req.body;
-    if (!title?.trim()) return res.status(400).json({ error: 'Title is required' });
-    const safeSlug = (slug || title).trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const title = typeof req.body?.title === 'string' ? req.body.title.trim() : '';
+    const description = typeof req.body?.description === 'string' ? req.body.description.trim() : '';
+    if (!title) return res.status(400).json({ error: 'Title is required' });
+    const safeSlug = (typeof req.body?.slug === 'string' ? req.body.slug.trim() || title : title).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     if (!safeSlug) return res.status(400).json({ error: 'Slug could not be generated from title' });
     if (!req.files?.length) return res.status(400).json({ error: 'At least one image is required' });
     if (!hasCloudinaryConfig()) return res.status(503).json({ error: 'Image upload is not configured.' });
 
     const { rows: eventRows } = await db.query(
       'INSERT INTO events (slug, title, description) VALUES ($1, $2, $3) ON CONFLICT (slug) DO UPDATE SET title = $2, description = $3 RETURNING id',
-      [safeSlug, title.trim(), (description || '').trim()]
+      [safeSlug, title, description]
     );
     const eventId = eventRows[0].id;
 

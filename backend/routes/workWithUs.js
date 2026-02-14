@@ -57,6 +57,7 @@ function stripHtml(str) {
     .trim();
 }
 
+// Stored columns: work_with_us.name, phone, email, introduction (all required)
 router.post('/', async (req, res) => {
   try {
     const ip = getClientIp(req);
@@ -69,6 +70,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Invalid request body' });
     }
 
+    // Only read fields that are stored in work_with_us table
     let name = typeof body.name === 'string' ? body.name.trim().slice(0, MAX_NAME) : '';
     let phone = typeof body.phone === 'string' ? body.phone.trim().slice(0, MAX_PHONE) : '';
     let email = typeof body.email === 'string' ? body.email.trim().slice(0, MAX_EMAIL).toLowerCase() : '';

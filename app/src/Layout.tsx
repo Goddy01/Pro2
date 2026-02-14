@@ -26,19 +26,22 @@ const SOCIAL_LINKS = [
   { href: 'https://www.youtube.com/@sidelinesports3840?si=E5TmSrVYn-l-qBWh', icon: Youtube, label: 'YouTube' },
 ];
 
+// Marquee: at least 5 headlines from NBA, American football, soccer, entertainment, and general sports
 const marqueeFeeds = [
-  { source: 'NFL.com', url: 'https://www.nfl.com/?format=rss' },
-  { source: 'ESPN NFL', url: 'https://www.espn.com/espn/rss/nfl/news' },
-  { source: 'CBS Sports NFL', url: 'https://www.cbssports.com/rss/headlines/nfl' },
-  { source: 'Reuters Sports', url: 'https://www.reutersagency.com/feed/?best-topics=sports&post_type=best' },
+  { source: 'ESPN NBA', url: 'https://www.espn.com/espn/rss/nba/news', domain: 'nba' },
+  { source: 'ESPN NFL', url: 'https://www.espn.com/espn/rss/nfl/news', domain: 'football' },
+  { source: 'NFL.com', url: 'https://www.nfl.com/?format=rss', domain: 'football' },
+  { source: 'ESPN Soccer', url: 'https://www.espn.com/espn/rss/soccer/news', domain: 'soccer' },
+  { source: 'ESPN', url: 'https://www.espn.com/espn/rss/news', domain: 'entertainment' },
+  { source: 'Yahoo Sports', url: 'https://sports.yahoo.com/rss/', domain: 'sports' },
+  { source: 'CBS Sports', url: 'https://www.cbssports.com/rss/headlines/nfl', domain: 'football' },
+  { source: 'Sports Illustrated', url: 'https://www.si.com/rss/si_topstories.rss', domain: 'sports' },
 ];
 
-const marqueeKeywords = ['super bowl', 'nfl draft', 'draft', 'combine', 'scouting combine', 'hall of fame'];
-
 const fallbackMarqueeFeeds = [
-  { source: 'ESPN Top Headlines', url: 'https://www.espn.com/espn/rss/news' },
+  { source: 'ESPN', url: 'https://www.espn.com/espn/rss/news' },
   { source: 'Yahoo Sports', url: 'https://sports.yahoo.com/rss/' },
-  { source: 'Sports Illustrated', url: 'https://www.si.com/rss/si_topstories.rss' },
+  { source: 'Reuters Sports', url: 'https://www.reutersagency.com/feed/?best-topics=sports&post_type=best' },
 ];
 
 const navItems = [
@@ -74,10 +77,10 @@ export default function Layout() {
 
   useEffect(() => {
     const controller = new AbortController();
-    const fetchMarqueeItems = async () => {
-      const fetchFeeds = async (feeds: { source: string; url: string }[]) => {
-        const responses = await Promise.all(
-          feeds.map(async (feed) => {
+    const fetchFeeds = async (feeds: { source: string; url: string; domain?: string }[]): Promise<{ title: string; source: string; domain?: string }[]> => {
+      const responses = await Promise.all(
+        feeds.map(async (feed) => {
+          try {
             const response = await fetch(
               `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`,
               { signal: controller.signal }
@@ -86,30 +89,48 @@ export default function Layout() {
             const data = await response.json();
             if (!data || !Array.isArray(data.items)) return [];
             return data.items.map((item: { title?: string }) => ({
-              title: item.title ?? '',
+              title: (item.title ?? '').trim(),
               source: feed.source,
+              domain: feed.domain ?? 'sports',
             }));
-          })
-        );
-        const merged = responses.flat().map((item) => ({ ...item, title: item.title.trim() })).filter((item) => item.title.length > 0);
-        if (merged.length === 0) return [];
-        const keywordRegex = new RegExp(marqueeKeywords.join('|'), 'i');
-        const filtered = merged.filter((item) => keywordRegex.test(item.title));
-        return (filtered.length > 0 ? filtered : merged).slice(0, 10);
-      };
+          } catch {
+            return [];
+          }
+        })
+      );
+      return responses.flat().filter((item) => item.title.length > 0);
+    };
+
+    const ensureAtLeastFive = (items: { title: string; source: string; domain?: string }[]): { title: string; source: string; domain?: string }[] => {
+      const unique = Array.from(new Map(items.map((item) => [item.title.toLowerCase(), item])).values());
+      if (unique.length >= 5) return unique.slice(0, 10);
+      return unique;
+    };
+
+    const fetchMarqueeItems = async () => {
       try {
         const primaryItems = await fetchFeeds(marqueeFeeds);
-        const fallbackItems = primaryItems.length === 0 ? await fetchFeeds(fallbackMarqueeFeeds) : [];
-        const combined = primaryItems.length > 0 ? primaryItems : fallbackItems;
-        const unique = Array.from(new Map(combined.map((item) => [item.title.toLowerCase(), item])).values());
-        setMarqueeItems(unique);
+        let combined = ensureAtLeastFive(primaryItems);
+        if (combined.length < 5) {
+          const fallbackItems = await fetchFeeds(fallbackMarqueeFeeds);
+          const merged = [...combined, ...fallbackItems];
+          combined = ensureAtLeastFive(merged);
+        }
+        const forState = combined.slice(0, 10).map(({ title, source }) => ({ title, source }));
+        setMarqueeItems(forState);
         setMarqueeReady(true);
       } catch {
-        const fallbackItems = await fetchFeeds(fallbackMarqueeFeeds);
-        setMarqueeItems(fallbackItems);
+        try {
+          const fallbackItems = await fetchFeeds(fallbackMarqueeFeeds);
+          const combined = ensureAtLeastFive(fallbackItems);
+          setMarqueeItems(combined.slice(0, 10).map(({ title, source }) => ({ title, source })));
+        } catch {
+          setMarqueeItems([]);
+        }
         setMarqueeReady(true);
       }
     };
+
     fetchMarqueeItems();
     const refreshId = setInterval(fetchMarqueeItems, 5 * 60 * 1000);
     return () => {

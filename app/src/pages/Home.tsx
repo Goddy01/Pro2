@@ -693,20 +693,7 @@ export default function Home() {
                 (watchVideos.length ? watchVideos : FALLBACK_WATCH).map((video, i) => {
                   const isYoutube = !!video.videoId;
                   const href = isYoutube ? `https://www.youtube.com/watch?v=${video.videoId}` : (video.videoUrl || '#');
-                  const thumb = isYoutube ? `https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg` : (video.videoUrl || '');
-                  const thumbFallback = isYoutube && video.videoId
-                    ? (() => {
-                        const base = `https://img.youtube.com/vi/${video.videoId}/`;
-                        return (e: React.SyntheticEvent<HTMLImageElement>) => {
-                          const img = e.currentTarget;
-                          if (img.src.includes('maxresdefault')) {
-                            img.src = `${base}hqdefault.jpg`;
-                          } else if (img.src.includes('hqdefault')) {
-                            img.src = `${base}mqdefault.jpg`;
-                          }
-                        };
-                      })()
-                    : undefined;
+                  const thumb = isYoutube ? `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg` : (video.videoUrl || '');
                   return (
                     <a
                       key={`${repeatIndex}-${i}`}
@@ -724,7 +711,6 @@ export default function Home() {
                               className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               loading="lazy"
                               decoding="async"
-                              onError={thumbFallback}
                             />
                           ) : (
                             <div className="absolute inset-0 bg-offwhite/10 flex items-center justify-center">

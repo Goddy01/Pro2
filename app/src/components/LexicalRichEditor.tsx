@@ -9,16 +9,19 @@ import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { HorizontalRulePlugin } from '@lexical/react/LexicalHorizontalRulePlugin';
 import { HorizontalRuleNode, INSERT_HORIZONTAL_RULE_COMMAND } from '@lexical/react/LexicalHorizontalRuleNode';
+import { TablePlugin } from '@lexical/react/LexicalTablePlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { $generateHtmlFromNodes } from '@lexical/html';
 import { $getRoot, $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND } from 'lexical';
 import { $generateNodesFromDOM } from '@lexical/html';
 import { HeadingNode, QuoteNode, $createQuoteNode } from '@lexical/rich-text';
-import { ListNode, ListItemNode, INSERT_UNORDERED_LIST_COMMAND, INSERT_ORDERED_LIST_COMMAND } from '@lexical/list';
+import { ListNode, ListItemNode, INSERT_UNORDERED_LIST_COMMAND, INSERT_ORDERED_LIST_COMMAND, INSERT_CHECK_LIST_COMMAND, registerCheckList } from '@lexical/list';
 import { LinkNode, $toggleLink } from '@lexical/link';
+import { TableNode, TableCellNode, TableRowNode, INSERT_TABLE_COMMAND } from '@lexical/table';
+import { CodeNode, CodeHighlightNode, $createCodeNode } from '@lexical/code';
 import { $setBlocksType } from '@lexical/selection';
 import { $createHeadingNode } from '@lexical/rich-text';
-import { $createParagraphNode } from 'lexical';
+import { $createParagraphNode, $insertNodes } from 'lexical';
 import type { EditorState } from 'lexical';
 
 const theme = {
@@ -81,14 +84,23 @@ function LexicalToolbar() {
   const insertBulletList = useCallback(() => editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined), [editor]);
   const insertNumberedList = useCallback(() => editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined), [editor]);
   const insertHorizontalRule = useCallback(() => editor.dispatchCommand(INSERT_HORIZONTAL_RULE_COMMAND, undefined), [editor]);
+  const insertTable = useCallback(() => editor.dispatchCommand(INSERT_TABLE_COMMAND, { rows: '3', columns: '3', includeHeaders: true }), [editor]);
+  const insertCheckList = useCallback(() => editor.dispatchCommand(INSERT_CHECK_LIST_COMMAND, undefined), [editor]);
+  const insertCodeBlock = useCallback(() => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) $insertNodes([$createCodeNode()]);
+    });
+  }, [editor]);
   const setLink = useCallback(() => {
     const url = window.prompt('URL', 'https://');
     if (url != null) editor.update(() => $toggleLink(url === '' ? null : url));
   }, [editor]);
 
   return (
-    <div className="flex flex-wrap items-center gap-1 p-2 border border-b-0 border-offwhite/20 bg-offwhite/5 rounded-t">
-      {/* Text format */}
+    <div className="flex flex-col gap-1 p-2 border border-b-0 border-offwhite/20 bg-offwhite/5 rounded-t">
+      {/* Row 1: Text format */}
+      <div className="flex flex-wrap items-center gap-1">
       <button type="button" onClick={formatBold} className={toolbarBtnClass} title="Bold">
         <span className="font-bold">B</span>
       </button>
@@ -123,18 +135,31 @@ function LexicalToolbar() {
       <button type="button" onClick={insertNumberedList} className={toolbarBtnClass} title="Numbered list">
         1.
       </button>
+      <button type="button" onClick={insertCheckList} className={toolbarBtnClass} title="Check list">
+        ☑
+      </button>
+      </div>
+      {/* Row 2: Block elements, table, code, link */}
+      <div className="flex flex-wrap items-center gap-1">
       <span className="w-px h-5 bg-offwhite/20" />
-      {/* Block elements */}
       <button type="button" onClick={formatBlockquote} className={toolbarBtnClass} title="Blockquote">
         “
+      </button>
+      <button type="button" onClick={insertCodeBlock} className={toolbarBtnClass} title="Code block">
+        {'{ }'}
       </button>
       <button type="button" onClick={insertHorizontalRule} className={toolbarBtnClass} title="Horizontal rule">
         —
       </button>
       <span className="w-px h-5 bg-offwhite/20" />
+      <button type="button" onClick={insertTable} className={toolbarBtnClass} title="Insert table">
+        ⊞
+      </button>
+      <span className="w-px h-5 bg-offwhite/20" />
       <button type="button" onClick={setLink} className={toolbarBtnClass} title="Link">
         Link
       </button>
+      </div>
     </div>
   );
 }
@@ -174,6 +199,14 @@ function ClearWhenEmptyPlugin({ value }: { value: string }) {
   return null;
 }
 
+function CheckListPlugin() {
+  const [editor] = useLexicalComposerContext();
+  useEffect(() => {
+    return registerCheckList(editor);
+  }, [editor]);
+  return null;
+}
+
 type LexicalRichEditorProps = {
   value: string;
   onChange: (html: string) => void;
@@ -182,7 +215,7 @@ type LexicalRichEditorProps = {
   minHeight?: string;
 };
 
-const initialNodes = [HeadingNode, QuoteNode, ListNode, ListItemNode, LinkNode, HorizontalRuleNode];
+const initialNodes = [HeadingNode, QuoteNode, ListNode, ListItemNode, LinkNode, HorizontalRuleNode, TableNode, TableCellNode, TableRowNode, CodeNode, CodeHighlightNode];
 
 export default function LexicalRichEditor({
   value,
@@ -222,7 +255,7 @@ export default function LexicalRichEditor({
           <RichTextPlugin
             contentEditable={
               <ContentEditable
-                className="min-h-[8rem] px-4 py-3 text-offwhite placeholder:text-offwhite/40 focus:outline-none prose prose-invert max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-lg [&_h3]:font-semibold [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6 [&_a]:text-lime [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-lime [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-offwhite/80 [&_code]:bg-offwhite/10 [&_code]:px-1 [&_code]:rounded [&_hr]:border [&_hr]:border-offwhite/20"
+                className="min-h-[8rem] px-4 py-3 text-offwhite placeholder:text-offwhite/40 focus:outline-none prose prose-invert max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-lg [&_h3]:font-semibold [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6 [&_a]:text-lime [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-lime [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-offwhite/80 [&_code]:bg-offwhite/10 [&_code]:px-1 [&_code]:rounded [&_pre]:bg-offwhite/10 [&_pre]:p-4 [&_pre]:rounded [&_pre]:overflow-x-auto [&_hr]:border [&_hr]:border-offwhite/20 [&_table]:border-collapse [&_td]:border [&_td]:border-offwhite/20 [&_th]:border [&_th]:border-offwhite/20 [&_input[type=checkbox]]:rounded"
                 aria-placeholder={placeholder}
                 placeholder={<div className="absolute top-4 left-4 text-offwhite/40 pointer-events-none">{placeholder}</div>}
               />
@@ -237,6 +270,8 @@ export default function LexicalRichEditor({
         <ListPlugin />
         <LinkPlugin />
         <HorizontalRulePlugin />
+        <TablePlugin />
+        <CheckListPlugin />
         <OnChangePlugin ignoreSelectionChange onChange={handleChange} />
         <InitialHtmlPlugin initialHtml={value} />
         <ClearWhenEmptyPlugin value={value} />

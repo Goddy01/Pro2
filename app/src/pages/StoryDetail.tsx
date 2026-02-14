@@ -175,17 +175,17 @@ export default function StoryDetail() {
               <div className="w-12 h-12 rounded-full bg-offwhite/10 flex items-center justify-center flex-shrink-0">
                 <User className="w-6 h-6 text-offwhite/60" />
               </div>
-              <div className="min-w-0 flex flex-col">
+              <div className="min-w-0 flex flex-row flex-wrap items-center gap-x-3 gap-y-1 lg:flex-col lg:items-start lg:gap-0">
                 <p className="text-offwhite font-medium truncate">{article.author}</p>
-                <p className="text-offwhite/50 text-sm mt-2">{formatRelativeTime(article.created_at)}</p>
-                <p className="text-offwhite/50 text-sm mt-2 flex items-center gap-1.5">
+                <p className="text-offwhite/50 text-sm lg:mt-2">{formatRelativeTime(article.created_at)}</p>
+                <p className="text-offwhite/50 text-sm flex items-center gap-1.5 lg:mt-2">
                   <Clock className="w-4 h-4 flex-shrink-0" />
                   <span>{readMins} min read</span>
                 </p>
                 <button
                   type="button"
                   onClick={handleShare}
-                  className="inline-flex items-center gap-2 text-offwhite/60 hover:text-lime transition-colors text-sm mt-5 self-start"
+                  className="inline-flex items-center gap-2 text-offwhite/60 hover:text-lime transition-colors text-sm lg:mt-5 self-start"
                   title="Share article link"
                   aria-label="Share article link"
                 >

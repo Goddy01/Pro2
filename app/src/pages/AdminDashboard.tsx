@@ -298,7 +298,7 @@ export default function AdminDashboard() {
         </div>
 
         <h1 className="text-offwhite font-editorial font-bold text-2xl mb-2">Admin</h1>
-        <p className="text-offwhite/60 text-sm mb-6">Upload articles, gallery photos, events, and podcast episodes.</p>
+        <p className="text-offwhite/60 text-sm mb-6">Upload articles, gallery photos, events, and podcast episodes. <Link to="/admin/work-with-us-submissions" className="text-lime hover:underline">View Work with us submissions</Link></p>
 
         <div className="flex flex-wrap gap-2 mb-8 border-b border-offwhite/10 pb-4">
           {TABS.map((tab) => (

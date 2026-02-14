@@ -1,7 +1,21 @@
 import { Router } from 'express';
 import db from '../db.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
+
+// Admin: list all submissions (auth required)
+router.get('/', authMiddleware, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      'SELECT id, name, phone, email, introduction, created_at FROM work_with_us ORDER BY created_at DESC'
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('work-with-us list error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 const MAX_NAME = 200;
 const MAX_PHONE = 30;

@@ -81,6 +81,16 @@ export async function initDb() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
     `);
+    // Seed 3 test submissions when table is empty (for testing)
+    const { rows: countRows } = await client.query('SELECT COUNT(*) AS c FROM work_with_us');
+    if (Number(countRows[0]?.c) === 0) {
+      await client.query(`
+        INSERT INTO work_with_us (name, phone, email, introduction) VALUES
+        ('Jordan Smith', '+1 (555) 123-4567', 'jordan.smith@example.com', 'I am a sports producer with 8 years of experience covering college and professional athletics. I would love to bring my production skills and storytelling to Sideline Sports & Entertainment. I have experience with live events, documentaries, and social content.'),
+        ('Maria Chen', '(555) 987-6543', 'maria.chen@example.com', 'Hi, I am a recent grad in broadcast journalism and a huge fan of your podcast. I am looking for an opportunity to work in sports media and believe I could contribute to your team with my writing and on-camera experience. I am based in the city and available to start immediately.'),
+        ('David Okonkwo', '555-222-3333', 'david.o@example.com', 'I have been following Sideline for years and would be excited to join as a content or operations role. I have background in event coordination and digital marketing. I am organized, detail-oriented, and passionate about sports and entertainment. Looking forward to connecting.')
+      `);
+    }
   } finally {
     client.release();
   }

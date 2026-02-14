@@ -171,21 +171,21 @@ export default function StoryDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 lg:gap-12">
           {/* Left sidebar – contributor card; on mobile appears before article with extra spacing below */}
           <aside className="lg:w-48 flex-shrink-0 order-1 lg:order-1 pb-12 mb-6 lg:pb-0 lg:mb-0 border-b border-offwhite/10 lg:border-b-0">
-            <div className="flex lg:flex-col items-center lg:items-start gap-4 lg:gap-4">
+            <div className="flex lg:flex-col items-center lg:items-start gap-5 lg:gap-5">
               <div className="w-12 h-12 rounded-full bg-offwhite/10 flex items-center justify-center flex-shrink-0">
                 <User className="w-6 h-6 text-offwhite/60" />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex flex-col">
                 <p className="text-offwhite font-medium truncate">{article.author}</p>
-                <p className="text-offwhite/50 text-sm">{formatRelativeTime(article.created_at)}</p>
-                <p className="text-offwhite/50 text-sm mt-1 flex items-center gap-1.5">
+                <p className="text-offwhite/50 text-sm mt-2">{formatRelativeTime(article.created_at)}</p>
+                <p className="text-offwhite/50 text-sm mt-2 flex items-center gap-1.5">
                   <Clock className="w-4 h-4 flex-shrink-0" />
                   <span>{readMins} min read</span>
                 </p>
                 <button
                   type="button"
                   onClick={handleShare}
-                  className="inline-flex items-center gap-2 text-offwhite/60 hover:text-lime transition-colors text-sm mt-3"
+                  className="inline-flex items-center gap-2 text-offwhite/60 hover:text-lime transition-colors text-sm mt-5 self-start"
                   title="Share article link"
                   aria-label="Share article link"
                 >

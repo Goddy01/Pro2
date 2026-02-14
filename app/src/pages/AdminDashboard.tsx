@@ -40,7 +40,6 @@ export default function AdminDashboard() {
 
   const [eventTitle, setEventTitle] = useState('');
   const [eventDescription, setEventDescription] = useState('');
-  const [eventSlug, setEventSlug] = useState('');
   const [eventImages, setEventImages] = useState<File[]>([]);
   const eventImagesRef = useRef<HTMLInputElement>(null);
 
@@ -161,7 +160,6 @@ export default function AdminDashboard() {
       const form = new FormData();
       form.append('title', eventTitle.trim());
       form.append('description', eventDescription.trim());
-      if (eventSlug.trim()) form.append('slug', eventSlug.trim());
       eventImages.forEach((f) => form.append('images', f));
       const res = await fetch(apiUrl('/api/events'), {
         method: 'POST',
@@ -176,7 +174,6 @@ export default function AdminDashboard() {
       setSuccess('Event added.');
       setEventTitle('');
       setEventDescription('');
-      setEventSlug('');
       setEventImages([]);
       if (eventImagesRef.current) eventImagesRef.current.value = '';
     } catch {
@@ -386,10 +383,6 @@ export default function AdminDashboard() {
             <label className="block">
               <span className={labelClass}>Description (optional)</span>
               <textarea value={eventDescription} onChange={(e) => setEventDescription(e.target.value)} rows={3} className={inputClass} placeholder="Short description" />
-            </label>
-            <label className="block">
-              <span className={labelClass}>URL slug (optional, auto from title if empty)</span>
-              <input type="text" value={eventSlug} onChange={(e) => setEventSlug(e.target.value)} className={inputClass} placeholder="e.g. rmh-2025" />
             </label>
             <label className="block">
               <span className={labelClass}>Images * (one or more)</span>

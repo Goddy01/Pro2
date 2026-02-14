@@ -23,8 +23,12 @@ app.use(express.json({ limit: '50kb' }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Root and /health for Railway (and other platforms) that probe for liveness
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
+});
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'ok', service: 'sideline-backend' });
 });
 
 app.use('/api/auth', authRoutes);
@@ -42,8 +46,13 @@ async function start() {
   }
   await initDb();
   await ensureAdmin();
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`Backend running on port ${PORT}`);
+  });
+
+  // Graceful shutdown: exit 0 on SIGTERM so Railway doesn't report npm error
+  process.on('SIGTERM', () => {
+    server.close(() => process.exit(0));
   });
 }
 

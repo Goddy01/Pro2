@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { sanitizeName, sanitizePhone, sanitizeEmail, sanitizeIntroduction, MAX_INTRO } from '../lib/sanitize';
+import { apiUrl } from '../lib/api';
 import '../App.css';
 
 const inputClass =
@@ -92,7 +93,7 @@ export default function WorkWithUs() {
       introduction: introResult.value,
     };
     try {
-      const res = await fetch('/api/work-with-us', {
+      const res = await fetch(apiUrl('/api/work-with-us'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

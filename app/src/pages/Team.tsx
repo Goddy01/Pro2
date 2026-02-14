@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Instagram } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Instagram, Youtube } from 'lucide-react';
 import './../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -49,7 +49,7 @@ const teamMembers = [
     role: 'Director of Content & Media Operations',
     bio: 'James Tatum is a multimedia sports journalist and media executive with Sideline Sports & Entertainment, overseeing content strategy, video production, website management, and talent recruitment. A first-generation graduate driven by passion and determination, he has covered major events across the NFL, MLB, and Premier League. From interviewing athletes and executives to delivering in-depth analysis, feature stories, and digital content, James brings energy and insight to every platform, blending on-camera presence with strong writing and leadership skills to build an authentic, impactful sports media brand.',
     image: '/JAMES-TATUM.jpg',
-    socials: { instagram: 'https://www.instagram.com/jtpov_', x: 'https://x.com/JTP0V' },
+    socials: { instagram: 'https://www.instagram.com/jtpov_', x: 'https://x.com/JTP0V', tiktok: 'https://www.tiktok.com/@jtpointofview', youtube: 'https://www.youtube.com/@jtpointofview' },
   },
   {
     name: 'Will Peralta',
@@ -267,6 +267,17 @@ export default function Team() {
                               aria-label={`${member.name} on TikTok`}
                             >
                               <IconTikTok className="w-5 h-5" />
+                            </a>
+                          )}
+                          {member.socials.youtube && (
+                            <a
+                              href={member.socials.youtube}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-offwhite/60 hover:text-lime transition-colors"
+                              aria-label={`${member.name} on YouTube`}
+                            >
+                              <Youtube className="w-5 h-5" />
                             </a>
                           )}
                         </div>

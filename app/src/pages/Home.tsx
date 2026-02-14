@@ -9,6 +9,7 @@ import {
   Star, ArrowUpRight,
   ChevronLeft, ChevronRight, X
 } from 'lucide-react';
+import { apiUrl } from '../lib/api';
 import { EVENTS } from '../data/events';
 import '../App.css';
 
@@ -49,7 +50,7 @@ export default function Home() {
   const testimonialsCarouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/api/podcast')
+    fetch(apiUrl('/api/podcast'))
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -64,7 +65,7 @@ export default function Home() {
       .catch(() => {});
   }, []);
   useEffect(() => {
-    fetch('/api/watch')
+    fetch(apiUrl('/api/watch'))
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {

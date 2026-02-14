@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { apiUrl } from '../lib/api';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -24,7 +25,7 @@ export default function Gallery() {
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
 
   useEffect(() => {
-    fetch('/api/gallery')
+    fetch(apiUrl('/api/gallery'))
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {

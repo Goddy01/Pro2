@@ -1,6 +1,7 @@
 import { useState, useRef, type FormEvent } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { apiUrl } from '../lib/api';
 import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video } from 'lucide-react';
 import '../App.css';
 
@@ -87,7 +88,7 @@ export default function AdminDashboard() {
       form.append('category', category);
       form.append('author', author);
       form.append('image', image);
-      const res = await fetch('/api/articles', {
+      const res = await fetch(apiUrl('/api/articles'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: form,
@@ -121,7 +122,7 @@ export default function AdminDashboard() {
       const form = new FormData();
       form.append('image', galleryImage);
       if (galleryCaption.trim()) form.append('caption', galleryCaption.trim());
-      const res = await fetch('/api/gallery', {
+      const res = await fetch(apiUrl('/api/gallery'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: form,
@@ -160,7 +161,7 @@ export default function AdminDashboard() {
       form.append('description', eventDescription.trim());
       if (eventSlug.trim()) form.append('slug', eventSlug.trim());
       eventImages.forEach((f) => form.append('images', f));
-      const res = await fetch('/api/events', {
+      const res = await fetch(apiUrl('/api/events'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: form,
@@ -206,7 +207,7 @@ export default function AdminDashboard() {
       if (podcastAudioFile) form.append('audio', podcastAudioFile);
       if (podcastVideoFile) form.append('video', podcastVideoFile);
       if (podcastThumbnail) form.append('thumbnail', podcastThumbnail);
-      const res = await fetch('/api/podcast', {
+      const res = await fetch(apiUrl('/api/podcast'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: form,
@@ -252,7 +253,7 @@ export default function AdminDashboard() {
       form.append('duration_label', watchDuration.trim());
       if (watchVideoId.trim()) form.append('video_id', watchVideoId.trim());
       if (watchVideoFile) form.append('video', watchVideoFile);
-      const res = await fetch('/api/watch', {
+      const res = await fetch(apiUrl('/api/watch'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: form,

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight } from 'lucide-react';
+import { apiUrl } from '../lib/api';
 import { EVENTS } from '../data/events';
 import '../App.css';
 
@@ -17,7 +18,7 @@ export default function Events() {
   const [events, setEvents] = useState<EventItem[]>([]);
 
   useEffect(() => {
-    fetch('/api/events')
+    fetch(apiUrl('/api/events'))
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) setEvents(data);

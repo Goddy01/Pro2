@@ -3,6 +3,7 @@ import { Link, useParams, Navigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { apiUrl } from '../lib/api';
 import { EVENTS } from '../data/events';
 import '../App.css';
 
@@ -24,7 +25,7 @@ export default function EventGallery() {
       setNotFound(true);
       return;
     }
-    fetch(`/api/events/${eventId}`)
+    fetch(apiUrl(`/api/events/${eventId}`))
       .then((r) => {
         if (!r.ok) throw new Error('Not found');
         return r.json();

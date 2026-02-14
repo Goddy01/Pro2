@@ -20,7 +20,7 @@ function IconTikTok({ className }: { className?: string }) {
 
 const SOCIAL_LINKS = [
   { href: 'https://x.com/sidelinesports', icon: IconXLogo, label: 'X' },
-  { href: 'https://www.instagram.com/instagram?igsh=MTkyaWd4emtidGIwYQ==', icon: Instagram, label: 'Instagram' },
+  { href: 'https://www.instagram.com/sidelinesport1', icon: Instagram, label: 'Instagram' },
   { href: 'https://www.tiktok.com/@sidelinesports?_r=1&_t=ZP-93rbPS1Y3Be', icon: IconTikTok, label: 'TikTok' },
   { href: 'https://www.youtube.com/@sidelinesports3840?si=E5TmSrVYn-l-qBWh', icon: Youtube, label: 'YouTube' },
 ];

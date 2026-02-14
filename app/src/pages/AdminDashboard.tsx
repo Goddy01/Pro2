@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../lib/api';
 import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
+import LexicalRichEditor from '../components/LexicalRichEditor';
 import '../App.css';
 
 const TABS = [
@@ -29,6 +30,7 @@ export default function AdminDashboard() {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [contentLexical, setContentLexical] = useState('');
   const [category, setCategory] = useState('Features');
   const [author, setAuthor] = useState('Sideline Sports & Entertainment Team');
   const [image, setImage] = useState<File | null>(null);
@@ -103,6 +105,7 @@ export default function AdminDashboard() {
       setSuccess('Article published.');
       setTitle('');
       setContent('');
+      setContentLexical('');
       setImage(null);
       if (imageInputRef.current) imageInputRef.current.value = '';
     } catch {
@@ -333,6 +336,10 @@ export default function AdminDashboard() {
             <label className="block">
               <span className={labelClass}>Content *</span>
               <RichTextEditor value={content} onChange={setContent} placeholder="Article content..." minHeight="16rem" />
+            </label>
+            <label className="block">
+              <span className={labelClass}>Content (Lexical – for testing)</span>
+              <LexicalRichEditor value={contentLexical} onChange={setContentLexical} placeholder="Article content (Lexical)..." minHeight="16rem" />
             </label>
             <label className="block">
               <span className={labelClass}>Category</span>

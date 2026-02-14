@@ -648,7 +648,7 @@ export default function Home() {
             <div>
               <span className="label-mono text-lime mb-4 block">Watch</span>
               <h2 className="headline-section text-offwhite text-4xl lg:text-5xl">
-                INTERVIEWS & VIDEOS
+                INTERVIEWS & SHOWS
               </h2>
             </div>
             <a
@@ -694,6 +694,19 @@ export default function Home() {
                   const isYoutube = !!video.videoId;
                   const href = isYoutube ? `https://www.youtube.com/watch?v=${video.videoId}` : (video.videoUrl || '#');
                   const thumb = isYoutube ? `https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg` : (video.videoUrl || '');
+                  const thumbFallback = isYoutube && video.videoId
+                    ? (() => {
+                        const base = `https://img.youtube.com/vi/${video.videoId}/`;
+                        return (e: React.SyntheticEvent<HTMLImageElement>) => {
+                          const img = e.currentTarget;
+                          if (img.src.includes('maxresdefault')) {
+                            img.src = `${base}hqdefault.jpg`;
+                          } else if (img.src.includes('hqdefault')) {
+                            img.src = `${base}mqdefault.jpg`;
+                          }
+                        };
+                      })()
+                    : undefined;
                   return (
                     <a
                       key={`${repeatIndex}-${i}`}
@@ -711,6 +724,7 @@ export default function Home() {
                               className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               loading="lazy"
                               decoding="async"
+                              onError={thumbFallback}
                             />
                           ) : (
                             <div className="absolute inset-0 bg-offwhite/10 flex items-center justify-center">

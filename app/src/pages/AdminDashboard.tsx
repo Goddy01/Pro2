@@ -2,8 +2,9 @@ import { useState, useRef, type FormEvent } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../lib/api';
-import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video } from 'lucide-react';
+import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import '../App.css';
 
 const TABS = [
@@ -56,6 +57,7 @@ export default function AdminDashboard() {
   const [watchVideoId, setWatchVideoId] = useState('');
   const [watchDuration, setWatchDuration] = useState('Video');
 
+  const [addAdminModalOpen, setAddAdminModalOpen] = useState(false);
   const [newAdminUsername, setNewAdminUsername] = useState('');
   const [newAdminPassword, setNewAdminPassword] = useState('');
   const [addAdminError, setAddAdminError] = useState('');
@@ -277,6 +279,7 @@ export default function AdminDashboard() {
       setAddAdminSuccess(`Admin "${newAdminUsername.trim()}" created. They can log in from another device.`);
       setNewAdminUsername('');
       setNewAdminPassword('');
+      setAddAdminModalOpen(false);
     } catch {
       setAddAdminError('Could not connect to server');
     } finally {
@@ -331,10 +334,16 @@ export default function AdminDashboard() {
             <ArrowLeft className="w-4 h-4" />
             Back to site
           </Link>
-          <button type="button" onClick={logout} className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
-            <LogOut className="w-4 h-4" />
-            Log out
-          </button>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); }} className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
+              <UserPlus className="w-4 h-4" />
+              Add new admin
+            </button>
+            <button type="button" onClick={logout} className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
+              <LogOut className="w-4 h-4" />
+              Log out
+            </button>
+          </div>
         </div>
 
         <h1 className="text-offwhite font-editorial font-bold text-2xl mb-2">Admin</h1>
@@ -540,25 +549,33 @@ export default function AdminDashboard() {
           </form>
         )}
 
-        <section className="mt-12 pt-8 border-t border-offwhite/10">
-          <h2 className="text-offwhite font-semibold text-lg mb-2">Add another admin</h2>
-          <p className="text-offwhite/60 text-sm mb-4">Multiple admins can be logged in at the same time. Create a new account for another person.</p>
-          {addAdminError && <p className="text-red-400 text-sm mb-2">{addAdminError}</p>}
-          {addAdminSuccess && <p className="text-lime text-sm mb-2">{addAdminSuccess}</p>}
-          <form onSubmit={handleAddAdmin} className="flex flex-wrap items-end gap-4">
-            <label className="block min-w-[140px]">
-              <span className={labelClass}>Username</span>
-              <input type="text" value={newAdminUsername} onChange={(e) => setNewAdminUsername(e.target.value)} className={inputClass} placeholder="newadmin" autoComplete="off" />
-            </label>
-            <label className="block min-w-[140px]">
-              <span className={labelClass}>Password</span>
-              <input type="password" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} className={inputClass} placeholder="min 6 characters" autoComplete="new-password" minLength={6} />
-            </label>
-            <button type="submit" disabled={addAdminLoading} className="btn-premium py-3 px-6 disabled:opacity-50">
-              {addAdminLoading ? 'Adding...' : 'Add admin'}
-            </button>
-          </form>
-        </section>
+        <Dialog open={addAdminModalOpen} onOpenChange={(open) => { setAddAdminModalOpen(open); if (!open) { setAddAdminError(''); setAddAdminSuccess(''); } }}>
+          <DialogContent className="bg-forest border-offwhite/20 text-offwhite">
+            <DialogHeader>
+              <DialogTitle className="text-offwhite">Add another admin</DialogTitle>
+              <DialogDescription className="text-offwhite/60">
+                Multiple admins can be logged in at the same time. Create a new account for another person.
+              </DialogDescription>
+            </DialogHeader>
+            {addAdminError && <p className="text-red-400 text-sm">{addAdminError}</p>}
+            {addAdminSuccess && <p className="text-lime text-sm">{addAdminSuccess}</p>}
+            <form onSubmit={handleAddAdmin} className="space-y-4">
+              <label className="block">
+                <span className={labelClass}>Username</span>
+                <input type="text" value={newAdminUsername} onChange={(e) => setNewAdminUsername(e.target.value)} className={inputClass} placeholder="newadmin" autoComplete="off" />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Password</span>
+                <input type="password" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} className={inputClass} placeholder="min 6 characters" autoComplete="new-password" minLength={6} />
+              </label>
+              <div className="flex justify-end pt-2">
+                <button type="submit" disabled={addAdminLoading} className="btn-premium py-3 px-6 disabled:opacity-50">
+                  {addAdminLoading ? 'Adding...' : 'Add admin'}
+                </button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

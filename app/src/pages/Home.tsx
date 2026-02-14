@@ -341,7 +341,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-forest/80" />
         <div className="w-full px-6 lg:px-12 pt-20 lg:pt-28 relative z-10">
           <div className="max-w-5xl mx-auto text-center">
-            <span className="label-mono text-lime text-lg mb-6 block">Sports Journalism Reimagined</span>
+            <span className="label-mono text-lime text-lg mb-6 block">Sports & Entertainment Journalism Reimagined</span>
             
             <h1 className="hero-headline headline-hero text-offwhite text-5xl sm:text-6xl lg:text-7xl xl:text-8xl mb-8">
               Stories Worth<br />

@@ -69,7 +69,6 @@ export default function AdminDashboard() {
   const [eventsList, setEventsList] = useState<{ id: string; title: string }[]>([]);
   const [podcastList, setPodcastList] = useState<{ id: number; title: string }[]>([]);
   const [watchList, setWatchList] = useState<{ id: number; title: string }[]>([]);
-  const [listsLoading, setListsLoading] = useState(false);
   const [editingArticleId, setEditingArticleId] = useState<number | null>(null);
   const [editingGalleryId, setEditingGalleryId] = useState<number | null>(null);
   const [editingEventSlug, setEditingEventSlug] = useState<string | null>(null);
@@ -81,14 +80,13 @@ export default function AdminDashboard() {
 
   function refetchLists() {
     if (!token) return;
-    setListsLoading(true);
     Promise.all([
       fetch(apiUrl('/api/articles')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setArticlesList(d.map((a: { id: number; title: string }) => ({ id: a.id, title: a.title }))) : null)),
       fetch(apiUrl('/api/gallery')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setGalleryList(d.map((g: { id: number; src: string; caption?: string }) => ({ id: g.id, src: g.src, caption: g.caption ?? null }))) : null)),
       fetch(apiUrl('/api/events')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setEventsList(d.map((e: { id: string; title: string }) => ({ id: e.id, title: e.title }))) : null)),
       fetch(apiUrl('/api/podcast')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setPodcastList(d.map((p: { id: number; title: string }) => ({ id: p.id, title: p.title }))) : null)),
       fetch(apiUrl('/api/watch')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setWatchList(d.map((w: { id: number; title: string }) => ({ id: w.id, title: w.title }))) : null)),
-    ]).finally(() => setListsLoading(false));
+    ]);
   }
 
   useEffect(() => {

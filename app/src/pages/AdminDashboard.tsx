@@ -43,15 +43,13 @@ export default function AdminDashboard() {
   const [eventImages, setEventImages] = useState<File[]>([]);
   const eventImagesRef = useRef<HTMLInputElement>(null);
 
+  const [podcastType, setPodcastType] = useState<'audio' | 'video' | null>(null);
   const [podcastTitle, setPodcastTitle] = useState('');
   const [podcastDescription, setPodcastDescription] = useState('');
   const [podcastDuration, setPodcastDuration] = useState('');
   const [podcastGuests, setPodcastGuests] = useState('');
   const [podcastAudioUrl, setPodcastAudioUrl] = useState('');
   const [podcastVideoUrl, setPodcastVideoUrl] = useState('');
-  const [podcastAudioFile, setPodcastAudioFile] = useState<File | null>(null);
-  const [podcastVideoFile, setPodcastVideoFile] = useState<File | null>(null);
-  const [podcastThumbnail, setPodcastThumbnail] = useState<File | null>(null);
 
   const [watchTitle, setWatchTitle] = useState('');
   const [watchVideoId, setWatchVideoId] = useState('');
@@ -186,12 +184,20 @@ export default function AdminDashboard() {
   async function handlePodcastSubmit(e: FormEvent) {
     e.preventDefault();
     clearMessages();
+    if (!podcastType) {
+      setError('Choose audio or video podcast first');
+      return;
+    }
     if (!podcastTitle.trim()) {
       setError('Title is required');
       return;
     }
-    if (!podcastAudioFile && !podcastVideoFile && !podcastAudioUrl.trim() && !podcastVideoUrl.trim()) {
-      setError('Add audio or video (file or URL)');
+    if (podcastType === 'audio' && !podcastAudioUrl.trim()) {
+      setError('Audio URL is required');
+      return;
+    }
+    if (podcastType === 'video' && !podcastVideoUrl.trim()) {
+      setError('Video URL is required');
       return;
     }
     setLoading(true);
@@ -201,11 +207,8 @@ export default function AdminDashboard() {
       form.append('description', podcastDescription.trim());
       form.append('duration_label', podcastDuration.trim());
       form.append('guests', podcastGuests.trim());
-      if (podcastAudioUrl.trim()) form.append('audio_url', podcastAudioUrl.trim());
-      if (podcastVideoUrl.trim()) form.append('video_url', podcastVideoUrl.trim());
-      if (podcastAudioFile) form.append('audio', podcastAudioFile);
-      if (podcastVideoFile) form.append('video', podcastVideoFile);
-      if (podcastThumbnail) form.append('thumbnail', podcastThumbnail);
+      if (podcastType === 'audio' && podcastAudioUrl.trim()) form.append('audio_url', podcastAudioUrl.trim());
+      if (podcastType === 'video' && podcastVideoUrl.trim()) form.append('video_url', podcastVideoUrl.trim());
       const res = await fetch(apiUrl('/api/podcast'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -217,15 +220,13 @@ export default function AdminDashboard() {
         return;
       }
       setSuccess('Podcast episode added.');
+      setPodcastType(null);
       setPodcastTitle('');
       setPodcastDescription('');
       setPodcastDuration('');
       setPodcastGuests('');
       setPodcastAudioUrl('');
       setPodcastVideoUrl('');
-      setPodcastAudioFile(null);
-      setPodcastVideoFile(null);
-      setPodcastThumbnail(null);
     } catch {
       setError('Could not connect to server');
     } finally {
@@ -296,7 +297,7 @@ export default function AdminDashboard() {
             <button
               key={tab.id}
               type="button"
-              onClick={() => { setActiveTab(tab.id); clearMessages(); }}
+              onClick={() => { setActiveTab(tab.id); clearMessages(); if (tab.id !== 'podcast') setPodcastType(null); }}
               className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
                 activeTab === tab.id ? 'bg-lime text-forest' : 'text-offwhite/70 hover:text-lime'
               }`}
@@ -403,47 +404,66 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'podcast' && (
-          <form onSubmit={handlePodcastSubmit} className="space-y-6">
-            <label className="block">
-              <span className={labelClass}>Episode title *</span>
-              <input type="text" value={podcastTitle} onChange={(e) => setPodcastTitle(e.target.value)} className={inputClass} placeholder="Episode title" required />
-            </label>
-            <label className="block">
-              <span className={labelClass}>Description (optional)</span>
-              <textarea value={podcastDescription} onChange={(e) => setPodcastDescription(e.target.value)} rows={4} className={inputClass} placeholder="Description" />
-            </label>
-            <label className="block">
-              <span className={labelClass}>Duration (e.g. 59:02)</span>
-              <input type="text" value={podcastDuration} onChange={(e) => setPodcastDuration(e.target.value)} className={inputClass} placeholder="01:02:28" />
-            </label>
-            <label className="block">
-              <span className={labelClass}>Guests (comma-separated)</span>
-              <input type="text" value={podcastGuests} onChange={(e) => setPodcastGuests(e.target.value)} className={inputClass} placeholder="Name 1, Name 2" />
-            </label>
-            <label className="block">
-              <span className={labelClass}>Audio URL (or upload file below)</span>
-              <input type="url" value={podcastAudioUrl} onChange={(e) => setPodcastAudioUrl(e.target.value)} className={inputClass} placeholder="https://..." />
-            </label>
-            <label className="block">
-              <span className={labelClass}>Audio file (optional if URL set)</span>
-              <input type="file" accept="audio/*,.mp3,.m4a" onChange={(e) => setPodcastAudioFile(e.target.files?.[0] || null)} className={inputClass} />
-            </label>
-            <label className="block">
-              <span className={labelClass}>Video URL or YouTube link (optional)</span>
-              <input type="url" value={podcastVideoUrl} onChange={(e) => setPodcastVideoUrl(e.target.value)} className={inputClass} placeholder="https://..." />
-            </label>
-            <label className="block">
-              <span className={labelClass}>Video file (optional)</span>
-              <input type="file" accept="video/*,.mp4" onChange={(e) => setPodcastVideoFile(e.target.files?.[0] || null)} className={inputClass} />
-            </label>
-            <label className="block">
-              <span className={labelClass}>Thumbnail image (optional)</span>
-              <input type="file" accept="image/*" onChange={(e) => setPodcastThumbnail(e.target.files?.[0] || null)} className={inputClass} />
-            </label>
-            <button type="submit" disabled={loading} className="btn-premium py-4 px-8 disabled:opacity-50">
-              {loading ? 'Adding...' : 'Add Podcast Episode'}
-            </button>
-          </form>
+          <div className="space-y-6">
+            {podcastType == null ? (
+              <>
+                <p className={labelClass}>What are you uploading?</p>
+                <div className="flex flex-wrap gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setPodcastType('audio')}
+                    className="px-6 py-4 border-2 border-offwhite/30 text-offwhite hover:border-lime hover:text-lime transition-colors font-medium"
+                  >
+                    Audio podcast
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPodcastType('video')}
+                    className="px-6 py-4 border-2 border-offwhite/30 text-offwhite hover:border-lime hover:text-lime transition-colors font-medium"
+                  >
+                    Video podcast
+                  </button>
+                </div>
+              </>
+            ) : (
+              <form onSubmit={handlePodcastSubmit} className="space-y-6">
+                <button type="button" onClick={() => setPodcastType(null)} className="text-offwhite/60 hover:text-lime text-sm mb-2">
+                  ← Change to {podcastType === 'audio' ? 'video' : 'audio'} podcast
+                </button>
+                <label className="block">
+                  <span className={labelClass}>Episode title *</span>
+                  <input type="text" value={podcastTitle} onChange={(e) => setPodcastTitle(e.target.value)} className={inputClass} placeholder="Episode title" required />
+                </label>
+                <label className="block">
+                  <span className={labelClass}>Description (optional)</span>
+                  <textarea value={podcastDescription} onChange={(e) => setPodcastDescription(e.target.value)} rows={4} className={inputClass} placeholder="Description" />
+                </label>
+                <label className="block">
+                  <span className={labelClass}>Duration (e.g. 59:02)</span>
+                  <input type="text" value={podcastDuration} onChange={(e) => setPodcastDuration(e.target.value)} className={inputClass} placeholder="01:02:28" />
+                </label>
+                <label className="block">
+                  <span className={labelClass}>Guests (comma-separated)</span>
+                  <input type="text" value={podcastGuests} onChange={(e) => setPodcastGuests(e.target.value)} className={inputClass} placeholder="Name 1, Name 2" />
+                </label>
+                {podcastType === 'audio' && (
+                  <label className="block">
+                    <span className={labelClass}>Audio URL *</span>
+                    <input type="url" value={podcastAudioUrl} onChange={(e) => setPodcastAudioUrl(e.target.value)} className={inputClass} placeholder="https://..." required={podcastType === 'audio'} />
+                  </label>
+                )}
+                {podcastType === 'video' && (
+                  <label className="block">
+                    <span className={labelClass}>Video URL or YouTube link *</span>
+                    <input type="url" value={podcastVideoUrl} onChange={(e) => setPodcastVideoUrl(e.target.value)} className={inputClass} placeholder="https://..." required={podcastType === 'video'} />
+                  </label>
+                )}
+                <button type="submit" disabled={loading} className="btn-premium py-4 px-8 disabled:opacity-50">
+                  {loading ? 'Adding...' : 'Add Podcast Episode'}
+                </button>
+              </form>
+            )}
+          </div>
         )}
 
         {activeTab === 'watch' && (

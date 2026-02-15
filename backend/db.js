@@ -119,6 +119,49 @@ export async function initDb() {
         ('David Okonkwo', '555-222-3333', 'david.o@example.com', 'I have been following Sideline for years and would be excited to join as a content or operations role. I have background in event coordination and digital marketing. I am organized, detail-oriented, and passionate about sports and entertainment. Looking forward to connecting.')
       `);
     }
+    // Seed static events when table is empty (migrated from frontend data/events.ts)
+    const { rows: eventCountRows } = await client.query('SELECT COUNT(*) AS c FROM events');
+    if (Number(eventCountRows[0]?.c) === 0) {
+      await client.query(`
+        INSERT INTO events (slug, title, description) VALUES
+        ('vincent-country', 'Vincent Country Community Event', 'Coverage from the Vincent Country Community Event with NFL Executive & Former Player Troy Vincent.'),
+        ('rmh', 'Ronald McDonald House Charities', 'The Impact of Ronald McDonald House with Marnie Schneider & CEO Grace McIntosh.')
+      `);
+      const { rows: eventIds } = await client.query('SELECT id, slug FROM events ORDER BY slug');
+      const vincentId = eventIds.find((r) => r.slug === 'vincent-country')?.id;
+      const rmhId = eventIds.find((r) => r.slug === 'rmh')?.id;
+      if (vincentId) {
+        const urls = [
+          '/Vincent Country Community Event/6363A555-5876-4F69-960D-6A0D6DC5756E.jpg',
+          '/Vincent Country Community Event/6486642B-72B4-4E55-B0B0-E2AED370FCF7.jpg',
+          '/Vincent Country Community Event/95280CF9-D7FC-4245-9B0B-2D6AC194BAF6.jpg',
+        ];
+        for (let i = 0; i < urls.length; i++) {
+          await client.query('INSERT INTO event_images (event_id, image_url, sort_order) VALUES ($1, $2, $3)', [vincentId, urls[i], i]);
+        }
+      }
+      if (rmhId) {
+        const urls = [
+          '/RMH Event/rmh2.png',
+          '/RMH Event/IMG_8595.PNG',
+          '/RMH Event/F1793232-1BA8-41C6-BD1C-5727EFCA5B80.jpeg',
+          '/RMH Event/IMG_2562.png',
+          '/RMH Event/IMG_8597.png',
+          '/RMH Event/IMG_8600.png',
+          '/RMH Event/IMG_8610.png',
+          '/RMH Event/IMG_8614.png',
+          '/RMH Event/IMG_8616.png',
+          '/RMH Event/IMG_8617.png',
+          '/RMH Event/IMG_8622.png',
+          '/RMH Event/IMG_8640.png',
+          '/RMH Event/IMG_8643.png',
+          '/RMH Event/rmh1.png',
+        ];
+        for (let i = 0; i < urls.length; i++) {
+          await client.query('INSERT INTO event_images (event_id, image_url, sort_order) VALUES ($1, $2, $3)', [rmhId, urls[i], i]);
+        }
+      }
+    }
   } finally {
     client.release();
   }

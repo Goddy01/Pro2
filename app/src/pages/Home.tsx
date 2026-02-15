@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import { encodeArticleId } from '../lib/articleId';
-import { EVENTS } from '../data/events';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -57,6 +56,7 @@ export default function Home() {
   const [activePodcastIndex, setActivePodcastIndex] = useState<number | null>(null);
   const podcastAudioRef = useRef<HTMLAudioElement>(null);
   const [articlesFromApi, setArticlesFromApi] = useState<ArticleFromApi[]>([]);
+  const [eventsFromApi, setEventsFromApi] = useState<{ id: string; title: string; description: string; images: string[] }[]>([]);
   const [showPodcastPlatforms, setShowPodcastPlatforms] = useState(false);
   const [testimonialForm, setTestimonialForm] = useState({
     name: '',
@@ -109,6 +109,15 @@ export default function Home() {
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) setArticlesFromApi(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetch(apiUrl('/api/events'))
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setEventsFromApi(data);
       })
       .catch(() => {});
   }, []);
@@ -872,8 +881,8 @@ export default function Home() {
               Event Galleries
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-              {EVENTS.map((event) => {
-                const previewImages = event.images.slice(0, EVENT_PREVIEW_IMAGES);
+              {eventsFromApi.map((event) => {
+                const previewImages = (event.images || []).slice(0, EVENT_PREVIEW_IMAGES);
                 return (
                   <div
                     key={event.id}
@@ -888,7 +897,7 @@ export default function Home() {
                       </p>
                       <div className="w-full mx-auto h-[28rem] sm:h-[32rem] overflow-hidden rounded-sm bg-forest/5 group mb-6">
                             <img
-                              src={previewImages[0]}
+                              src={previewImages[0] || ''}
                               alt=""
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               style={{ objectPosition: event.id === 'rmh' ? 'top' : 'center' }}

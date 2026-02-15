@@ -4,7 +4,6 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Search } from 'lucide-react';
 import { apiUrl } from '../lib/api';
-import { EVENTS } from '../data/events';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -16,29 +15,27 @@ type EventItem = { id: string; title: string; description: string; images: strin
 export default function Events() {
   const mainRef = useRef<HTMLDivElement>(null);
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const q = searchQuery.trim();
     const url = q ? apiUrl(`/api/events?q=${encodeURIComponent(q)}`) : apiUrl('/api/events');
     const t = setTimeout(() => {
+      setLoading(true);
       fetch(url)
         .then((r) => r.json())
         .then((data) => {
-          if (Array.isArray(data) && data.length > 0) setEvents(data);
-          else if (!q) setEvents(EVENTS as unknown as EventItem[]);
-          else setEvents([]);
+          setEvents(Array.isArray(data) ? data : []);
         })
-        .catch(() => {
-          if (!searchQuery.trim()) setEvents(EVENTS as unknown as EventItem[]);
-          else setEvents([]);
-        });
+        .catch(() => setEvents([]))
+        .finally(() => setLoading(false));
     }, q ? 300 : 0);
     return () => clearTimeout(t);
   }, [searchQuery]);
 
-  const fallbackList = EVENTS as unknown as EventItem[];
-  const list = events.length > 0 ? events : (searchQuery.trim() ? [] : fallbackList);
+  const list: EventItem[] = events;
+  const q = searchQuery.trim();
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -109,9 +106,11 @@ export default function Events() {
             </div>
           </div>
 
-          {list.length === 0 ? (
+          {loading ? (
+            <p className="text-offwhite/60 text-center py-12">Loading…</p>
+          ) : list.length === 0 ? (
             <p className="text-offwhite/60 text-center py-12">
-              {searchQuery.trim() ? 'No events match your search.' : 'No event galleries yet.'}
+              {q ? 'No events match your search.' : 'No event galleries yet.'}
             </p>
           ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">

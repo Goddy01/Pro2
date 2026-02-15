@@ -4,7 +4,6 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { apiUrl } from '../lib/api';
-import { EVENTS } from '../data/events';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -31,11 +30,7 @@ export default function EventGallery() {
         return r.json();
       })
       .then((data) => setEvent({ id: data.id, title: data.title, description: data.description || '', images: data.images || [] }))
-      .catch(() => {
-        const staticEvent = EVENTS.find((e) => e.id === eventId);
-        if (staticEvent) setEvent(staticEvent as unknown as EventData);
-        else setNotFound(true);
-      });
+      .catch(() => setNotFound(true));
   }, [eventId]);
 
   if (notFound) return <Navigate to="/events" replace />;

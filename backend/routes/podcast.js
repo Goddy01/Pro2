@@ -30,14 +30,41 @@ const upload = multer({
 router.get('/', async (req, res) => {
   try {
     const showFilter = typeof req.query.show === 'string' ? req.query.show.trim() || null : null;
-    const { rows } = showFilter
-      ? await db.query(
-          'SELECT id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name, created_at FROM podcast_episodes WHERE TRIM(COALESCE(show_name, \'\')) = $1 ORDER BY created_at DESC',
-          [showFilter]
-        )
-      : await db.query(
-          'SELECT id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name, created_at FROM podcast_episodes ORDER BY created_at DESC'
-        );
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    const searchPattern = q ? `%${q.replace(/%/g, '\\%').replace(/_/g, '\\_')}%` : null;
+
+    let rows;
+    if (showFilter && searchPattern) {
+      const { rows: r } = await db.query(
+        `SELECT id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name, created_at
+         FROM podcast_episodes
+         WHERE TRIM(COALESCE(show_name, '')) = $1
+           AND (title ILIKE $2 OR COALESCE(description, '') ILIKE $2 OR COALESCE(guests, '') ILIKE $2 OR COALESCE(show_name, '') ILIKE $2)
+         ORDER BY created_at DESC`,
+        [showFilter, searchPattern]
+      );
+      rows = r;
+    } else if (showFilter) {
+      const { rows: r } = await db.query(
+        'SELECT id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name, created_at FROM podcast_episodes WHERE TRIM(COALESCE(show_name, \'\')) = $1 ORDER BY created_at DESC',
+        [showFilter]
+      );
+      rows = r;
+    } else if (searchPattern) {
+      const { rows: r } = await db.query(
+        `SELECT id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name, created_at
+         FROM podcast_episodes
+         WHERE title ILIKE $1 OR COALESCE(description, '') ILIKE $1 OR COALESCE(guests, '') ILIKE $1 OR COALESCE(show_name, '') ILIKE $1
+         ORDER BY created_at DESC`,
+        [searchPattern]
+      );
+      rows = r;
+    } else {
+      const { rows: r } = await db.query(
+        'SELECT id, title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name, created_at FROM podcast_episodes ORDER BY created_at DESC'
+      );
+      rows = r;
+    }
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });

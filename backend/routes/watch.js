@@ -34,14 +34,41 @@ function extractYoutubeId(urlOrId) {
 router.get('/', async (req, res) => {
   try {
     const showFilter = typeof req.query.show === 'string' ? req.query.show.trim() || null : null;
-    const { rows } = showFilter
-      ? await db.query(
-          'SELECT id, title, video_id, video_url, duration_label, sort_order, show_name, created_at FROM watch_videos WHERE TRIM(COALESCE(show_name, \'\')) = $1 ORDER BY sort_order ASC, created_at DESC',
-          [showFilter]
-        )
-      : await db.query(
-          'SELECT id, title, video_id, video_url, duration_label, sort_order, show_name, created_at FROM watch_videos ORDER BY sort_order ASC, created_at DESC'
-        );
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    const searchPattern = q ? `%${q.replace(/%/g, '\\%').replace(/_/g, '\\_')}%` : null;
+
+    let rows;
+    if (showFilter && searchPattern) {
+      const { rows: r } = await db.query(
+        `SELECT id, title, video_id, video_url, duration_label, sort_order, show_name, created_at
+         FROM watch_videos
+         WHERE TRIM(COALESCE(show_name, '')) = $1
+           AND (title ILIKE $2 OR COALESCE(show_name, '') ILIKE $2)
+         ORDER BY sort_order ASC, created_at DESC`,
+        [showFilter, searchPattern]
+      );
+      rows = r;
+    } else if (showFilter) {
+      const { rows: r } = await db.query(
+        'SELECT id, title, video_id, video_url, duration_label, sort_order, show_name, created_at FROM watch_videos WHERE TRIM(COALESCE(show_name, \'\')) = $1 ORDER BY sort_order ASC, created_at DESC',
+        [showFilter]
+      );
+      rows = r;
+    } else if (searchPattern) {
+      const { rows: r } = await db.query(
+        `SELECT id, title, video_id, video_url, duration_label, sort_order, show_name, created_at
+         FROM watch_videos
+         WHERE title ILIKE $1 OR COALESCE(show_name, '') ILIKE $1
+         ORDER BY sort_order ASC, created_at DESC`,
+        [searchPattern]
+      );
+      rows = r;
+    } else {
+      const { rows: r } = await db.query(
+        'SELECT id, title, video_id, video_url, duration_label, sort_order, show_name, created_at FROM watch_videos ORDER BY sort_order ASC, created_at DESC'
+      );
+      rows = r;
+    }
     res.json(
       rows.map((r) => ({
         id: r.id,

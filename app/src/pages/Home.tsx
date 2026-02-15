@@ -652,9 +652,7 @@ export default function Home() {
               </h2>
             </div>
             <a
-              href="https://www.youtube.com/@sidelinesports3840"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/listen-watch"
               className="btn-secondary group hidden lg:flex items-center gap-2 shrink-0"
             >
               View More

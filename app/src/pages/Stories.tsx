@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import { encodeArticleId } from '../lib/articleId';
 import '../App.css';
@@ -29,16 +29,23 @@ export default function Stories() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetch(apiUrl('/api/articles'))
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) setArticlesFromApi(data);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+    const q = searchQuery.trim();
+    const url = q ? apiUrl(`/api/articles?q=${encodeURIComponent(q)}`) : apiUrl('/api/articles');
+    setLoading(true);
+    const t = setTimeout(() => {
+      fetch(url)
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data)) setArticlesFromApi(data);
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }, q ? 300 : 0);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
   const articleCards = articlesFromApi.map((a) => ({
     id: a.id,
@@ -63,6 +70,11 @@ export default function Stories() {
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
     setCurrentPage(1);
   };
 
@@ -116,6 +128,22 @@ export default function Stories() {
             <h2 className="headline-section text-forest text-4xl mb-6">
               More Stories You'll Love
             </h2>
+
+            {/* Search */}
+            <div className="mb-6">
+              <label htmlFor="stories-search" className="sr-only">Search articles</label>
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-forest/50" aria-hidden />
+                <input
+                  id="stories-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder="Search articles by title, author, or category…"
+                  className="w-full pl-10 pr-4 py-3 border border-forest/20 bg-white text-forest placeholder:text-forest/50 focus:outline-none focus:border-forest"
+                />
+              </div>
+            </div>
 
             {/* Filter Chips */}
             <div className="flex flex-wrap gap-3">

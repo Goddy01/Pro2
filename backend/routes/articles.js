@@ -45,9 +45,23 @@ function uploadBufferToCloudinary(buffer, options = {}) {
 
 router.get('/', async (req, res) => {
   try {
-    const { rows } = await db.query(
-      'SELECT id, title, image, content, category, author, created_at FROM articles ORDER BY created_at DESC'
-    );
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    let rows;
+    if (q) {
+      const pattern = `%${q.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`;
+      const { rows: r } = await db.query(
+        `SELECT id, title, image, content, category, author, created_at FROM articles
+         WHERE title ILIKE $1 OR author ILIKE $1 OR category ILIKE $1
+         ORDER BY created_at DESC`,
+        [pattern]
+      );
+      rows = r;
+    } else {
+      const { rows: r } = await db.query(
+        'SELECT id, title, image, content, category, author, created_at FROM articles ORDER BY created_at DESC'
+      );
+      rows = r;
+    }
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });

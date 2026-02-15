@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { 
-  Play, ArrowRight, Youtube, Podcast, 
+  Play, Pause, ArrowRight, Youtube, Podcast, 
   Headphones, Clock, 
   Calendar, User, Bookmark, Share2,
   Star, ArrowUpRight,
@@ -53,7 +53,9 @@ function formatArticleDate(iso: string) {
 
 export default function Home() {
   const [watchVideos, setWatchVideos] = useState<WatchVideo[]>([]);
-  const [podcastEpisodesFromApi, setPodcastEpisodesFromApi] = useState<{ title: string; description: string; duration: string; guests?: string[] }[]>([]);
+  const [podcastEpisodesFromApi, setPodcastEpisodesFromApi] = useState<{ title: string; description: string; duration: string; guests?: string[]; audioUrl?: string }[]>([]);
+  const [activePodcastIndex, setActivePodcastIndex] = useState<number | null>(null);
+  const podcastAudioRef = useRef<HTMLAudioElement>(null);
   const [articlesFromApi, setArticlesFromApi] = useState<ArticleFromApi[]>([]);
   const [showPodcastPlatforms, setShowPodcastPlatforms] = useState(false);
   const [testimonialForm, setTestimonialForm] = useState({
@@ -75,11 +77,12 @@ export default function Home() {
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
-          setPodcastEpisodesFromApi(data.map((e: { title: string; description?: string; duration_label?: string; guests?: string }) => ({
+          setPodcastEpisodesFromApi(data.map((e: { title: string; description?: string; duration_label?: string; guests?: string; audio_url?: string }) => ({
             title: e.title,
             description: e.description || '',
             duration: e.duration_label || '',
             guests: e.guests ? e.guests.split(',').map((s: string) => s.trim()).filter(Boolean) : undefined,
+            audioUrl: e.audio_url || undefined,
           })));
         }
       })
@@ -139,25 +142,51 @@ export default function Home() {
       description: 'We break down the developing situation surrounding Micah Parsons requesting a trade out of Dallas and what it could mean for the Cowboys moving forward. Jon Shearer also joins the show to reveal and defend his Top 10 Hall of Fame selections, sparking plenty of debate and strong opinions.',
       duration: '01:02:28',
       guests: ['JB Ellis ', 'Jon Shearer', 'Dave DesRochers'],
+      audioUrl: '/audio-podcasts/audio-podcast-1.m4a',
     },
     {
       id: 2,
       title: 'Live from Radio Row: Super Bowl LIX Recap & Eagles Dominate 40–22',
       description: 'Broadcasting from Radio Row in New Orleans, we recap the atmosphere, major storylines, and defining moments from Super Bowl LIX. The Philadelphia Eagles secured a 40 to 22 victory over the Kansas City Chiefs, and we analyze how the game unfolded and what it means for both teams.',
       duration: '59:02',
-      guests: ['JB Ellis ', 'Jon Shearer', 'Dave DesRochers']
+      guests: ['JB Ellis ', 'Jon Shearer', 'Dave DesRochers'],
+      audioUrl: '/audio-podcasts/audio-podcast-2.m4a',
     },
     {
       id: 3,
       title: 'CFP Semifinals Recap and National Championship Breakdown Miami vs Indiana',
       description: 'We revisit the biggest moments from the College Football Playoff semifinals and provide a full breakdown of the national championship matchup between Miami and Indiana. Key matchups, game changing factors, and predictions are all covered ahead of kickoff.',
       duration: '59:57',
-      guests: ['JB Ellis','Jon Shearer', 'Dave DesRochers']
-    }
+      guests: ['JB Ellis','Jon Shearer', 'Dave DesRochers'],
+      audioUrl: '/audio-podcasts/audio-podcast-3.m4a',
+    },
   ];
   const podcastEpisodes = podcastEpisodesFromApi.length > 0
     ? podcastEpisodesFromApi
     : staticPodcastEpisodes;
+
+  const podcastEpisodesWithAudio = podcastEpisodes.map((ep, i) => ({
+    ...ep,
+    audioUrl: (ep as { audioUrl?: string }).audioUrl ?? (i < 3 ? `/audio-podcasts/audio-podcast-${i + 1}.m4a` : undefined),
+  }));
+
+  const handlePodcastPlay = (index: number) => {
+    const episode = podcastEpisodesWithAudio[index];
+    const url = episode?.audioUrl;
+    const audio = podcastAudioRef.current;
+    if (!url || !audio) return;
+    const isCurrentlyPlaying = activePodcastIndex === index && !audio.paused;
+    if (isCurrentlyPlaying) {
+      audio.pause();
+      setActivePodcastIndex(null);
+      return;
+    }
+    if (audio.src !== url && !audio.src.endsWith(url)) {
+      audio.src = url;
+    }
+    audio.play().catch(() => {});
+    setActivePodcastIndex(index);
+  };
 
   const testimonials = [
     { author: 'Momcilo Velickovic', role: 'Attorney at Law & Basketball Agent', quote: 'Sideline Sports & Entertainment delivers high-quality podcasts that are both engaging and educational. Their topics are insightful, and the overall experience makes it easy to recommend collaborating or being featured on their platform.' },
@@ -566,28 +595,53 @@ export default function Home() {
                 Former players, coaches, journalists, and insiders — all in one place.
               </p>
               
+              <audio
+                ref={podcastAudioRef}
+                preload="metadata"
+                onEnded={() => setActivePodcastIndex(null)}
+                aria-hidden
+              />
               <div className="space-y-4 mb-8">
-                {podcastEpisodes.map((episode, i) => (
-                  <div key={i} className="card-editorial p-5 group cursor-pointer hover:border-lime/30">
-                    <div className="flex items-start gap-4">
-                      <button className="w-12 h-12 bg-lime/10 rounded-full flex items-center justify-center group-hover:bg-lime group-hover:text-forest transition-all">
-                        <Play className="w-5 h-5 ml-0.5" />
-                      </button>
-                      <div className="flex-1">
-                        <h4 className="text-offwhite font-semibold mb-1 group-hover:text-lime transition-colors">
-                          {episode.title}
-                        </h4>
-                        <p className="text-offwhite/50 text-sm mb-2 line-clamp-2">{episode.description}</p>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-offwhite/40 text-xs">
-                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {episode.duration}</span>
-                          {episode.guests?.length ? (
-                            <span className="flex items-center gap-1"><User className="w-3 h-3" /> {episode.guests.join(', ')}</span>
-                          ) : null}
+                {podcastEpisodesWithAudio.map((episode, i) => {
+                  const hasAudio = !!episode.audioUrl;
+                  const isPlaying = activePodcastIndex === i;
+                  return (
+                    <div key={i} className="card-editorial p-5 group hover:border-lime/30">
+                      <div className="flex items-start gap-4">
+                        {hasAudio ? (
+                          <button
+                            type="button"
+                            onClick={() => handlePodcastPlay(i)}
+                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shrink-0 ${isPlaying ? 'bg-lime text-forest' : 'bg-lime/10 text-offwhite group-hover:bg-lime group-hover:text-forest'}`}
+                            aria-label={isPlaying ? 'Pause' : 'Play'}
+                          >
+                            {isPlaying ? (
+                              <Pause className="w-5 h-5" />
+                            ) : (
+                              <Play className="w-5 h-5 ml-0.5" />
+                            )}
+                          </button>
+                        ) : (
+                          <div className="w-12 h-12 bg-offwhite/10 rounded-full flex items-center justify-center shrink-0" aria-hidden>
+                            <Play className="w-5 h-5 ml-0.5 text-offwhite/40" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-offwhite font-semibold mb-1 group-hover:text-lime transition-colors">
+                            {episode.title}
+                          </h4>
+                          <p className="text-offwhite/50 text-sm mb-2 line-clamp-2">{episode.description}</p>
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-offwhite/40 text-xs">
+                            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {episode.duration}</span>
+                            {episode.guests?.length ? (
+                              <span className="flex items-center gap-1"><User className="w-3 h-3" /> {episode.guests.join(', ')}</span>
+                            ) : null}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <p className="text-offwhite/60 text-sm mb-3">Listen to our shows on </p>

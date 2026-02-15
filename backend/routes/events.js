@@ -23,11 +23,27 @@ const upload = multer({
 
 router.get('/', async (req, res) => {
   try {
-    const { rows } = await db.query(
-      `SELECT e.id, e.slug, e.title, e.description,
-        (SELECT json_agg(ei.image_url ORDER BY ei.sort_order) FROM event_images ei WHERE ei.event_id = e.id) AS images
-       FROM events e ORDER BY e.created_at DESC`
-    );
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    let rows;
+    if (q) {
+      const pattern = `%${q.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`;
+      const { rows: r } = await db.query(
+        `SELECT e.id, e.slug, e.title, e.description,
+          (SELECT json_agg(ei.image_url ORDER BY ei.sort_order) FROM event_images ei WHERE ei.event_id = e.id) AS images
+         FROM events e
+         WHERE e.title ILIKE $1 OR COALESCE(e.description, '') ILIKE $1
+         ORDER BY e.created_at DESC`,
+        [pattern]
+      );
+      rows = r;
+    } else {
+      const { rows: r } = await db.query(
+        `SELECT e.id, e.slug, e.title, e.description,
+          (SELECT json_agg(ei.image_url ORDER BY ei.sort_order) FROM event_images ei WHERE ei.event_id = e.id) AS images
+         FROM events e ORDER BY e.created_at DESC`
+      );
+      rows = r;
+    }
     res.json(
       rows.map((r) => ({
         id: r.slug,

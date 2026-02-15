@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Search } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import { EVENTS } from '../data/events';
 import '../App.css';
@@ -16,18 +16,29 @@ type EventItem = { id: string; title: string; description: string; images: strin
 export default function Events() {
   const mainRef = useRef<HTMLDivElement>(null);
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetch(apiUrl('/api/events'))
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) setEvents(data);
-        else setEvents(EVENTS as unknown as EventItem[]);
-      })
-      .catch(() => setEvents(EVENTS as unknown as EventItem[]));
-  }, []);
+    const q = searchQuery.trim();
+    const url = q ? apiUrl(`/api/events?q=${encodeURIComponent(q)}`) : apiUrl('/api/events');
+    const t = setTimeout(() => {
+      fetch(url)
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) setEvents(data);
+          else if (!q) setEvents(EVENTS as unknown as EventItem[]);
+          else setEvents([]);
+        })
+        .catch(() => {
+          if (!searchQuery.trim()) setEvents(EVENTS as unknown as EventItem[]);
+          else setEvents([]);
+        });
+    }, q ? 300 : 0);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
-  const list = events.length > 0 ? events : (EVENTS as unknown as EventItem[]);
+  const fallbackList = EVENTS as unknown as EventItem[];
+  const list = events.length > 0 ? events : (searchQuery.trim() ? [] : fallbackList);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -82,8 +93,27 @@ export default function Events() {
             <p className="body-large text-offwhite/60 max-w-2xl mx-auto">
               Photo galleries from the events we've covered — from community initiatives to Super Bowl exclusives.
             </p>
+            <div className="mt-8 max-w-md mx-auto">
+              <label htmlFor="events-search" className="sr-only">Search events</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-offwhite/50" aria-hidden />
+                <input
+                  id="events-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by title or description…"
+                  className="w-full pl-10 pr-4 py-3 bg-offwhite/5 border border-offwhite/20 text-offwhite placeholder:text-offwhite/50 focus:outline-none focus:border-lime"
+                />
+              </div>
+            </div>
           </div>
 
+          {list.length === 0 ? (
+            <p className="text-offwhite/60 text-center py-12">
+              {searchQuery.trim() ? 'No events match your search.' : 'No event galleries yet.'}
+            </p>
+          ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {list.map((event) => {
               const imgs = event.images || [];
@@ -121,6 +151,7 @@ export default function Events() {
               );
             })}
           </div>
+          )}
         </div>
       </section>
     </div>

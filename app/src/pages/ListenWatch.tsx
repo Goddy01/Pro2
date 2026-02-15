@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Headphones, Video } from 'lucide-react';
+import { Headphones, Video, Search } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import '../App.css';
 
@@ -32,26 +32,33 @@ export default function ListenWatch() {
   const [watchVideos, setWatchVideos] = useState<WatchItem[]>([]);
   const [loadingPodcast, setLoadingPodcast] = useState(true);
   const [loadingWatch, setLoadingWatch] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const q = searchQuery.trim();
+  const podcastUrl = q ? apiUrl(`/api/podcast?q=${encodeURIComponent(q)}`) : apiUrl('/api/podcast');
+  const watchUrl = q ? apiUrl(`/api/watch?q=${encodeURIComponent(q)}`) : apiUrl('/api/watch');
 
   useEffect(() => {
-    fetch(apiUrl('/api/podcast'))
+    setLoadingPodcast(true);
+    fetch(podcastUrl)
       .then((r) => r.json())
       .then((data) => {
         setPodcastEpisodes(Array.isArray(data) ? data : []);
       })
       .catch(() => setPodcastEpisodes([]))
       .finally(() => setLoadingPodcast(false));
-  }, []);
+  }, [podcastUrl]);
 
   useEffect(() => {
-    fetch(apiUrl('/api/watch'))
+    setLoadingWatch(true);
+    fetch(watchUrl)
       .then((r) => r.json())
       .then((data) => {
         setWatchVideos(Array.isArray(data) ? data : []);
       })
       .catch(() => setWatchVideos([]))
       .finally(() => setLoadingWatch(false));
-  }, []);
+  }, [watchUrl]);
 
   const hasPodcast = podcastEpisodes.length > 0;
   const hasWatch = watchVideos.length > 0;
@@ -101,6 +108,20 @@ export default function ListenWatch() {
             <p className="body-large text-offwhite/60 max-w-2xl mx-auto">
               Episodes and videos by show. As the network grows, each show has its own section below.
             </p>
+            <div className="mt-8 max-w-md mx-auto">
+              <label htmlFor="listen-watch-search" className="sr-only">Search shows and videos</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-offwhite/50" aria-hidden />
+                <input
+                  id="listen-watch-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by title, show, or guests…"
+                  className="w-full pl-10 pr-4 py-3 bg-offwhite/5 border border-offwhite/20 text-offwhite placeholder:text-offwhite/50 focus:outline-none focus:border-lime"
+                />
+              </div>
+            </div>
           </div>
 
           {loading && (
@@ -109,7 +130,7 @@ export default function ListenWatch() {
 
           {empty && (
             <p className="text-offwhite/60 text-center py-12">
-              No show episodes or videos yet. Check back soon.
+              {q ? 'No episodes or videos match your search.' : 'No show episodes or videos yet. Check back soon.'}
             </p>
           )}
 

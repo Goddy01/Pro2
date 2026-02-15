@@ -34,8 +34,8 @@ export default function Stories() {
   useEffect(() => {
     const q = searchQuery.trim();
     const url = q ? apiUrl(`/api/articles?q=${encodeURIComponent(q)}`) : apiUrl('/api/articles');
-    setLoading(true);
     const t = setTimeout(() => {
+      setLoading(true);
       fetch(url)
         .then((r) => r.json())
         .then((data) => {
@@ -167,7 +167,9 @@ export default function Stories() {
           {loading ? (
             <p className="text-forest/60 py-12">Loading stories…</p>
           ) : filteredArticles.length === 0 ? (
-            <p className="text-forest/60 py-12">No stories yet.</p>
+            <p className="text-forest/60 py-12">
+              {searchQuery.trim() ? 'No articles match your search.' : 'No stories yet.'}
+            </p>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
               {paginatedArticles.map((card) => (

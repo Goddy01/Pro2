@@ -18,26 +18,45 @@ export default function EventGallery() {
   const [showAll, setShowAll] = useState(false);
   const [event, setEvent] = useState<EventData | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!eventId) {
       setNotFound(true);
+      setLoading(false);
       return;
     }
+    setLoading(true);
     fetch(apiUrl(`/api/events/${eventId}`))
       .then((r) => {
         if (!r.ok) throw new Error('Not found');
         return r.json();
       })
-      .then((data) => setEvent({ id: data.id, title: data.title, description: data.description || '', images: data.images || [] }))
-      .catch(() => setNotFound(true));
+      .then((data) => {
+        const images = Array.isArray(data.images) ? data.images : data.images ? [data.images] : [];
+        setEvent({
+          id: data.id ?? eventId,
+          title: data.title ?? '',
+          description: data.description ?? '',
+          images,
+        });
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
   }, [eventId]);
 
   if (notFound) return <Navigate to="/events" replace />;
-  if (!event) return null;
+  if (loading || !event) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <p className="text-offwhite/60">Loading event…</p>
+      </div>
+    );
+  }
 
-  const imagesToShow = showAll ? event.images : event.images.slice(0, INITIAL_IMAGE_COUNT);
-  const hasMore = event.images.length > INITIAL_IMAGE_COUNT;
+  const images = Array.isArray(event.images) ? event.images : [];
+  const imagesToShow = showAll ? images : images.slice(0, INITIAL_IMAGE_COUNT);
+  const hasMore = images.length > INITIAL_IMAGE_COUNT;
 
   useEffect(() => {
     const ctx = gsap.context(() => {

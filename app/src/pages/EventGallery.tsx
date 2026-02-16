@@ -106,11 +106,11 @@ export default function EventGallery() {
         <div className="w-full px-6 lg:px-12 max-w-7xl mx-auto">
           <div className="reveal-section mb-10">
             <Link
-              to="/coverage"
+              to="/events"
               className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm font-medium mb-8"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to Coverage
+              Back to Events
             </Link>
             <span className="label-mono text-lime mb-2 block">Event Gallery</span>
             <h1 className="headline-section text-offwhite text-3xl lg:text-4xl mb-4">

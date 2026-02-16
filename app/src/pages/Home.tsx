@@ -612,9 +612,6 @@ export default function Home() {
           <div className="reveal-section grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <div>
               <span className="label-mono text-lime mb-4 block">Listen</span>
-              <h2 className="headline-section text-offwhite text-4xl lg:text-5xl mb-6">
-                SHOWS
-              </h2>
               <p className="body-large text-offwhite/60 mb-8">
                 Weekly takes, guest interviews, and what to watch next. Join us every Wednesday 
                 as we break down the biggest stories in sports with the people who know them best. 

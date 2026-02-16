@@ -613,7 +613,7 @@ export default function Home() {
             <div>
               <span className="label-mono text-lime mb-4 block">Listen</span>
               <h2 className="headline-section text-offwhite text-4xl lg:text-5xl mb-6">
-                PODCASTS
+                SHOWS
               </h2>
               <p className="body-large text-offwhite/60 mb-8">
                 Weekly takes, guest interviews, and what to watch next. Join us every Wednesday 

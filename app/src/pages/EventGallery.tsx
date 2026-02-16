@@ -103,7 +103,7 @@ export default function EventGallery() {
   return (
     <div ref={mainRef} className="relative">
       <section className="section-premium py-24">
-        <div className="w-full px-6 lg:px-12 max-w-7xl mx-auto">
+        <div className="w-full px-6 lg:px-12">
           <div className="reveal-section mb-10">
             <Link
               to="/events"
@@ -121,16 +121,16 @@ export default function EventGallery() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-col gap-8">
             {imagesToShow.map((src, i) => (
               <div
                 key={`${src}-${i}`}
-                className="event-image-card overflow-hidden rounded-sm border border-offwhite/10 bg-offwhite/5 aspect-[4/3] min-h-[280px] group"
+                className="event-image-card overflow-hidden rounded-sm border border-offwhite/10 bg-offwhite/5 group"
               >
                 <img
                   src={src}
                   alt=""
-                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-auto max-w-full object-contain group-hover:opacity-95 transition-opacity duration-300"
                   loading="lazy"
                   decoding="async"
                 />

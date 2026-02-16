@@ -990,7 +990,7 @@ export default function Home() {
       </section>
 
       {/* Section 8: Stats & Impact */}
-      <section className="stats-section section-premium py-24">
+      {/* <section className="stats-section section-premium py-24">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section text-center mb-16">
             <span className="label-mono text-lime mb-4 block">By The Numbers</span>
@@ -1009,7 +1009,7 @@ export default function Home() {
               {
                 display: eventsFromApi.length >= 3 ? `${eventsFromApi.length}` : eventsFromApi.length > 0 ? 'Growing' : 'Growing',
                 label: 'Events Covered',
-                desc: 'From local games to national championships',
+                desc: 'From national championships to international tournaments to charity events',
               },
               {
                 display: newsletterCount >= 10 ? `${newsletterCount}` : newsletterCount > 0 ? 'Growing' : 'Join us',
@@ -1028,7 +1028,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Section 9: About / Team */}
       <section id="about" className="section-premium py-24">

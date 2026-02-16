@@ -436,15 +436,15 @@ export default function Home() {
             <div className="hero-stats flex flex-wrap justify-center gap-8 lg:gap-16">
               {[
                 {
-                  value: articlesFromApi.length > 0 ? `${articlesFromApi.length}+` : 'New',
+                  value: articlesFromApi.length >= 5 ? `${articlesFromApi.length}+` : articlesFromApi.length > 0 ? 'Growing' : 'New',
                   label: 'Stories Published',
                 },
                 {
-                  value: eventsFromApi.length > 0 ? `${eventsFromApi.length}` : 'Growing',
+                  value: eventsFromApi.length >= 3 ? `${eventsFromApi.length}` : 'Growing',
                   label: 'Events Covered',
                 },
                 {
-                  value: newsletterCount > 0 ? `${newsletterCount}` : 'Join us',
+                  value: newsletterCount >= 10 ? `${newsletterCount}` : newsletterCount > 0 ? 'Growing' : 'Join us',
                   label: 'Newsletter Signups',
                 },
               ].map((stat, i) => (
@@ -572,7 +572,11 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          <div
+            className={`grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 ${
+              articleCards.length === 1 ? 'lg:max-w-md mx-auto' : articleCards.length === 2 ? 'lg:max-w-4xl mx-auto' : ''
+            }`}
+          >
             {articleCards.map((card) => (
               <Link key={card.id} to={`/stories/${encodeArticleId(card.id)}`} className="stagger-card group block">
                 <article className="cursor-pointer h-full">
@@ -1005,17 +1009,17 @@ export default function Home() {
           <div className="reveal-section grid md:grid-cols-3 gap-8 lg:gap-12">
             {[
               {
-                display: articlesFromApi.length > 0 ? `${articlesFromApi.length}+` : 'New',
+                display: articlesFromApi.length >= 5 ? `${articlesFromApi.length}+` : articlesFromApi.length > 0 ? 'Growing' : 'New',
                 label: 'Stories Published',
                 desc: 'In-depth articles, analysis, and features',
               },
               {
-                display: eventsFromApi.length > 0 ? `${eventsFromApi.length}` : 'Growing',
+                display: eventsFromApi.length >= 3 ? `${eventsFromApi.length}` : eventsFromApi.length > 0 ? 'Growing' : 'Growing',
                 label: 'Events Covered',
                 desc: 'From local games to national championships',
               },
               {
-                display: newsletterCount > 0 ? `${newsletterCount}` : 'Join us',
+                display: newsletterCount >= 10 ? `${newsletterCount}` : newsletterCount > 0 ? 'Growing' : 'Join us',
                 label: 'Newsletter Signups',
                 desc: 'Fans staying in the loop',
               },

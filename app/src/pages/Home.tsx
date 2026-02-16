@@ -16,6 +16,8 @@ import '../App.css';
 gsap.registerPlugin(ScrollTrigger);
 
 const EVENT_PREVIEW_IMAGES = 1;
+/** Minimum events covered to display (client has 50+ total; not all are published on the site yet) */
+const MIN_EVENTS_COVERED = 50;
 
 const PODCAST_LINKS = [
   { href: 'https://www.youtube.com/@sidelinesports3840', icon: Youtube, label: 'YouTube' },
@@ -440,7 +442,7 @@ export default function Home() {
                   label: 'Articles Published',
                 },
                 {
-                  value: eventsFromApi.length >= 3 ? `${eventsFromApi.length}` : 'Growing',
+                  value: eventsFromApi.length >= MIN_EVENTS_COVERED ? `${eventsFromApi.length}+` : '50+',
                   label: 'Events Covered',
                 },
                 {
@@ -1007,7 +1009,7 @@ export default function Home() {
                 desc: 'In-depth articles, analysis, and features',
               },
               {
-                display: eventsFromApi.length >= 3 ? `${eventsFromApi.length}` : eventsFromApi.length > 0 ? 'Growing' : 'Growing',
+                display: eventsFromApi.length >= MIN_EVENTS_COVERED ? `${eventsFromApi.length}+` : '50+',
                 label: 'Events Covered',
                 desc: 'From national championships to international tournaments to charity events',
               },

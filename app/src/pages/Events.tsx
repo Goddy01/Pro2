@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, Search } from 'lucide-react';
+import { ArrowRight, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const PREVIEW_IMAGES = 1;
+const EVENTS_PER_PAGE = 6;
 
 type EventItem = { id: string; title: string; description: string; images: string[] };
 
@@ -17,6 +17,7 @@ export default function Events() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const q = searchQuery.trim();
@@ -27,8 +28,12 @@ export default function Events() {
         .then((r) => r.json())
         .then((data) => {
           setEvents(Array.isArray(data) ? data : []);
+          setCurrentPage(1);
         })
-        .catch(() => setEvents([]))
+        .catch(() => {
+          setEvents([]);
+          setCurrentPage(1);
+        })
         .finally(() => setLoading(false));
     }, q ? 300 : 0);
     return () => clearTimeout(t);
@@ -36,6 +41,17 @@ export default function Events() {
 
   const list: EventItem[] = events;
   const q = searchQuery.trim();
+  const totalPages = Math.max(1, Math.ceil(list.length / EVENTS_PER_PAGE));
+  const pageIndex = Math.min(Math.max(1, currentPage), totalPages);
+  const start = (pageIndex - 1) * EVENTS_PER_PAGE;
+  const paginatedList = list.slice(start, start + EVENTS_PER_PAGE);
+
+  const gridWrapClass =
+    paginatedList.length === 1
+      ? 'lg:max-w-xl mx-auto'
+      : paginatedList.length === 2
+        ? 'lg:max-w-3xl mx-auto'
+        : '';
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -76,7 +92,7 @@ export default function Events() {
       });
     }, mainRef);
     return () => ctx.revert();
-  }, [list.length]);
+  }, [paginatedList.length, pageIndex]);
 
   return (
     <div ref={mainRef} className="relative">
@@ -113,43 +129,84 @@ export default function Events() {
               {q ? 'No events match your search.' : 'No event galleries yet.'}
             </p>
           ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {list.map((event) => {
-              const imgs = event.images || [];
-              const previewImages = imgs.slice(0, PREVIEW_IMAGES);
-              return (
-                <div
-                  key={event.id}
-                  className="stagger-card flex flex-col bg-offwhite/5 border border-offwhite/10 overflow-hidden"
-                >
-                  <div className="p-6 lg:p-8">
-                    <h3 className="headline-article text-offwhite text-xl lg:text-2xl mb-2">
-                      {event.title}
-                    </h3>
-                    <p className="body-large text-offwhite/60 mb-6">
-                      {event.description}
-                    </p>
-                    <div className="aspect-[4/3] overflow-hidden rounded-sm bg-offwhite/10 group mb-6">
-                      <img
-                        src={previewImages[0] || ''}
-                        alt=""
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </div>
+            <>
+              <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 ${gridWrapClass}`}>
+                {paginatedList.map((event) => {
+                  const imgs = event.images || [];
+                  const previewImg = imgs[0] || '';
+                  return (
                     <Link
+                      key={event.id}
                       to={`/coverage/event/${event.id}`}
-                      className="btn-premium inline-flex items-center gap-2"
+                      className="stagger-card group block"
                     >
-                      View more
-                      <ArrowRight className="w-4 h-4" />
+                      <article className="h-full flex flex-col bg-offwhite/5 border border-offwhite/10 overflow-hidden rounded-lg hover:border-offwhite/20 transition-colors">
+                        <div className="aspect-[4/3] overflow-hidden bg-offwhite/10 shrink-0">
+                          <img
+                            src={previewImg}
+                            alt=""
+                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </div>
+                        <div className="p-5 lg:p-6 flex flex-col flex-1">
+                          <h3 className="headline-article text-offwhite text-lg lg:text-xl mb-2 group-hover:text-lime transition-colors line-clamp-2">
+                            {event.title}
+                          </h3>
+                          <p className="text-offwhite/60 text-sm mb-4 line-clamp-3 flex-1">
+                            {event.description}
+                          </p>
+                          <span className="inline-flex items-center gap-2 text-lime text-sm font-medium mt-auto">
+                            View gallery
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                          </span>
+                        </div>
+                      </article>
                     </Link>
+                  );
+                })}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="reveal-section flex flex-wrap items-center justify-center gap-2 mt-12">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={pageIndex === 1}
+                    className="p-2.5 rounded border border-offwhite/20 text-offwhite disabled:opacity-40 disabled:cursor-not-allowed hover:bg-offwhite/10 transition-colors"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => setCurrentPage(page)}
+                        className={`min-w-[2.5rem] px-3 py-2 text-sm font-semibold rounded transition-colors ${
+                          pageIndex === page
+                            ? 'bg-lime text-forest'
+                            : 'text-offwhite/80 hover:bg-offwhite/10 hover:text-offwhite'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={pageIndex === totalPages}
+                    className="p-2.5 rounded border border-offwhite/20 text-offwhite disabled:opacity-40 disabled:cursor-not-allowed hover:bg-offwhite/10 transition-colors"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
                 </div>
-              );
-            })}
-          </div>
+              )}
+            </>
           )}
         </div>
       </section>

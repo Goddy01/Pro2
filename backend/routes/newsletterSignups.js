@@ -32,6 +32,17 @@ function checkRateLimit(ip) {
   return true;
 }
 
+// Public: get total signup count (for homepage stats)
+router.get('/count', async (req, res) => {
+  try {
+    const { rows } = await db.query('SELECT COUNT(*) AS c FROM newsletter_signups');
+    res.json({ count: Number(rows[0]?.c ?? 0) });
+  } catch (err) {
+    console.error('newsletter-signups count error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Admin: list all signups (auth required). ?format=csv for CSV export
 router.get('/', authMiddleware, async (req, res) => {
   try {

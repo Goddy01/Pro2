@@ -57,6 +57,7 @@ export default function Home() {
   const podcastAudioRef = useRef<HTMLAudioElement>(null);
   const [articlesFromApi, setArticlesFromApi] = useState<ArticleFromApi[]>([]);
   const [eventsFromApi, setEventsFromApi] = useState<{ id: string; title: string; description: string; images: string[] }[]>([]);
+  const [newsletterCount, setNewsletterCount] = useState<number>(0);
   const [showPodcastPlatforms, setShowPodcastPlatforms] = useState(false);
   const [testimonialForm, setTestimonialForm] = useState({
     name: '',
@@ -119,6 +120,13 @@ export default function Home() {
       .then((data) => {
         if (Array.isArray(data)) setEventsFromApi(data);
       })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetch(apiUrl('/api/newsletter-signups/count'))
+      .then((r) => r.json())
+      .then((data) => setNewsletterCount(typeof data?.count === 'number' ? data.count : 0))
       .catch(() => {});
   }, []);
 
@@ -427,9 +435,9 @@ export default function Home() {
 
             <div className="hero-stats flex flex-wrap justify-center gap-8 lg:gap-16">
               {[
-                { value: '120+', label: 'Stories Published' },
-                { value: '48', label: 'Events Covered' },
-                { value: '2M+', label: 'Monthly Readers' },
+                { value: `${articlesFromApi.length}${articlesFromApi.length > 0 ? '+' : ''}`, label: 'Stories Published' },
+                { value: String(eventsFromApi.length), label: 'Events Covered' },
+                { value: String(newsletterCount), label: 'Newsletter Signups' },
               ].map((stat, i) => (
                 <div key={i}>
                   <span className="text-3xl lg:text-4xl font-editorial font-bold text-lime">{stat.value}</span>
@@ -881,7 +889,7 @@ export default function Home() {
               Event Galleries
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-              {eventsFromApi.map((event) => {
+              {eventsFromApi.slice(0, 2).map((event) => {
                 const previewImages = (event.images || []).slice(0, EVENT_PREVIEW_IMAGES);
                 return (
                   <div
@@ -987,16 +995,18 @@ export default function Home() {
 
           <div className="reveal-section grid md:grid-cols-3 gap-8 lg:gap-12">
             {[
-              { value: 0, suffix: '+', label: 'Stories Published', desc: 'In-depth articles, analysis, and features' },
-              { value: 0, suffix: '', label: 'Events Covered', desc: 'From local games to national championships' },
-              { value: 0, suffix: 'M+', label: 'Monthly Readers', desc: 'Fans who trust our reporting' },
+              { value: articlesFromApi.length, suffix: articlesFromApi.length > 0 ? '+' : '', label: 'Stories Published', desc: 'In-depth articles, analysis, and features' },
+              { value: eventsFromApi.length, suffix: '', label: 'Events Covered', desc: 'From local games to national championships' },
+              { value: newsletterCount, suffix: '', label: 'Newsletter Signups', desc: 'Fans staying in the loop' },
             ].map((stat, i) => (
               <div key={i} className="text-center">
                 <div className="divider-accent mx-auto mb-6" />
                 <span className="stat-number text-6xl lg:text-7xl font-editorial font-bold text-offwhite">
                   {stat.value}
                 </span>
-                <span className="text-6xl lg:text-7xl font-editorial font-bold text-lime">{stat.suffix}</span>
+                {stat.suffix && (
+                  <span className="text-6xl lg:text-7xl font-editorial font-bold text-lime">{stat.suffix}</span>
+                )}
                 <h3 className="text-offwhite text-xl font-semibold mt-4 mb-2">{stat.label}</h3>
                 <p className="text-offwhite/50 text-sm">{stat.desc}</p>
               </div>

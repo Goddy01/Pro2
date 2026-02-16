@@ -932,7 +932,7 @@ export default function Home() {
               })}
             </div>
             <div className="reveal-section mt-10 flex justify-center">
-              <Link to="/events" className="btn-outline-premium inline-flex items-center gap-2">
+              <Link to="/events" className="btn-premium inline-flex items-center gap-2">
                 View all event galleries
                 <ArrowRight className="w-4 h-4" />
               </Link>

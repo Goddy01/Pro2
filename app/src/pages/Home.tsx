@@ -572,7 +572,7 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 mb-12 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 mb-12 w-full">
             {articleCards.map((card) => (
               <Link key={card.id} to={`/stories/${encodeArticleId(card.id)}`} className="stagger-card group block">
                 <article className="cursor-pointer h-full">

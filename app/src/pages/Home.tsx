@@ -390,7 +390,7 @@ export default function Home() {
             <span className="label-mono text-lime text-lg mb-6 block">Sports & Entertainment Journalism Reimagined</span>
             
             <h1 className="hero-headline headline-hero text-offwhite text-5xl sm:text-6xl lg:text-7xl xl:text-8xl mb-8">
-              Stories Worth<br />
+              Articles Worth<br />
               <span className="text-lime">Talking About</span>
             </h1>
 
@@ -437,7 +437,7 @@ export default function Home() {
               {[
                 {
                   value: articlesFromApi.length >= 5 ? `${articlesFromApi.length}+` : articlesFromApi.length > 0 ? 'Growing' : 'New',
-                  label: 'Stories Published',
+                  label: 'Articles Published',
                 },
                 {
                   value: eventsFromApi.length >= 3 ? `${eventsFromApi.length}` : 'Growing',
@@ -458,14 +458,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section 2: Featured Stories */}
-      <section id="stories" className="section-premium py-24">
-        <div className="w-full px-6 lg:px-12">
+{/* Section 2: Featured Articles */}
+        <section id="stories" className="section-premium py-24">
+          <div className="w-full px-6 lg:px-12">
           <div className="reveal-section flex flex-col lg:flex-row lg:items-end lg:justify-between mb-16">
             <div>
               <span className="label-mono text-lime mb-4 block">Featured</span>
               <h2 className="headline-section text-offwhite text-4xl lg:text-5xl">
-                This Week's Best<br />Stories
+                This Week's Best<br />Articles
               </h2>
             </div>
             <Link to="/stories" className="btn-outline-premium mt-6 lg:mt-0 self-start">
@@ -562,13 +562,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section 3: More Stories You'll Love */}
+      {/* Section 3: More Articles You'll Love */}
       <section className="section-light-premium py-24">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section mb-12">
             <span className="label-mono text-forest/60 mb-4 block">Latest</span>
             <h2 className="headline-section text-forest text-4xl mb-6">
-              More Stories You'll Love
+              More Articles You'll Love
             </h2>
           </div>
 
@@ -599,7 +599,7 @@ export default function Home() {
 
           <div className="reveal-section text-center">
             <Link to="/stories" className="btn-premium inline-flex items-center gap-2">
-              Read More Stories
+              Read More Articles
               <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
@@ -1003,7 +1003,7 @@ export default function Home() {
             {[
               {
                 display: articlesFromApi.length >= 5 ? `${articlesFromApi.length}+` : articlesFromApi.length > 0 ? 'Growing' : 'New',
-                label: 'Stories Published',
+                label: 'Articles Published',
                 desc: 'In-depth articles, analysis, and features',
               },
               {

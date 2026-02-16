@@ -126,7 +126,7 @@ export default function Stories() {
           <div className="reveal-section mb-12">
             <span className="label-mono text-forest/60 mb-4 block">Latest</span>
             <h2 className="headline-section text-forest text-4xl mb-6">
-              More Stories You'll Love
+              More Articles You'll Love
             </h2>
 
             {/* Search */}
@@ -165,10 +165,10 @@ export default function Stories() {
 
           {/* Article Grid */}
           {loading ? (
-            <p className="text-forest/60 py-12">Loading stories…</p>
+            <p className="text-forest/60 py-12">Loading articles…</p>
           ) : filteredArticles.length === 0 ? (
             <p className="text-forest/60 py-12">
-              {searchQuery.trim() ? 'No articles match your search.' : 'No stories yet.'}
+              {searchQuery.trim() ? 'No articles match your search.' : 'No articles yet.'}
             </p>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">

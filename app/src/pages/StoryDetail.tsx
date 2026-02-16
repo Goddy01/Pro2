@@ -113,7 +113,7 @@ export default function StoryDetail() {
           <p className="text-red-400 mb-4">{!idHash ? 'Invalid link' : 'Article not found'}</p>
           <Link to="/stories" className="text-lime hover:underline inline-flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />
-            Back to Stories
+            Back to Articles
           </Link>
         </div>
       </div>
@@ -135,7 +135,7 @@ export default function StoryDetail() {
           <p className="text-red-400 mb-4">{error || 'Article not found'}</p>
           <Link to="/stories" className="text-lime hover:underline inline-flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />
-            Back to Stories
+            Back to Articles
           </Link>
         </div>
       </div>
@@ -152,7 +152,7 @@ export default function StoryDetail() {
           className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Stories
+          Back to Articles
         </Link>
 
         {/* Title – large, centered feel */}

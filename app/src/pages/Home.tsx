@@ -141,7 +141,7 @@ export default function Home() {
     date: formatArticleDate(a.created_at),
     readTime: articleReadTime(a.content),
   }));
-  const articleCards = articlesFromApi.slice(3, 6).map((a) => ({
+  const articleCards = articlesFromApi.slice(3, 5).map((a) => ({
     id: a.id,
     title: a.title,
     category: a.category || 'Features',
@@ -572,16 +572,12 @@ export default function Home() {
             </h2>
           </div>
 
-          <div
-            className={`grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12 ${
-              articleCards.length === 1 ? 'lg:max-w-md mx-auto' : articleCards.length === 2 ? 'lg:max-w-4xl mx-auto' : ''
-            }`}
-          >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 mb-12 max-w-7xl mx-auto">
             {articleCards.map((card) => (
               <Link key={card.id} to={`/stories/${encodeArticleId(card.id)}`} className="stagger-card group block">
                 <article className="cursor-pointer h-full">
                   <div className="bg-offwhite border border-forest/10 overflow-hidden hover:shadow-2xl transition-shadow duration-500 h-full">
-                    <div className="relative overflow-hidden h-[220px]">
+                    <div className="relative overflow-hidden h-[260px] lg:h-[280px]">
                       <img src={card.image} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
                       <div className="absolute top-4 left-4">
                         <span className="bg-lime text-forest text-[10px] font-bold uppercase tracking-wider px-2 py-1">{card.category}</span>

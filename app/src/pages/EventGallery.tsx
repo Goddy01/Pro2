@@ -45,20 +45,8 @@ export default function EventGallery() {
       .finally(() => setLoading(false));
   }, [eventId]);
 
-  if (notFound) return <Navigate to="/events" replace />;
-  if (loading || !event) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <p className="text-offwhite/60">Loading event…</p>
-      </div>
-    );
-  }
-
-  const images = Array.isArray(event.images) ? event.images : [];
-  const imagesToShow = showAll ? images : images.slice(0, INITIAL_IMAGE_COUNT);
-  const hasMore = images.length > INITIAL_IMAGE_COUNT;
-
   useEffect(() => {
+    if (!event || !mainRef.current) return;
     const ctx = gsap.context(() => {
       gsap.utils.toArray<HTMLElement>('.reveal-section').forEach((section) => {
         gsap.fromTo(
@@ -97,7 +85,20 @@ export default function EventGallery() {
       });
     }, mainRef);
     return () => ctx.revert();
-  }, [showAll]);
+  }, [event, showAll]);
+
+  if (notFound) return <Navigate to="/events" replace />;
+  if (loading || !event) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <p className="text-offwhite/60">Loading event…</p>
+      </div>
+    );
+  }
+
+  const images = Array.isArray(event.images) ? event.images : [];
+  const imagesToShow = showAll ? images : images.slice(0, INITIAL_IMAGE_COUNT);
+  const hasMore = images.length > INITIAL_IMAGE_COUNT;
 
   return (
     <div ref={mainRef} className="relative">

@@ -435,9 +435,18 @@ export default function Home() {
 
             <div className="hero-stats flex flex-wrap justify-center gap-8 lg:gap-16">
               {[
-                { value: `${articlesFromApi.length}${articlesFromApi.length > 0 ? '+' : ''}`, label: 'Stories Published' },
-                { value: String(eventsFromApi.length), label: 'Events Covered' },
-                { value: String(newsletterCount), label: 'Newsletter Signups' },
+                {
+                  value: articlesFromApi.length > 0 ? `${articlesFromApi.length}+` : 'New',
+                  label: 'Stories Published',
+                },
+                {
+                  value: eventsFromApi.length > 0 ? `${eventsFromApi.length}` : 'Growing',
+                  label: 'Events Covered',
+                },
+                {
+                  value: newsletterCount > 0 ? `${newsletterCount}` : 'Join us',
+                  label: 'Newsletter Signups',
+                },
               ].map((stat, i) => (
                 <div key={i}>
                   <span className="text-3xl lg:text-4xl font-editorial font-bold text-lime">{stat.value}</span>
@@ -995,18 +1004,27 @@ export default function Home() {
 
           <div className="reveal-section grid md:grid-cols-3 gap-8 lg:gap-12">
             {[
-              { value: articlesFromApi.length, suffix: articlesFromApi.length > 0 ? '+' : '', label: 'Stories Published', desc: 'In-depth articles, analysis, and features' },
-              { value: eventsFromApi.length, suffix: '', label: 'Events Covered', desc: 'From local games to national championships' },
-              { value: newsletterCount, suffix: '', label: 'Newsletter Signups', desc: 'Fans staying in the loop' },
+              {
+                display: articlesFromApi.length > 0 ? `${articlesFromApi.length}+` : 'New',
+                label: 'Stories Published',
+                desc: 'In-depth articles, analysis, and features',
+              },
+              {
+                display: eventsFromApi.length > 0 ? `${eventsFromApi.length}` : 'Growing',
+                label: 'Events Covered',
+                desc: 'From local games to national championships',
+              },
+              {
+                display: newsletterCount > 0 ? `${newsletterCount}` : 'Join us',
+                label: 'Newsletter Signups',
+                desc: 'Fans staying in the loop',
+              },
             ].map((stat, i) => (
               <div key={i} className="text-center">
                 <div className="divider-accent mx-auto mb-6" />
                 <span className="stat-number text-6xl lg:text-7xl font-editorial font-bold text-offwhite">
-                  {stat.value}
+                  {stat.display}
                 </span>
-                {stat.suffix && (
-                  <span className="text-6xl lg:text-7xl font-editorial font-bold text-lime">{stat.suffix}</span>
-                )}
                 <h3 className="text-offwhite text-xl font-semibold mt-4 mb-2">{stat.label}</h3>
                 <p className="text-offwhite/50 text-sm">{stat.desc}</p>
               </div>

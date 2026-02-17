@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type FormEvent } from 'react';
-import { Navigate, Link } from 'react-router-dom';
+import { Navigate, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../lib/api';
 import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Pencil, Trash2, Menu, X } from 'lucide-react';
@@ -24,7 +24,13 @@ const labelClass = 'text-offwhite text-sm font-medium mb-2 block';
 
 export default function AdminDashboard() {
   const { token, logout, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabId>('articles');
+
+  function handleLogout() {
+    logout();
+    navigate('/', { replace: true });
+  }
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -778,7 +784,7 @@ export default function AdminDashboard() {
               <UserPlus className="w-4 h-4" />
               Add new admin
             </button>
-            <button type="button" onClick={logout} className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
+            <button type="button" onClick={handleLogout} className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
               <LogOut className="w-4 h-4" />
               Log out
             </button>
@@ -808,7 +814,7 @@ export default function AdminDashboard() {
                 <UserPlus className="w-4 h-4" />
                 Add new admin
               </button>
-              <button type="button" onClick={() => { setAdminMenuOpen(false); logout(); }} className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2 text-left">
+              <button type="button" onClick={() => { setAdminMenuOpen(false); handleLogout(); }} className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2 text-left">
                 <LogOut className="w-4 h-4" />
                 Log out
               </button>

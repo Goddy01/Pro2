@@ -2,9 +2,19 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Instagram, Youtube } from 'lucide-react';
+import { apiUrl } from '../lib/api';
 import './../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
+
+type TeamMember = {
+  id: number;
+  name: string;
+  role: string;
+  bio: string;
+  image: string;
+  socials: { x?: string; youtube?: string; tiktok?: string; instagram?: string };
+};
 
 function IconXLogo({ className }: { className?: string }) {
   return (
@@ -22,50 +32,59 @@ function IconTikTok({ className }: { className?: string }) {
   );
 }
 
-const teamMembers = [
-  {
-    name: 'J.B. Ellis',
-    role: 'Founder and CEO',
-    bio: 'J.B. Ellis is an American sports media personality, host, and interviewer known for his energetic style and passion for competition. A leading voice on Sideline Sports & Entertainment, he co-hosts Sideline Sports and leads original programs including Cubfidential and J & J Sports Express. Ellis has covered six Super Bowls and is credentialed with the NFL, NBA, and MLB, providing firsthand insight from major sporting events. He previously created and hosted The PROgram on the Bleav Network.',
-    image: '/JB-ELLIS.jpg',
-    socials: { instagram: 'https://www.instagram.com/sidelinesports_j.b.ellis', x: 'https://x.com/jb_theprogram' },
-  },
-  {
-    name: 'Jon Shearer',
-    role: 'Co Founder & Multimedia Journalist, Photographer ',
-    bio: "With over a decade in sports media, Jon Shearer has covered six Super Bowls while building a reputation for factual hot takes and high-impact storytelling. As a professional sports photographer, he doesn't just analyze the moments—he captures them. Jon is dedicated to community-focused charitable work and elevating the culture of sports.",
-    image: '/JON-SHEARER.jpg',
-    socials: { instagram: 'https://www.instagram.com/jonshearer_media' },
-  },
-  {
-    name: 'Jay Nelson',
-    role: 'Sports Personality & Media Executive',
-    bio: 'Jay Nelson, aka “Denzel Snipes,” (born Jamon La Roi Nelson) is a Sideline Sports personality and media executive. A 12-year U.S. Air Force veteran with multiple duty stations and deployments, he earned a BS in Convergence Journalism from Abilene Christian University. Nelson has covered major live events including the NFL Hall of Fame and multiple Super Bowls. He currently produces and/or co-hosts six shows and serves as President of Production for the network.',
-    image: '/JAY.jpg',
-    socials: { instagram: 'https://www.instagram.com/unconv3ntionalking13' },
-  },
-  {
-    name: 'James Tatum',
-    role: 'Director of Content & Media Operations',
-    bio: 'James Tatum is a multimedia sports journalist and media executive with Sideline Sports & Entertainment, overseeing content strategy, video production, website management, and talent recruitment. A first-generation graduate driven by passion and determination, he has covered major events across the NFL, MLB, and Premier League. From interviewing athletes and executives to delivering in-depth analysis, feature stories, and digital content, James brings energy and insight to every platform, blending on-camera presence with strong writing and leadership skills to build an authentic, impactful sports media brand.',
-    image: '/JAMES-TATUM.jpg',
-    socials: { instagram: 'https://www.instagram.com/jtpov_', x: 'https://x.com/JTP0V', tiktok: 'https://www.tiktok.com/@jtpointofview', youtube: 'https://www.youtube.com/@jtpointofview' },
-  },
-  {
-    name: 'Will Peralta',
-    role: 'Multimedia Photographer',
-    bio: 'Will Peralta is a Multimedia Photographer for Sideline Sports & Entertainment, covering professional sports and entertainment events. He has photographed the NBA, NFL, MLB, and major artists, focusing on capturing authentic moments that reflect the atmosphere and story of each client and event.',
-    image: '/WILL-PERALTA.jpg',
-    socials: { instagram: 'https://www.instagram.com/will_media_peralta', tiktok: 'https://www.tiktok.com/@will_media_peralta?_r=1&_t=ZP-93riibpsdF0' },
-  },
-];
+function mapApiMember(row: {
+  id: number;
+  name: string;
+  role: string | null;
+  bio: string | null;
+  image: string | null;
+  social_x: string | null;
+  social_youtube: string | null;
+  social_tiktok: string | null;
+  social_instagram: string | null;
+}): TeamMember {
+  const socials: TeamMember['socials'] = {};
+  if (row.social_x) socials.x = row.social_x;
+  if (row.social_youtube) socials.youtube = row.social_youtube;
+  if (row.social_tiktok) socials.tiktok = row.social_tiktok;
+  if (row.social_instagram) socials.instagram = row.social_instagram;
+  return {
+    id: row.id,
+    name: row.name,
+    role: row.role ?? '',
+    bio: row.bio ?? '',
+    image: row.image ?? '',
+    socials,
+  };
+}
+
+// (static team data moved to DB seed in backend/db.js)
 
 export default function Team() {
   const mainRef = useRef<HTMLDivElement>(null);
   const teamCarouselRef = useRef<HTMLDivElement>(null);
   const bioRefs = useRef<(HTMLParagraphElement | null)[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [teamLoading, setTeamLoading] = useState(true);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [truncatedIndices, setTruncatedIndices] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(apiUrl('/api/team'))
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled || !Array.isArray(data)) return;
+        setTeamMembers(data.map(mapApiMember));
+      })
+      .catch(() => {
+        if (!cancelled) setTeamMembers([]);
+      })
+      .finally(() => {
+        if (!cancelled) setTeamLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const measureTruncation = useCallback(() => {
     const next = new Set<number>();
@@ -78,7 +97,7 @@ export default function Team() {
       if (prev.size !== next.size || [...prev].some((i) => !next.has(i))) return next;
       return prev;
     });
-  }, [expandedIndex]);
+  }, [expandedIndex, teamMembers.length]);
 
   useEffect(() => {
     const t = setTimeout(measureTruncation, 0);
@@ -213,15 +232,18 @@ export default function Team() {
               ref={teamCarouselRef}
               className="team-carousel overflow-x-auto scroll-smooth snap-x snap-mandatory flex gap-10 px-14 lg:px-16 py-4"
             >
-              {[0, 1, 2].map((repeatIndex) =>
+              {!teamLoading && teamMembers.length === 0 ? (
+                <p className="text-offwhite/60 px-14">No team members yet.</p>
+              ) : (
+                [0, 1, 2].map((repeatIndex) =>
                 teamMembers.map((member, i) => (
                   <article
-                    key={`${repeatIndex}-${i}`}
+                    key={`${repeatIndex}-${member.id}`}
                     className="stagger-card card-editorial flex-shrink-0 w-[320px] sm:w-[380px] lg:w-[420px] snap-center flex flex-col overflow-hidden group"
                   >
                     <div className="relative overflow-hidden aspect-[3/4]">
                       <img
-                        src={member.image}
+                        src={member.image || '/team.jpg'}
                         alt=""
                         className="w-full h-full object-cover img-editorial transition-transform duration-700 group-hover:scale-105"
                         loading="lazy"
@@ -234,7 +256,7 @@ export default function Team() {
                       <h3 className="headline-article text-offwhite text-xl lg:text-2xl mb-2 group-hover:text-lime transition-colors">
                         {member.name}
                       </h3>
-                      {'socials' in member && member.socials && (
+                      {Object.keys(member.socials).length > 0 && (
                         <div className="flex items-center gap-3 mb-3">
                           {member.socials.instagram && (
                             <a
@@ -312,6 +334,7 @@ export default function Team() {
                     </div>
                   </article>
                 ))
+              )
               )}
             </div>
           </div>

@@ -17,6 +17,7 @@ const pool = new Pool({
  * watch_videos: title, video_id, video_url, duration_label, sort_order
  * work_with_us: name, phone, email, introduction
  * newsletter_signups: name, email, cell
+ * team_members: name, role, bio, image, social_x, social_youtube, social_tiktok, social_instagram, sort_order
  * admin: username, password_hash
  */
 
@@ -104,6 +105,20 @@ export async function initDb() {
         cell VARCHAR(30) NOT NULL,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS team_members (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(200) NOT NULL,
+        role VARCHAR(300),
+        bio TEXT,
+        image TEXT,
+        social_x TEXT,
+        social_youtube TEXT,
+        social_tiktok TEXT,
+        social_instagram TEXT,
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
     `);
     await client.query(`
       ALTER TABLE podcast_episodes ADD COLUMN IF NOT EXISTS show_name VARCHAR(200);
@@ -161,6 +176,18 @@ export async function initDb() {
           await client.query('INSERT INTO event_images (event_id, image_url, sort_order) VALUES ($1, $2, $3)', [rmhId, urls[i], i]);
         }
       }
+    }
+    // Seed team members when table is empty (migrated from Team.tsx static data)
+    const { rows: teamCountRows } = await client.query('SELECT COUNT(*) AS c FROM team_members');
+    if (Number(teamCountRows[0]?.c) === 0) {
+      await client.query(`
+        INSERT INTO team_members (name, role, bio, image, social_x, social_youtube, social_tiktok, social_instagram, sort_order) VALUES
+        ('J.B. Ellis', 'Founder and CEO', 'J.B. Ellis is an American sports media personality, host, and interviewer known for his energetic style and passion for competition. A leading voice on Sideline Sports & Entertainment, he co-hosts Sideline Sports and leads original programs including Cubfidential and J & J Sports Express. Ellis has covered six Super Bowls and is credentialed with the NFL, NBA, and MLB, providing firsthand insight from major sporting events. He previously created and hosted The PROgram on the Bleav Network.', '/JB-ELLIS.jpg', 'https://x.com/jb_theprogram', NULL, NULL, 'https://www.instagram.com/sidelinesports_j.b.ellis', 0),
+        ('Jon Shearer', 'Co Founder & Multimedia Journalist, Photographer ', 'With over a decade in sports media, Jon Shearer has covered six Super Bowls while building a reputation for factual hot takes and high-impact storytelling. As a professional sports photographer, he doesn''t just analyze the moments—he captures them. Jon is dedicated to community-focused charitable work and elevating the culture of sports.', '/JON-SHEARER.jpg', NULL, NULL, NULL, 'https://www.instagram.com/jonshearer_media', 1),
+        ('Jay Nelson', 'Sports Personality & Media Executive', 'Jay Nelson, aka "Denzel Snipes," (born Jamon La Roi Nelson) is a Sideline Sports personality and media executive. A 12-year U.S. Air Force veteran with multiple duty stations and deployments, he earned a BS in Convergence Journalism from Abilene Christian University. Nelson has covered major live events including the NFL Hall of Fame and multiple Super Bowls. He currently produces and/or co-hosts six shows and serves as President of Production for the network.', '/JAY.jpg', NULL, NULL, NULL, 'https://www.instagram.com/unconv3ntionalking13', 2),
+        ('James Tatum', 'Director of Content & Media Operations', 'James Tatum is a multimedia sports journalist and media executive with Sideline Sports & Entertainment, overseeing content strategy, video production, website management, and talent recruitment. A first-generation graduate driven by passion and determination, he has covered major events across the NFL, MLB, and Premier League. From interviewing athletes and executives to delivering in-depth analysis, feature stories, and digital content, James brings energy and insight to every platform, blending on-camera presence with strong writing and leadership skills to build an authentic, impactful sports media brand.', '/JAMES-TATUM.jpg', 'https://x.com/JTP0V', 'https://www.youtube.com/@jtpointofview', 'https://www.tiktok.com/@jtpointofview', 'https://www.instagram.com/jtpov_', 3),
+        ('Will Peralta', 'Multimedia Photographer', 'Will Peralta is a Multimedia Photographer for Sideline Sports & Entertainment, covering professional sports and entertainment events. He has photographed the NBA, NFL, MLB, and major artists, focusing on capturing authentic moments that reflect the atmosphere and story of each client and event.', '/WILL-PERALTA.jpg', NULL, NULL, 'https://www.tiktok.com/@will_media_peralta?_r=1&_t=ZP-93riibpsdF0', 'https://www.instagram.com/will_media_peralta', 4)
+      `);
     }
   } finally {
     client.release();

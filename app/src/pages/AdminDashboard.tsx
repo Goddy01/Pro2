@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../lib/api';
-import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Pencil, Trash2, Menu, X } from 'lucide-react';
+import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Pencil, Trash2, Menu, X } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import '../App.css';
@@ -13,6 +13,7 @@ const TABS = [
   { id: 'events', label: 'Events', icon: Calendar },
   { id: 'podcast', label: 'Show', icon: Headphones },
   { id: 'watch', label: 'Watch', icon: Video },
+  { id: 'team', label: 'Team', icon: Users },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -59,6 +60,16 @@ export default function AdminDashboard() {
   const [watchDuration, setWatchDuration] = useState('Video');
   const [watchShowName, setWatchShowName] = useState('');
 
+  const [teamName, setTeamName] = useState('');
+  const [teamRole, setTeamRole] = useState('');
+  const [teamBio, setTeamBio] = useState('');
+  const [teamImage, setTeamImage] = useState<File | null>(null);
+  const [teamSocialX, setTeamSocialX] = useState('');
+  const [teamSocialYoutube, setTeamSocialYoutube] = useState('');
+  const [teamSocialTiktok, setTeamSocialTiktok] = useState('');
+  const [teamSocialInstagram, setTeamSocialInstagram] = useState('');
+  const teamImageInputRef = useRef<HTMLInputElement>(null);
+
   const [addAdminModalOpen, setAddAdminModalOpen] = useState(false);
   const [newAdminUsername, setNewAdminUsername] = useState('');
   const [newAdminPassword, setNewAdminPassword] = useState('');
@@ -71,6 +82,7 @@ export default function AdminDashboard() {
   const [eventsList, setEventsList] = useState<{ id: string; title: string }[]>([]);
   const [podcastList, setPodcastList] = useState<{ id: number; title: string }[]>([]);
   const [watchList, setWatchList] = useState<{ id: number; title: string }[]>([]);
+  const [teamList, setTeamList] = useState<{ id: number; name: string; role: string | null }[]>([]);
   const [editingArticleId, setEditingArticleId] = useState<number | null>(null);
   const [editingGalleryId, setEditingGalleryId] = useState<number | null>(null);
   const [editingEventSlug, setEditingEventSlug] = useState<string | null>(null);
@@ -88,6 +100,7 @@ export default function AdminDashboard() {
       fetch(apiUrl('/api/events')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setEventsList(d.map((e: { id: string; title: string }) => ({ id: e.id, title: e.title }))) : null)),
       fetch(apiUrl('/api/podcast')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setPodcastList(d.map((p: { id: number; title: string }) => ({ id: p.id, title: p.title }))) : null)),
       fetch(apiUrl('/api/watch')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setWatchList(d.map((w: { id: number; title: string }) => ({ id: w.id, title: w.title }))) : null)),
+      fetch(apiUrl('/api/team')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setTeamList(d.map((t: { id: number; name: string; role: string | null }) => ({ id: t.id, name: t.name, role: t.role ?? null }))) : null)),
     ]);
   }
 
@@ -613,6 +626,52 @@ export default function AdminDashboard() {
     }
   }
 
+  async function handleTeamSubmit(e: FormEvent) {
+    e.preventDefault();
+    clearMessages();
+    if (!teamName.trim()) {
+      setError('Name is required');
+      return;
+    }
+    setLoading(true);
+    try {
+      const form = new FormData();
+      form.append('name', teamName.trim());
+      if (teamRole.trim()) form.append('role', teamRole.trim());
+      if (teamBio.trim()) form.append('bio', teamBio.trim());
+      if (teamImage) form.append('image', teamImage);
+      if (teamSocialX.trim()) form.append('social_x', teamSocialX.trim());
+      if (teamSocialYoutube.trim()) form.append('social_youtube', teamSocialYoutube.trim());
+      if (teamSocialTiktok.trim()) form.append('social_tiktok', teamSocialTiktok.trim());
+      if (teamSocialInstagram.trim()) form.append('social_instagram', teamSocialInstagram.trim());
+      const res = await fetch(apiUrl('/api/team'), {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to add team member');
+        return;
+      }
+      setSuccess('Team member added.');
+      setTeamName('');
+      setTeamRole('');
+      setTeamBio('');
+      setTeamImage(null);
+      if (teamImageInputRef.current) teamImageInputRef.current.value = '';
+      setTeamSocialX('');
+      setTeamSocialYoutube('');
+      setTeamSocialTiktok('');
+      setTeamSocialInstagram('');
+      refetchLists();
+    } catch {
+      setError('Could not connect to server');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleAddAdmin(e: FormEvent) {
     e.preventDefault();
     setAddAdminError('');
@@ -1041,6 +1100,70 @@ export default function AdminDashboard() {
               {loading ? (editingWatchId ? 'Updating...' : 'Adding...') : (editingWatchId ? 'Update Video' : 'Add Video')}
             </button>
           </form>
+          </>
+        )}
+
+        {activeTab === 'team' && (
+          <>
+            {teamList.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-offwhite font-semibold mb-3">Existing team members</h3>
+                <ul className="space-y-2">
+                  {teamList.map((t) => (
+                    <li key={t.id} className="flex items-center justify-between gap-4 py-2 border-b border-offwhite/10">
+                      <span className="text-offwhite font-medium">{t.name}</span>
+                      {t.role && <span className="text-offwhite/60 text-sm truncate">{t.role}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <form onSubmit={handleTeamSubmit} className="space-y-6">
+              <label className="block">
+                <span className={labelClass}>Name *</span>
+                <input type="text" value={teamName} onChange={(e) => setTeamName(e.target.value)} className={inputClass} placeholder="Full name" required />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Role (optional)</span>
+                <input type="text" value={teamRole} onChange={(e) => setTeamRole(e.target.value)} className={inputClass} placeholder="e.g. Founder and CEO" />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Bio (optional)</span>
+                <textarea value={teamBio} onChange={(e) => setTeamBio(e.target.value)} className={inputClass} rows={4} placeholder="Short bio for the team page" />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Photo (optional)</span>
+                <input
+                  ref={teamImageInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setTeamImage(e.target.files?.[0] ?? null)}
+                  className="w-full text-offwhite/80 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-lime file:text-forest file:font-medium"
+                />
+              </label>
+              <fieldset className="space-y-3">
+                <legend className={labelClass}>Social links (optional – only provided links are shown on the site)</legend>
+                <label className="block">
+                  <span className="text-offwhite/70 text-xs mb-1 block">X (Twitter)</span>
+                  <input type="url" value={teamSocialX} onChange={(e) => setTeamSocialX(e.target.value)} className={inputClass} placeholder="https://x.com/username" />
+                </label>
+                <label className="block">
+                  <span className="text-offwhite/70 text-xs mb-1 block">YouTube</span>
+                  <input type="url" value={teamSocialYoutube} onChange={(e) => setTeamSocialYoutube(e.target.value)} className={inputClass} placeholder="https://youtube.com/@channel" />
+                </label>
+                <label className="block">
+                  <span className="text-offwhite/70 text-xs mb-1 block">TikTok</span>
+                  <input type="url" value={teamSocialTiktok} onChange={(e) => setTeamSocialTiktok(e.target.value)} className={inputClass} placeholder="https://tiktok.com/@username" />
+                </label>
+                <label className="block">
+                  <span className="text-offwhite/70 text-xs mb-1 block">Instagram</span>
+                  <input type="url" value={teamSocialInstagram} onChange={(e) => setTeamSocialInstagram(e.target.value)} className={inputClass} placeholder="https://instagram.com/username" />
+                </label>
+              </fieldset>
+              <button type="submit" disabled={loading} className="btn-premium py-4 px-8 disabled:opacity-50">
+                {loading ? 'Adding...' : 'Add team member'}
+              </button>
+            </form>
           </>
         )}
 

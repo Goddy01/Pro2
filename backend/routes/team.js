@@ -33,6 +33,21 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid team member ID' });
+    const { rows } = await db.query(
+      'SELECT id, name, role, bio, image, social_x, social_youtube, social_tiktok, social_instagram, sort_order FROM team_members WHERE id = $1',
+      [id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Team member not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
   try {
     const { name, role, bio, social_x, social_youtube, social_tiktok, social_instagram } = req.body;
@@ -63,6 +78,70 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
   } catch (err) {
     console.error('Team member create error:', err);
     res.status(500).json({ error: err.message || 'Failed to create team member' });
+  }
+});
+
+function parseTeamBody(body) {
+  return {
+    name: (body.name != null && typeof body.name === 'string') ? body.name.trim() : null,
+    role: (body.role != null && typeof body.role === 'string') ? body.role.trim() || null : null,
+    bio: (body.bio != null && typeof body.bio === 'string') ? body.bio.trim() || null : null,
+    social_x: (body.social_x != null && typeof body.social_x === 'string') ? body.social_x.trim() || null : null,
+    social_youtube: (body.social_youtube != null && typeof body.social_youtube === 'string') ? body.social_youtube.trim() || null : null,
+    social_tiktok: (body.social_tiktok != null && typeof body.social_tiktok === 'string') ? body.social_tiktok.trim() || null : null,
+    social_instagram: (body.social_instagram != null && typeof body.social_instagram === 'string') ? body.social_instagram.trim() || null : null,
+  };
+}
+
+router.put('/:id', authMiddleware, upload.single('image'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid team member ID' });
+    const { rows: existing } = await db.query('SELECT id, image FROM team_members WHERE id = $1', [id]);
+    if (!existing.length) return res.status(404).json({ error: 'Team member not found' });
+
+    const parsed = parseTeamBody(req.body);
+    if (!parsed.name) return res.status(400).json({ error: 'Name is required' });
+
+    let imageUrl = existing[0].image;
+    if (req.file && hasCloudinaryConfig()) {
+      const result = await uploadImageBuffer(req.file.buffer, 'sideline-team');
+      imageUrl = result.secure_url;
+    } else if (req.body.image !== undefined && typeof req.body.image === 'string' && req.body.image.trim() === '') {
+      imageUrl = null;
+    }
+
+    const { rows } = await db.query(
+      `UPDATE team_members SET name = $1, role = $2, bio = $3, image = $4, social_x = $5, social_youtube = $6, social_tiktok = $7, social_instagram = $8
+       WHERE id = $9 RETURNING id, name, role, bio, image, social_x, social_youtube, social_tiktok, social_instagram, sort_order, created_at`,
+      [
+        parsed.name,
+        parsed.role,
+        parsed.bio,
+        imageUrl,
+        parsed.social_x,
+        parsed.social_youtube,
+        parsed.social_tiktok,
+        parsed.social_instagram,
+        id,
+      ]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Team member update error:', err);
+    res.status(500).json({ error: err.message || 'Failed to update team member' });
+  }
+});
+
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid team member ID' });
+    const { rowCount } = await db.query('DELETE FROM team_members WHERE id = $1', [id]);
+    if (rowCount === 0) return res.status(404).json({ error: 'Team member not found' });
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

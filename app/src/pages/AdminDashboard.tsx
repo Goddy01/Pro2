@@ -69,6 +69,7 @@ export default function AdminDashboard() {
   const [teamSocialTiktok, setTeamSocialTiktok] = useState('');
   const [teamSocialInstagram, setTeamSocialInstagram] = useState('');
   const teamImageInputRef = useRef<HTMLInputElement>(null);
+  const [editingTeamId, setEditingTeamId] = useState<number | null>(null);
 
   const [addAdminModalOpen, setAddAdminModalOpen] = useState(false);
   const [newAdminUsername, setNewAdminUsername] = useState('');
@@ -626,6 +627,54 @@ export default function AdminDashboard() {
     }
   }
 
+  async function startEditTeam(id: number) {
+    try {
+      const res = await fetch(apiUrl(`/api/team/${id}`));
+      const data = await res.json();
+      if (!res.ok) return;
+      setTeamName(data.name || '');
+      setTeamRole(data.role || '');
+      setTeamBio(data.bio || '');
+      setTeamSocialX(data.social_x || '');
+      setTeamSocialYoutube(data.social_youtube || '');
+      setTeamSocialTiktok(data.social_tiktok || '');
+      setTeamSocialInstagram(data.social_instagram || '');
+      setTeamImage(null);
+      if (teamImageInputRef.current) teamImageInputRef.current.value = '';
+      setEditingTeamId(id);
+    } catch {
+      setError('Could not load team member');
+    }
+  }
+
+  async function deleteTeam(id: number) {
+    if (!confirm('Delete this team member?')) return;
+    try {
+      const res = await fetch(apiUrl(`/api/team/${id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || 'Failed to delete');
+        return;
+      }
+      setSuccess('Team member deleted.');
+      if (editingTeamId === id) {
+        setEditingTeamId(null);
+        setTeamName('');
+        setTeamRole('');
+        setTeamBio('');
+        setTeamImage(null);
+        if (teamImageInputRef.current) teamImageInputRef.current.value = '';
+        setTeamSocialX('');
+        setTeamSocialYoutube('');
+        setTeamSocialTiktok('');
+        setTeamSocialInstagram('');
+      }
+      refetchLists();
+    } catch {
+      setError('Could not connect to server');
+    }
+  }
+
   async function handleTeamSubmit(e: FormEvent) {
     e.preventDefault();
     clearMessages();
@@ -637,24 +686,26 @@ export default function AdminDashboard() {
     try {
       const form = new FormData();
       form.append('name', teamName.trim());
-      if (teamRole.trim()) form.append('role', teamRole.trim());
-      if (teamBio.trim()) form.append('bio', teamBio.trim());
+      form.append('role', teamRole.trim());
+      form.append('bio', teamBio.trim());
       if (teamImage) form.append('image', teamImage);
-      if (teamSocialX.trim()) form.append('social_x', teamSocialX.trim());
-      if (teamSocialYoutube.trim()) form.append('social_youtube', teamSocialYoutube.trim());
-      if (teamSocialTiktok.trim()) form.append('social_tiktok', teamSocialTiktok.trim());
-      if (teamSocialInstagram.trim()) form.append('social_instagram', teamSocialInstagram.trim());
-      const res = await fetch(apiUrl('/api/team'), {
-        method: 'POST',
+      form.append('social_x', teamSocialX.trim());
+      form.append('social_youtube', teamSocialYoutube.trim());
+      form.append('social_tiktok', teamSocialTiktok.trim());
+      form.append('social_instagram', teamSocialInstagram.trim());
+      const url = editingTeamId ? apiUrl(`/api/team/${editingTeamId}`) : apiUrl('/api/team');
+      const res = await fetch(url, {
+        method: editingTeamId ? 'PUT' : 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: form,
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Failed to add team member');
+        setError(data.error || (editingTeamId ? 'Failed to update team member' : 'Failed to add team member'));
         return;
       }
-      setSuccess('Team member added.');
+      setSuccess(editingTeamId ? 'Team member updated.' : 'Team member added.');
+      setEditingTeamId(null);
       setTeamName('');
       setTeamRole('');
       setTeamBio('');
@@ -1111,14 +1162,29 @@ export default function AdminDashboard() {
                 <ul className="space-y-2">
                   {teamList.map((t) => (
                     <li key={t.id} className="flex items-center justify-between gap-4 py-2 border-b border-offwhite/10">
-                      <span className="text-offwhite font-medium">{t.name}</span>
-                      {t.role && <span className="text-offwhite/60 text-sm truncate">{t.role}</span>}
+                      <div className="min-w-0 flex-1">
+                        <span className="text-offwhite font-medium block">{t.name}</span>
+                        {t.role && <span className="text-offwhite/60 text-sm block truncate">{t.role}</span>}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button type="button" onClick={() => startEditTeam(t.id)} className="inline-flex items-center gap-1.5 px-2 py-1.5 text-sm text-offwhite border border-offwhite/30 hover:border-lime hover:text-lime transition-colors" title="Edit">
+                          <Pencil className="w-4 h-4" />
+                          Edit
+                        </button>
+                        <button type="button" onClick={() => deleteTeam(t.id)} className="inline-flex items-center gap-1.5 px-2 py-1.5 text-sm text-offwhite border border-offwhite/30 hover:border-red-400 hover:text-red-400 transition-colors" title="Delete">
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
               </div>
             )}
             <form onSubmit={handleTeamSubmit} className="space-y-6">
+              {editingTeamId && (
+                <p className="text-lime text-sm">Editing team member. <button type="button" onClick={() => { setEditingTeamId(null); setTeamName(''); setTeamRole(''); setTeamBio(''); setTeamImage(null); if (teamImageInputRef.current) teamImageInputRef.current.value = ''; setTeamSocialX(''); setTeamSocialYoutube(''); setTeamSocialTiktok(''); setTeamSocialInstagram(''); }} className="underline">Cancel</button></p>
+              )}
               <label className="block">
                 <span className={labelClass}>Name *</span>
                 <input type="text" value={teamName} onChange={(e) => setTeamName(e.target.value)} className={inputClass} placeholder="Full name" required />
@@ -1161,7 +1227,7 @@ export default function AdminDashboard() {
                 </label>
               </fieldset>
               <button type="submit" disabled={loading} className="btn-premium py-4 px-8 disabled:opacity-50">
-                {loading ? 'Adding...' : 'Add team member'}
+                {loading ? (editingTeamId ? 'Updating...' : 'Adding...') : (editingTeamId ? 'Update team member' : 'Add team member')}
               </button>
             </form>
           </>

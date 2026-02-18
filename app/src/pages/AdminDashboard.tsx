@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../lib/api';
-import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Pencil, Trash2, Menu, X } from 'lucide-react';
+import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import '../App.css';
@@ -99,12 +99,7 @@ export default function AdminDashboard() {
   const [addAdminSuccess, setAddAdminSuccess] = useState('');
   const [addAdminLoading, setAddAdminLoading] = useState(false);
 
-  const [articlesList, setArticlesList] = useState<{ id: number; title: string }[]>([]);
   const [galleryList, setGalleryList] = useState<{ id: number; src: string; caption: string | null; category_id: number | null }[]>([]);
-  const [eventsList, setEventsList] = useState<{ id: string; title: string }[]>([]);
-  const [podcastList, setPodcastList] = useState<{ id: number; title: string }[]>([]);
-  const [watchList, setWatchList] = useState<{ id: number; title: string }[]>([]);
-  const [teamList, setTeamList] = useState<{ id: number; name: string; role: string | null }[]>([]);
   const [editingArticleId, setEditingArticleId] = useState<number | null>(null);
   const [editingGalleryId, setEditingGalleryId] = useState<number | null>(null);
   const [editingEventSlug, setEditingEventSlug] = useState<string | null>(null);
@@ -117,13 +112,8 @@ export default function AdminDashboard() {
   function refetchLists() {
     if (!token) return;
     Promise.all([
-      fetch(apiUrl('/api/articles')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setArticlesList(d.map((a: { id: number; title: string }) => ({ id: a.id, title: a.title }))) : null)),
       fetch(apiUrl('/api/gallery')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setGalleryList(d.map((g: { id: number; src: string; caption?: string; category_id?: number | null }) => ({ id: g.id, src: g.src, caption: g.caption ?? null, category_id: g.category_id ?? null }))) : null)),
       fetch(apiUrl('/api/gallery/categories')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setGalleryCategoriesList(d.map((c: { id: number; name: string; slug: string; coverImageUrl?: string | null }) => ({ id: c.id, name: c.name, slug: c.slug, coverImageUrl: c.coverImageUrl ?? null }))) : null)),
-      fetch(apiUrl('/api/events')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setEventsList(d.map((e: { id: string; title: string }) => ({ id: e.id, title: e.title }))) : null)),
-      fetch(apiUrl('/api/podcast')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setPodcastList(d.map((p: { id: number; title: string }) => ({ id: p.id, title: p.title }))) : null)),
-      fetch(apiUrl('/api/watch')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setWatchList(d.map((w: { id: number; title: string }) => ({ id: w.id, title: w.title }))) : null)),
-      fetch(apiUrl('/api/team')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setTeamList(d.map((t: { id: number; name: string; role: string | null }) => ({ id: t.id, name: t.name, role: t.role ?? null }))) : null)),
     ]);
   }
 
@@ -185,116 +175,6 @@ export default function AdminDashboard() {
     }
   }
 
-  async function deleteArticle(id: number) {
-    if (!confirm('Delete this article? This cannot be undone.')) return;
-    try {
-      const res = await fetch(apiUrl(`/api/articles/${id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Failed to delete');
-        return;
-      }
-      setSuccess('Article deleted.');
-      if (editingArticleId === id) {
-        setEditingArticleId(null);
-        setTitle('');
-        setContent('');
-        setImage(null);
-      }
-      refetchLists();
-    } catch {
-      setError('Could not connect to server');
-    }
-  }
-
-  async function deleteGallery(id: number) {
-    if (!confirm('Remove this image from the gallery?')) return;
-    try {
-      const res = await fetch(apiUrl(`/api/gallery/${id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Failed to delete');
-        return;
-      }
-      setSuccess('Image removed.');
-      if (editingGalleryId === id) setEditingGalleryId(null);
-      refetchLists();
-    } catch {
-      setError('Could not connect to server');
-    }
-  }
-
-  async function deleteEvent(slug: string) {
-    if (!confirm('Delete this event? All its images will be removed.')) return;
-    try {
-      const res = await fetch(apiUrl(`/api/events/${slug}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Failed to delete');
-        return;
-      }
-      setSuccess('Event deleted.');
-      if (editingEventSlug === slug) {
-        setEditingEventSlug(null);
-        setEventTitle('');
-        setEventDescription('');
-      }
-      refetchLists();
-    } catch {
-      setError('Could not connect to server');
-    }
-  }
-
-  async function deletePodcast(id: number) {
-    if (!confirm('Delete this show episode?')) return;
-    try {
-      const res = await fetch(apiUrl(`/api/podcast/${id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Failed to delete');
-        return;
-      }
-      setSuccess('Episode deleted.');
-      if (editingPodcastId === id) {
-        setEditingPodcastId(null);
-        setPodcastType(null);
-        setPodcastTitle('');
-        setPodcastDescription('');
-        setPodcastDuration('');
-        setPodcastGuests('');
-        setPodcastAudioUrl('');
-        setPodcastVideoUrl('');
-        setPodcastShowName('');
-      }
-      refetchLists();
-    } catch {
-      setError('Could not connect to server');
-    }
-  }
-
-  async function deleteWatch(id: number) {
-    if (!confirm('Delete this video?')) return;
-    try {
-      const res = await fetch(apiUrl(`/api/watch/${id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Failed to delete');
-        return;
-      }
-      setSuccess('Video deleted.');
-      if (editingWatchId === id) {
-        setEditingWatchId(null);
-        setWatchTitle('');
-        setWatchVideoId('');
-        setWatchDuration('Video');
-        setWatchShowName('');
-      }
-      refetchLists();
-    } catch {
-      setError('Could not connect to server');
-    }
-  }
-
   async function startEditArticle(id: number) {
     try {
       const res = await fetch(apiUrl(`/api/articles/${id}`));
@@ -331,26 +211,6 @@ export default function AdminDashboard() {
       setEditingGalleryCategoryId(id);
     } catch {
       setError('Could not load category');
-    }
-  }
-
-  async function deleteGalleryCategory(id: number) {
-    if (!confirm('Delete this category? Images in it will become uncategorized.')) return;
-    try {
-      const res = await fetch(apiUrl(`/api/gallery/categories/${id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Failed to delete');
-        return;
-      }
-      setSuccess('Category deleted.');
-      if (editingGalleryCategoryId === id) {
-        setEditingGalleryCategoryId(null);
-        setGalleryCategoryName('');
-      }
-      refetchLists();
-    } catch {
-      setError('Could not connect to server');
     }
   }
 
@@ -741,34 +601,6 @@ export default function AdminDashboard() {
       setEditingTeamId(id);
     } catch {
       setError('Could not load team member');
-    }
-  }
-
-  async function deleteTeam(id: number) {
-    if (!confirm('Delete this team member?')) return;
-    try {
-      const res = await fetch(apiUrl(`/api/team/${id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Failed to delete');
-        return;
-      }
-      setSuccess('Team member deleted.');
-      if (editingTeamId === id) {
-        setEditingTeamId(null);
-        setTeamName('');
-        setTeamRole('');
-        setTeamBio('');
-        setTeamImage(null);
-        if (teamImageInputRef.current) teamImageInputRef.current.value = '';
-        setTeamSocialX('');
-        setTeamSocialYoutube('');
-        setTeamSocialTiktok('');
-        setTeamSocialInstagram('');
-      }
-      refetchLists();
-    } catch {
-      setError('Could not connect to server');
     }
   }
 

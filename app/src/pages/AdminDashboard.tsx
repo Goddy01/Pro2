@@ -49,7 +49,6 @@ export default function AdminDashboard() {
   const [galleryCategoryId, setGalleryCategoryId] = useState<string>('');
   const [galleryCategoriesList, setGalleryCategoriesList] = useState<{ id: number; name: string; slug: string; coverImageUrl: string | null }[]>([]);
   const [galleryCategoryName, setGalleryCategoryName] = useState('');
-  const [galleryCategorySlug, setGalleryCategorySlug] = useState('');
   const [galleryCategoryCover, setGalleryCategoryCover] = useState<File | null>(null);
   const [editingGalleryCategoryId, setEditingGalleryCategoryId] = useState<number | null>(null);
   const galleryCategoryCoverInputRef = useRef<HTMLInputElement>(null);
@@ -318,7 +317,6 @@ export default function AdminDashboard() {
       const data = await res.json();
       if (!res.ok) return;
       setGalleryCategoryName(data.name || '');
-      setGalleryCategorySlug(data.slug || '');
       setGalleryCategoryCover(null);
       if (galleryCategoryCoverInputRef.current) galleryCategoryCoverInputRef.current.value = '';
       setEditingGalleryCategoryId(id);
@@ -340,7 +338,6 @@ export default function AdminDashboard() {
       if (editingGalleryCategoryId === id) {
         setEditingGalleryCategoryId(null);
         setGalleryCategoryName('');
-        setGalleryCategorySlug('');
       }
       refetchLists();
     } catch {
@@ -374,7 +371,6 @@ export default function AdminDashboard() {
       setSuccess(editingGalleryCategoryId ? 'Category updated.' : 'Category added.');
       setEditingGalleryCategoryId(null);
       setGalleryCategoryName('');
-      setGalleryCategorySlug('');
       setGalleryCategoryCover(null);
       if (galleryCategoryCoverInputRef.current) galleryCategoryCoverInputRef.current.value = '';
       refetchLists();
@@ -1019,7 +1015,7 @@ export default function AdminDashboard() {
                 </ul>
               )}
               <form onSubmit={handleGalleryCategorySubmit} className="space-y-4 p-4 border border-offwhite/10 rounded">
-                {editingGalleryCategoryId && <p className="text-lime text-sm">Editing category. <button type="button" onClick={() => { setEditingGalleryCategoryId(null); setGalleryCategoryName(''); setGalleryCategorySlug(''); setGalleryCategoryCover(null); if (galleryCategoryCoverInputRef.current) galleryCategoryCoverInputRef.current.value = ''; }} className="underline">Cancel</button></p>}
+                {editingGalleryCategoryId && <p className="text-lime text-sm">Editing category. <button type="button" onClick={() => { setEditingGalleryCategoryId(null); setGalleryCategoryName(''); setGalleryCategoryCover(null); if (galleryCategoryCoverInputRef.current) galleryCategoryCoverInputRef.current.value = ''; }} className="underline">Cancel</button></p>}
                 <label className="block">
                   <span className={labelClass}>Category name *</span>
                   <input type="text" value={galleryCategoryName} onChange={(e) => setGalleryCategoryName(e.target.value)} className={inputClass} placeholder="e.g. NFL" required />

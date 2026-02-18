@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Trophy, Award, Medal, Star } from 'lucide-react';
+import { Trophy, Award, Medal, Star, Check } from 'lucide-react';
+import { apiUrl } from '../lib/api';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -14,6 +14,7 @@ const PACKAGES = [
     name: 'Platinum Sponsor',
     price: 2000,
     tagline: 'Maximum visibility and category exclusivity.',
+    accent: 'from-lime/40 via-lime/20 to-transparent',
     features: [
       'Business name featured in the show title: "Sideline Sports presented by [Your Business Name]"',
       'Three (3) 30-second commercial spots per episode',
@@ -28,6 +29,7 @@ const PACKAGES = [
     name: 'Gold Sponsor',
     price: 1500,
     tagline: 'Strong brand placement with recurring feature mentions.',
+    accent: 'from-amber-400/30 via-amber-400/10 to-transparent',
     features: [
       'Segment naming rights: "Quick Hits brought to you by [Your Business Name]"',
       'Two (2) 30-second commercial spots per episode',
@@ -41,6 +43,7 @@ const PACKAGES = [
     name: 'Silver Sponsor',
     price: 1000,
     tagline: 'Consistent exposure with on-air engagement.',
+    accent: 'from-offwhite/20 via-offwhite/5 to-transparent',
     features: [
       'Two (2) 30-second commercial spots per episode',
       '5-minute guest interview opportunity',
@@ -53,6 +56,7 @@ const PACKAGES = [
     name: 'Bronze Sponsor',
     price: 750,
     tagline: 'Affordable brand visibility with direct audience reach.',
+    accent: 'from-amber-700/30 via-amber-700/10 to-transparent',
     features: [
       'Business name featured on bottom ticker during show',
       'One (1) 30-second commercial spot per episode',
@@ -65,8 +69,20 @@ function formatPrice(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 }
 
+const inputClass =
+  'w-full px-4 py-3 bg-forest/50 border border-offwhite/20 text-offwhite placeholder:text-offwhite/40 focus:outline-none focus:border-lime rounded transition-colors';
+const labelClass = 'text-offwhite text-sm font-medium mb-2 block';
+
 export default function Sponsorship() {
   const mainRef = useRef<HTMLDivElement>(null);
+  const [name, setName] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [tier, setTier] = useState('');
+  const [message, setMessage] = useState('');
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -95,7 +111,7 @@ export default function Sponsorship() {
             y: 0,
             opacity: 1,
             duration: 0.7,
-            delay: i * 0.1,
+            delay: i * 0.08,
             ease: 'power3.out',
             scrollTrigger: {
               trigger: card,
@@ -109,10 +125,46 @@ export default function Sponsorship() {
     return () => ctx.revert();
   }, []);
 
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setSubmitError('');
+    setSubmitStatus('loading');
+    try {
+      const res = await fetch(apiUrl('/api/sponsorship-inquiries'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          business_name: businessName.trim(),
+          email: email.trim().toLowerCase(),
+          phone: phone.trim(),
+          tier: tier || undefined,
+          message: message.trim() || undefined,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSubmitError(data.error || 'Something went wrong. Please try again.');
+        setSubmitStatus('error');
+        return;
+      }
+      setSubmitStatus('success');
+      setName('');
+      setBusinessName('');
+      setEmail('');
+      setPhone('');
+      setTier('');
+      setMessage('');
+    } catch {
+      setSubmitError('Could not connect. Please try again.');
+      setSubmitStatus('error');
+    }
+  }
+
   return (
     <div ref={mainRef} className="relative">
       <section className="section-premium py-24">
-        <div className="w-full px-6 lg:px-12 max-w-5xl mx-auto">
+        <div className="w-full px-6 lg:px-12 max-w-6xl mx-auto">
           <div className="reveal-section text-center mb-16">
             <span className="label-mono text-lime mb-4 block">Sponsorship</span>
             <h1 className="headline-section text-offwhite text-4xl lg:text-5xl mb-4">
@@ -124,54 +176,151 @@ export default function Sponsorship() {
             <div className="h-px w-24 mx-auto bg-offwhite/20" aria-hidden />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 mb-20">
             {PACKAGES.map((pkg) => {
               const Icon = pkg.icon;
               return (
                 <article
                   key={pkg.id}
-                  className="sponsor-card card-editorial overflow-hidden flex flex-col bg-forest/30 border border-offwhite/10 p-6 lg:p-8"
+                  className="sponsor-card group relative overflow-hidden flex flex-col rounded-sm border border-offwhite/15 bg-gradient-to-b from-offwhite/5 to-transparent shadow-lg hover:shadow-xl hover:border-offwhite/25 transition-all duration-300"
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="flex items-center justify-center w-12 h-12 rounded-full bg-lime/20 text-lime shrink-0">
-                      <Icon className="w-6 h-6" />
-                    </span>
-                    <div>
-                      <h2 className="headline-article text-offwhite text-xl lg:text-2xl">
-                        {pkg.name}
-                      </h2>
-                      <p className="text-lime font-display font-bold text-2xl tracking-tight">
+                  <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${pkg.accent}`} />
+                  <div className="p-6 lg:p-8 flex flex-col flex-1">
+                    <div className="flex items-start justify-between gap-4 mb-5">
+                      <span className="flex items-center justify-center w-14 h-14 rounded-xl bg-offwhite/10 text-lime group-hover:bg-lime/20 transition-colors shrink-0">
+                        <Icon className="w-7 h-7" />
+                      </span>
+                      <p className="text-2xl lg:text-3xl font-display font-bold text-lime tracking-tight">
                         {formatPrice(pkg.price)}
                       </p>
                     </div>
+                    <h2 className="headline-article text-offwhite text-xl lg:text-2xl mb-1">
+                      {pkg.name}
+                    </h2>
+                    <ul className="space-y-3 mb-5 flex-1">
+                      {pkg.features.map((feature, i) => (
+                        <li key={i} className="flex gap-3 text-offwhite/85 text-sm lg:text-base">
+                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-lime/20 text-lime shrink-0 mt-0.5">
+                            <Check className="w-3 h-3" strokeWidth={3} />
+                          </span>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="text-offwhite/50 text-sm italic border-t border-offwhite/10 pt-4 mt-auto">
+                      {pkg.tagline}
+                    </p>
                   </div>
-                  <ul className="space-y-2 mb-4 flex-1">
-                    {pkg.features.map((feature, i) => (
-                      <li key={i} className="flex gap-2 text-offwhite/80 text-sm lg:text-base">
-                        <span className="text-lime shrink-0 mt-0.5">•</span>
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="text-offwhite/60 text-sm italic border-t border-offwhite/10 pt-4 mt-auto">
-                    {pkg.tagline}
-                  </p>
                 </article>
               );
             })}
           </div>
 
-          <div className="reveal-section mt-16 text-center">
-            <p className="text-offwhite/70 mb-6">
-              Ready to become a sponsor? Get in touch.
+          <div className="reveal-section max-w-xl mx-auto">
+            <h2 className="headline-section text-offwhite text-2xl lg:text-3xl mb-2 text-center">
+              Partner with us
+            </h2>
+            <p className="text-offwhite/60 text-sm text-center mb-8">
+              Fill out the form below and we’ll get back to you to discuss your sponsorship.
             </p>
-            <Link
-              to="/work-with-us"
-              className="inline-block bg-lime text-forest font-display font-bold uppercase tracking-[0.2em] px-8 py-4 rounded-none border-0 transition-colors hover:bg-lime/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-2 focus-visible:ring-offset-forest"
-              style={{ textShadow: '0 0 20px rgba(255,255,255,0.3)' }}
-            >
-              Contact us
-            </Link>
+
+            {submitStatus === 'success' && (
+              <div className="mb-6 p-4 rounded bg-lime/20 border border-lime/40 text-lime text-center text-sm">
+                Thanks! We’ve received your inquiry and will be in touch soon.
+              </div>
+            )}
+            {submitStatus === 'error' && submitError && (
+              <div className="mb-6 p-4 rounded bg-red-500/20 border border-red-500/40 text-red-300 text-center text-sm">
+                {submitError}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5 p-6 lg:p-8 bg-offwhite/5 border border-offwhite/10 rounded-sm">
+              <label className="block">
+                <span className={labelClass}>Your name *</span>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className={inputClass}
+                  placeholder="Full name"
+                  required
+                  maxLength={200}
+                />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Business name *</span>
+                <input
+                  type="text"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  className={inputClass}
+                  placeholder="Company or brand name"
+                  required
+                  maxLength={300}
+                />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Email *</span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={inputClass}
+                  placeholder="you@company.com"
+                  required
+                  maxLength={254}
+                />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Phone *</span>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className={inputClass}
+                  placeholder="(555) 123-4567"
+                  required
+                  maxLength={30}
+                />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Sponsorship tier *</span>
+                <select
+                  value={tier}
+                  onChange={(e) => setTier(e.target.value)}
+                  className={inputClass}
+                  required
+                >
+                  <option value="">Select a tier</option>
+                  {PACKAGES.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} – {formatPrice(p.price)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className={labelClass}>Message (optional)</span>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value.slice(0, 2000))}
+                  className={`${inputClass} min-h-[100px] resize-y`}
+                  placeholder="Tell us about your goals or questions..."
+                  rows={4}
+                  maxLength={2000}
+                />
+                <p className="text-offwhite/40 text-xs mt-1">{message.length} / 2000</p>
+              </label>
+              <button
+                type="submit"
+                disabled={submitStatus === 'loading'}
+                className="w-full bg-lime text-forest font-display font-bold uppercase tracking-[0.2em] py-4 px-8 rounded-none border-0 transition-colors hover:bg-lime/90 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-2 focus-visible:ring-offset-forest"
+                style={{ textShadow: '0 0 20px rgba(255,255,255,0.3)' }}
+              >
+                {submitStatus === 'loading' ? 'Sending…' : 'Submit inquiry'}
+              </button>
+            </form>
           </div>
         </div>
       </section>

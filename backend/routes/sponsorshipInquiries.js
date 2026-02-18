@@ -1,0 +1,61 @@
+import { Router } from 'express';
+import db from '../db.js';
+import { authMiddleware } from '../middleware/auth.js';
+
+const router = Router();
+
+const MAX_NAME = 200;
+const MAX_BUSINESS = 300;
+const MAX_EMAIL = 254;
+const MAX_PHONE = 30;
+const MAX_MESSAGE = 2000;
+const VALID_TIERS = ['platinum', 'gold', 'silver', 'bronze'];
+
+// Admin: list all inquiries (auth required)
+router.get('/', authMiddleware, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      'SELECT id, name, business_name, email, phone, tier, message, created_at FROM sponsorship_inquiries ORDER BY created_at DESC'
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('sponsorship-inquiries list error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Public: submit inquiry
+router.post('/', async (req, res) => {
+  try {
+    const body = req.body;
+    if (!body || typeof body !== 'object') {
+      return res.status(400).json({ error: 'Invalid request body' });
+    }
+
+    const name = typeof body.name === 'string' ? body.name.trim().slice(0, MAX_NAME) : '';
+    const businessName = typeof body.business_name === 'string' ? body.business_name.trim().slice(0, MAX_BUSINESS) : '';
+    const email = typeof body.email === 'string' ? body.email.trim().slice(0, MAX_EMAIL).toLowerCase() : '';
+    const phone = typeof body.phone === 'string' ? body.phone.trim().slice(0, MAX_PHONE) : '';
+    const tier = typeof body.tier === 'string' ? body.tier.trim().toLowerCase() : '';
+    const message = typeof body.message === 'string' ? body.message.trim().slice(0, MAX_MESSAGE) : null;
+
+    if (!name || name.length < 2) return res.status(400).json({ error: 'Name must be at least 2 characters' });
+    if (!businessName || businessName.length < 2) return res.status(400).json({ error: 'Business name is required' });
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    if (!email || !emailRegex.test(email)) return res.status(400).json({ error: 'Valid email required' });
+    if (!phone || phone.replace(/\D/g, '').length < 10) return res.status(400).json({ error: 'Valid phone number required' });
+    if (!VALID_TIERS.includes(tier)) return res.status(400).json({ error: 'Please select a sponsorship tier' });
+
+    await db.query(
+      'INSERT INTO sponsorship_inquiries (name, business_name, email, phone, tier, message) VALUES ($1, $2, $3, $4, $5, $6)',
+      [name, businessName, email, phone, tier, message || null]
+    );
+
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    console.error('sponsorship-inquiry error:', err);
+    res.status(500).json({ error: 'Could not submit. Please try again.' });
+  }
+});
+
+export default router;

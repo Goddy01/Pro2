@@ -14,6 +14,7 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminWorkWithUsSubmissions from './pages/AdminWorkWithUsSubmissions';
 import AdminNewsletterSignups from './pages/AdminNewsletterSignups';
+import AdminSponsorshipInquiries from './pages/AdminSponsorshipInquiries';
 import WorkWithUs from './pages/WorkWithUs';
 import ListenWatch from './pages/ListenWatch';
 import Sponsorship from './pages/Sponsorship';
@@ -51,6 +52,7 @@ function App() {
           <Route path="admin" element={<AdminDashboard />} />
           <Route path="admin/work-with-us-submissions" element={<AdminWorkWithUsSubmissions />} />
           <Route path="admin/newsletter-signups" element={<AdminNewsletterSignups />} />
+          <Route path="admin/sponsorship-inquiries" element={<AdminSponsorshipInquiries />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

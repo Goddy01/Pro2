@@ -862,6 +862,9 @@ export default function AdminDashboard() {
             <Link to="/admin/newsletter-signups" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
               View newsletter signups
             </Link>
+            <Link to="/admin/sponsorship-inquiries" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
+              View sponsorship inquiries
+            </Link>
             <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); }} className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
               <UserPlus className="w-4 h-4" />
               Add new admin
@@ -891,6 +894,9 @@ export default function AdminDashboard() {
               </Link>
               <Link to="/admin/newsletter-signups" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
                 View newsletter signups
+              </Link>
+              <Link to="/admin/sponsorship-inquiries" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
+                View sponsorship inquiries
               </Link>
               <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); setAdminMenuOpen(false); }} className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2 text-left">
                 <UserPlus className="w-4 h-4" />

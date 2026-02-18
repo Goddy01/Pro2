@@ -129,6 +129,17 @@ export async function initDb() {
         sort_order INT DEFAULT 0,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS sponsorship_inquiries (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(200) NOT NULL,
+        business_name VARCHAR(300) NOT NULL,
+        email VARCHAR(254) NOT NULL,
+        phone VARCHAR(30) NOT NULL,
+        tier VARCHAR(50) NOT NULL,
+        message TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
     `);
     await client.query(`
       ALTER TABLE podcast_episodes ADD COLUMN IF NOT EXISTS show_name VARCHAR(200);

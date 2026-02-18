@@ -359,7 +359,6 @@ export default function AdminDashboard() {
     try {
       const form = new FormData();
       form.append('name', galleryCategoryName.trim());
-      form.append('slug', galleryCategorySlug.trim() || galleryCategoryName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, ''));
       if (galleryCategoryCover) form.append('cover', galleryCategoryCover);
       const url = editingGalleryCategoryId ? apiUrl(`/api/gallery/categories/${editingGalleryCategoryId}`) : apiUrl('/api/gallery/categories');
       const res = await fetch(url, {
@@ -1024,10 +1023,6 @@ export default function AdminDashboard() {
                 <label className="block">
                   <span className={labelClass}>Category name *</span>
                   <input type="text" value={galleryCategoryName} onChange={(e) => setGalleryCategoryName(e.target.value)} className={inputClass} placeholder="e.g. NFL" required />
-                </label>
-                <label className="block">
-                  <span className={labelClass}>URL slug (optional – auto from name)</span>
-                  <input type="text" value={galleryCategorySlug} onChange={(e) => setGalleryCategorySlug(e.target.value)} className={inputClass} placeholder="nfl" />
                 </label>
                 <label className="block">
                   <span className={labelClass}>Cover photo (optional)</span>

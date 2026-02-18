@@ -51,9 +51,8 @@ router.get('/categories', async (req, res) => {
 router.post('/categories', authMiddleware, upload.single('cover'), async (req, res) => {
   try {
     const name = req.body.name != null && typeof req.body.name === 'string' ? req.body.name.trim() : '';
-    let slug = req.body.slug != null && typeof req.body.slug === 'string' ? req.body.slug.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : '';
     if (!name) return res.status(400).json({ error: 'Name is required' });
-    if (!slug) slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     let coverImageUrl = null;
     if (req.file && hasCloudinaryConfig()) {
       const result = await uploadImageBuffer(req.file.buffer, 'sideline-gallery', { upload_preset: 'Sideline.Gallery' });
@@ -96,8 +95,8 @@ router.put('/categories/:id', authMiddleware, upload.single('cover'), async (req
     const { rows: existing } = await db.query('SELECT id FROM gallery_categories WHERE id = $1', [id]);
     if (!existing.length) return res.status(404).json({ error: 'Category not found' });
     const name = req.body.name != null && typeof req.body.name === 'string' ? req.body.name.trim() : null;
-    let slug = req.body.slug != null && typeof req.body.slug === 'string' ? req.body.slug.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : null;
     if (name !== null && !name) return res.status(400).json({ error: 'Name is required' });
+    const slug = name !== null ? name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : null;
     let coverImageUrl = undefined;
     if (req.file && hasCloudinaryConfig()) {
       const result = await uploadImageBuffer(req.file.buffer, 'sideline-gallery', { upload_preset: 'Sideline.Gallery' });

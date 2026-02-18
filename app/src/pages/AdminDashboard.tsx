@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type FormEvent } from 'react';
-import { Navigate, Link, useNavigate } from 'react-router-dom';
+import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../lib/api';
 import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Pencil, Trash2, Menu, X } from 'lucide-react';
@@ -22,9 +22,18 @@ const inputClass =
   'w-full px-4 py-3 bg-offwhite/5 border border-offwhite/20 text-offwhite placeholder:text-offwhite/40 focus:outline-none focus:border-lime';
 const labelClass = 'text-offwhite text-sm font-medium mb-2 block';
 
+type LocationState = {
+  openTab?: TabId;
+  editId?: number;
+  editSlug?: string;
+  editCategoryId?: number;
+  editGalleryId?: number;
+} | null;
+
 export default function AdminDashboard() {
   const { token, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<TabId>('articles');
 
   function handleLogout() {
@@ -846,6 +855,23 @@ export default function AdminDashboard() {
     }
   }
 
+  // When navigating from a list page with state (openTab + edit id), open the right tab and start editing.
+  useEffect(() => {
+    const state = location.state as LocationState;
+    if (!state?.openTab) return;
+    setActiveTab(state.openTab);
+    if (state.editId != null) {
+      if (state.openTab === 'articles') startEditArticle(state.editId);
+      else if (state.openTab === 'podcast') startEditPodcast(state.editId);
+      else if (state.openTab === 'watch') startEditWatch(state.editId);
+      else if (state.openTab === 'team') startEditTeam(state.editId);
+    }
+    if (state.editSlug != null && state.openTab === 'events') startEditEvent(state.editSlug);
+    if (state.editCategoryId != null && state.openTab === 'gallery') startEditGalleryCategory(state.editCategoryId);
+    if (state.editGalleryId != null && state.openTab === 'gallery') startEditGallery(state.editGalleryId);
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [location.state]);
+
   return (
     <div className="min-h-screen bg-forest px-6 py-12">
       <div className="max-w-3xl mx-auto">
@@ -935,26 +961,9 @@ export default function AdminDashboard() {
 
         {activeTab === 'articles' && (
           <>
-            {articlesList.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-offwhite font-semibold mb-3">Existing articles</h3>
-                <ul className="space-y-2">
-                  {articlesList.map((a) => (
-                    <li key={a.id} className="flex items-center justify-between gap-4 py-2 border-b border-offwhite/10">
-                      <span className="text-offwhite truncate">{a.title}</span>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button type="button" onClick={() => startEditArticle(a.id)} className="p-1.5 text-offwhite/70 hover:text-lime transition-colors" title="Edit">
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button type="button" onClick={() => deleteArticle(a.id)} className="p-1.5 text-offwhite/70 hover:text-red-400 transition-colors" title="Delete">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <p className="mb-6">
+              <Link to="/admin/articles" className="text-lime hover:underline">View &amp; manage existing articles</Link>
+            </p>
             <form onSubmit={handleArticleSubmit} className="space-y-6">
               {editingArticleId && (
                 <p className="text-lime text-sm">Editing article. <button type="button" onClick={() => { setEditingArticleId(null); setTitle(''); setContent(''); setImage(null); }} className="underline">Cancel</button></p>
@@ -1002,25 +1011,11 @@ export default function AdminDashboard() {
         {activeTab === 'gallery' && (
           <>
             <div className="mb-10">
+              <p className="text-offwhite/60 text-sm mb-4">
+                <Link to="/admin/gallery" className="text-lime hover:underline">View &amp; manage categories and images</Link>
+              </p>
               <h3 className="text-offwhite font-semibold mb-3">Gallery categories</h3>
               <p className="text-offwhite/60 text-sm mb-4">Create categories (e.g. NFL, NBA, Super Bowl) with a cover photo. Visitors see these on the gallery page and click in to see photos in that category.</p>
-              {galleryCategoriesList.length > 0 && (
-                <ul className="space-y-2 mb-6">
-                  {galleryCategoriesList.map((c) => (
-                    <li key={c.id} className="flex items-center justify-between gap-4 py-2 border-b border-offwhite/10">
-                      <div className="flex items-center gap-3 min-w-0">
-                        {c.coverImageUrl && <img src={c.coverImageUrl} alt="" className="w-12 h-12 object-cover border border-offwhite/20 shrink-0" />}
-                        <span className="text-offwhite font-medium">{c.name}</span>
-                        <span className="text-offwhite/50 text-sm">/{c.slug}</span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button type="button" onClick={() => startEditGalleryCategory(c.id)} className="inline-flex items-center gap-1.5 px-2 py-1.5 text-sm text-offwhite border border-offwhite/30 hover:border-lime hover:text-lime transition-colors">Edit</button>
-                        <button type="button" onClick={() => deleteGalleryCategory(c.id)} className="inline-flex items-center gap-1.5 px-2 py-1.5 text-sm text-offwhite border border-offwhite/30 hover:border-red-400 hover:text-red-400 transition-colors">Delete</button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
               <form onSubmit={handleGalleryCategorySubmit} className="space-y-4 p-4 border border-offwhite/10 rounded">
                 {editingGalleryCategoryId && <p className="text-lime text-sm">Editing category. <button type="button" onClick={() => { setEditingGalleryCategoryId(null); setGalleryCategoryName(''); setGalleryCategoryCover(null); if (galleryCategoryCoverInputRef.current) galleryCategoryCoverInputRef.current.value = ''; }} className="underline">Cancel</button></p>}
                 <label className="block">
@@ -1035,27 +1030,6 @@ export default function AdminDashboard() {
               </form>
             </div>
 
-            {galleryList.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-offwhite font-semibold mb-3">Existing gallery images</h3>
-                <ul className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {galleryList.map((g) => (
-                    <li key={g.id} className="relative group">
-                      <img src={g.src} alt="" className="w-full aspect-square object-cover border border-offwhite/20" />
-                      <p className="text-offwhite/60 text-xs mt-1 truncate">{g.caption || '—'}</p>
-                      <div className="flex gap-1 mt-1">
-                        <button type="button" onClick={() => startEditGallery(g.id)} className="p-1.5 text-offwhite/70 hover:text-lime transition-colors" title="Edit">
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button type="button" onClick={() => deleteGallery(g.id)} className="p-1.5 text-offwhite/70 hover:text-red-400 transition-colors" title="Delete">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
             <form onSubmit={handleGallerySubmit} className="space-y-6">
               {editingGalleryId && (
                 <p className="text-lime text-sm">Editing one image. <button type="button" onClick={() => { setEditingGalleryId(null); setGalleryCaption(''); setGalleryCategoryId(''); setGalleryImages([]); }} className="underline">Cancel</button></p>
@@ -1099,26 +1073,9 @@ export default function AdminDashboard() {
 
         {activeTab === 'events' && (
           <>
-            {eventsList.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-offwhite font-semibold mb-3">Existing events</h3>
-                <ul className="space-y-2">
-                  {eventsList.map((e) => (
-                    <li key={e.id} className="flex items-center justify-between gap-4 py-2 border-b border-offwhite/10">
-                      <span className="text-offwhite truncate">{e.title}</span>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button type="button" onClick={() => startEditEvent(e.id)} className="p-1.5 text-offwhite/70 hover:text-lime transition-colors" title="Edit">
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button type="button" onClick={() => deleteEvent(e.id)} className="p-1.5 text-offwhite/70 hover:text-red-400 transition-colors" title="Delete">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <p className="mb-6">
+              <Link to="/admin/events" className="text-lime hover:underline">View &amp; manage existing events</Link>
+            </p>
             <form onSubmit={editingEventSlug ? handleEventEditSubmit : handleEventSubmit} className="space-y-6">
               {editingEventSlug && (
                 <p className="text-lime text-sm">Editing event. <button type="button" onClick={() => { setEditingEventSlug(null); setEventTitle(''); setEventDescription(''); setEventImages([]); }} className="underline">Cancel</button></p>
@@ -1152,26 +1109,9 @@ export default function AdminDashboard() {
 
         {activeTab === 'podcast' && (
           <div className="space-y-6">
-            {podcastList.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-offwhite font-semibold mb-3">Existing episodes</h3>
-                <ul className="space-y-2">
-                  {podcastList.map((p) => (
-                    <li key={p.id} className="flex items-center justify-between gap-4 py-2 border-b border-offwhite/10">
-                      <span className="text-offwhite truncate">{p.title}</span>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button type="button" onClick={() => startEditPodcast(p.id)} className="p-1.5 text-offwhite/70 hover:text-lime transition-colors" title="Edit">
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button type="button" onClick={() => deletePodcast(p.id)} className="p-1.5 text-offwhite/70 hover:text-red-400 transition-colors" title="Delete">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <p className="mb-6">
+              <Link to="/admin/show" className="text-lime hover:underline">View &amp; manage existing episodes</Link>
+            </p>
             {podcastType == null && !editingPodcastId ? (
               <>
                 <p className={labelClass}>What are you uploading?</p>
@@ -1245,26 +1185,9 @@ export default function AdminDashboard() {
 
         {activeTab === 'watch' && (
           <>
-            {watchList.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-offwhite font-semibold mb-3">Existing videos</h3>
-                <ul className="space-y-2">
-                  {watchList.map((w) => (
-                    <li key={w.id} className="flex items-center justify-between gap-4 py-2 border-b border-offwhite/10">
-                      <span className="text-offwhite truncate">{w.title}</span>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button type="button" onClick={() => startEditWatch(w.id)} className="p-1.5 text-offwhite/70 hover:text-lime transition-colors" title="Edit">
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button type="button" onClick={() => deleteWatch(w.id)} className="p-1.5 text-offwhite/70 hover:text-red-400 transition-colors" title="Delete">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <p className="mb-6">
+              <Link to="/admin/watch" className="text-lime hover:underline">View &amp; manage existing videos</Link>
+            </p>
             <form onSubmit={handleWatchSubmit} className="space-y-6">
               {editingWatchId && (
                 <p className="text-lime text-sm">Editing video. <button type="button" onClick={() => { setEditingWatchId(null); setWatchTitle(''); setWatchVideoId(''); setWatchDuration('Video'); setWatchShowName(''); }} className="underline">Cancel</button></p>
@@ -1294,31 +1217,9 @@ export default function AdminDashboard() {
 
         {activeTab === 'team' && (
           <>
-            {teamList.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-offwhite font-semibold mb-3">Existing team members</h3>
-                <ul className="space-y-2">
-                  {teamList.map((t) => (
-                    <li key={t.id} className="flex items-center justify-between gap-4 py-2 border-b border-offwhite/10">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-offwhite font-medium block">{t.name}</span>
-                        {t.role && <span className="text-offwhite/60 text-sm block truncate">{t.role}</span>}
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button type="button" onClick={() => startEditTeam(t.id)} className="inline-flex items-center gap-1.5 px-2 py-1.5 text-sm text-offwhite border border-offwhite/30 hover:border-lime hover:text-lime transition-colors" title="Edit">
-                          <Pencil className="w-4 h-4" />
-                          Edit
-                        </button>
-                        <button type="button" onClick={() => deleteTeam(t.id)} className="inline-flex items-center gap-1.5 px-2 py-1.5 text-sm text-offwhite border border-offwhite/30 hover:border-red-400 hover:text-red-400 transition-colors" title="Delete">
-                          <Trash2 className="w-4 h-4" />
-                          Delete
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <p className="mb-6">
+              <Link to="/admin/team" className="text-lime hover:underline">View &amp; manage existing team members</Link>
+            </p>
             <form onSubmit={handleTeamSubmit} className="space-y-6">
               {editingTeamId && (
                 <p className="text-lime text-sm">Editing team member. <button type="button" onClick={() => { setEditingTeamId(null); setTeamName(''); setTeamRole(''); setTeamBio(''); setTeamImage(null); if (teamImageInputRef.current) teamImageInputRef.current.value = ''; setTeamSocialX(''); setTeamSocialYoutube(''); setTeamSocialTiktok(''); setTeamSocialInstagram(''); }} className="underline">Cancel</button></p>

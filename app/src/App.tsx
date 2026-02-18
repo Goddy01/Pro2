@@ -15,6 +15,12 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminWorkWithUsSubmissions from './pages/AdminWorkWithUsSubmissions';
 import AdminNewsletterSignups from './pages/AdminNewsletterSignups';
 import AdminSponsorshipInquiries from './pages/AdminSponsorshipInquiries';
+import AdminArticlesList from './pages/AdminArticlesList';
+import AdminEventsList from './pages/AdminEventsList';
+import AdminGalleryList from './pages/AdminGalleryList';
+import AdminPodcastList from './pages/AdminPodcastList';
+import AdminWatchList from './pages/AdminWatchList';
+import AdminTeamList from './pages/AdminTeamList';
 import WorkWithUs from './pages/WorkWithUs';
 import ListenWatch from './pages/ListenWatch';
 import Sponsorship from './pages/Sponsorship';
@@ -53,6 +59,12 @@ function App() {
           <Route path="admin/work-with-us-submissions" element={<AdminWorkWithUsSubmissions />} />
           <Route path="admin/newsletter-signups" element={<AdminNewsletterSignups />} />
           <Route path="admin/sponsorship-inquiries" element={<AdminSponsorshipInquiries />} />
+          <Route path="admin/articles" element={<AdminArticlesList />} />
+          <Route path="admin/events" element={<AdminEventsList />} />
+          <Route path="admin/gallery" element={<AdminGalleryList />} />
+          <Route path="admin/show" element={<AdminPodcastList />} />
+          <Route path="admin/watch" element={<AdminWatchList />} />
+          <Route path="admin/team" element={<AdminTeamList />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

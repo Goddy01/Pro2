@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Trophy, Award, Medal, Star, Check } from 'lucide-react';
+import { Trophy, Award, Medal, Star, Check, ChevronDown } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import '../App.css';
 
@@ -84,6 +84,20 @@ export default function Sponsorship() {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [submitError, setSubmitError] = useState('');
   const [formOpen, setFormOpen] = useState(false);
+  const [tierDropdownOpen, setTierDropdownOpen] = useState(false);
+  const tierDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (tierDropdownRef.current && !tierDropdownRef.current.contains(e.target as Node)) {
+        setTierDropdownOpen(false);
+      }
+    }
+    if (tierDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [tierDropdownOpen]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -302,19 +316,74 @@ export default function Sponsorship() {
               </label>
               <label className="block">
                 <span className={labelClass}>Sponsorship tier *</span>
-                <select
-                  value={tier}
-                  onChange={(e) => setTier(e.target.value)}
-                  className={inputClass}
-                  required
-                >
-                  <option value="">Select a tier</option>
-                  {PACKAGES.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} – {formatPrice(p.price)}
-                    </option>
-                  ))}
-                </select>
+                <div ref={tierDropdownRef} className="relative">
+                  <input type="hidden" name="tier" value={tier} required />
+                  <button
+                    type="button"
+                    onClick={() => setTierDropdownOpen((o) => !o)}
+                    className={`${inputClass} flex items-center justify-between gap-3 text-left cursor-pointer`}
+                    aria-haspopup="listbox"
+                    aria-expanded={tierDropdownOpen}
+                  >
+                    {tier ? (
+                      (() => {
+                        const pkg = PACKAGES.find((p) => p.id === tier);
+                        if (!pkg) return <span>Select a tier</span>;
+                        const Icon = pkg.icon;
+                        return (
+                          <span className="flex items-center gap-3">
+                            <span className={`flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-r ${pkg.accent} text-lime shrink-0`}>
+                              <Icon className="w-4 h-4" />
+                            </span>
+                            <span>
+                              <span className="font-medium">{pkg.name}</span>
+                              <span className="text-offwhite/60 ml-2">{formatPrice(pkg.price)}</span>
+                            </span>
+                          </span>
+                        );
+                      })()
+                    ) : (
+                      <span className="text-offwhite/40">Select a tier</span>
+                    )}
+                    <ChevronDown className={`w-5 h-5 shrink-0 text-offwhite/60 transition-transform ${tierDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {tierDropdownOpen && (
+                    <ul
+                      className="absolute z-10 left-0 right-0 mt-1 py-1 rounded border border-offwhite/20 bg-forest shadow-xl shadow-black/30 max-h-[280px] overflow-y-auto"
+                      role="listbox"
+                    >
+                      {PACKAGES.map((p) => {
+                        const Icon = p.icon;
+                        const selected = tier === p.id;
+                        return (
+                          <li
+                            key={p.id}
+                            role="option"
+                            aria-selected={selected}
+                            onClick={() => {
+                              setTier(p.id);
+                              setTierDropdownOpen(false);
+                            }}
+                            className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors border-l-2 border-transparent ${
+                              selected
+                                ? 'bg-lime/15 border-lime text-lime'
+                                : 'hover:bg-offwhite/10 text-offwhite border-offwhite/10 hover:border-offwhite/30'
+                            }`}
+                          >
+                            <span className={`flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-r ${p.accent} text-lime shrink-0`}>
+                              <Icon className="w-5 h-5" />
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{p.name}</p>
+                              <p className="text-offwhite/60 text-sm">{formatPrice(p.price)}</p>
+                            </div>
+                            {selected && <Check className="w-4 h-4 shrink-0 text-lime" strokeWidth={3} />}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
               </label>
               <label className="block">
                 <span className={labelClass}>Message (optional)</span>

@@ -41,6 +41,7 @@ function App() {
             <Route path="events" element={<Events />} />
             <Route path="team" element={<Team />} />
             <Route path="gallery" element={<Gallery />} />
+            <Route path="gallery/:categorySlug" element={<Gallery />} />
             <Route path="listen-watch" element={<ListenWatch />} />
             <Route path="work-with-us" element={<WorkWithUs />} />
           </Route>

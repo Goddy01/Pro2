@@ -46,6 +46,13 @@ export default function AdminDashboard() {
   const [galleryImages, setGalleryImages] = useState<File[]>([]);
   const [galleryUploadProgress, setGalleryUploadProgress] = useState<{ uploaded: number; total: number } | null>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const [galleryCategoryId, setGalleryCategoryId] = useState<string>('');
+  const [galleryCategoriesList, setGalleryCategoriesList] = useState<{ id: number; name: string; slug: string; coverImageUrl: string | null }[]>([]);
+  const [galleryCategoryName, setGalleryCategoryName] = useState('');
+  const [galleryCategorySlug, setGalleryCategorySlug] = useState('');
+  const [galleryCategoryCover, setGalleryCategoryCover] = useState<File | null>(null);
+  const [editingGalleryCategoryId, setEditingGalleryCategoryId] = useState<number | null>(null);
+  const galleryCategoryCoverInputRef = useRef<HTMLInputElement>(null);
 
   const [eventTitle, setEventTitle] = useState('');
   const [eventDescription, setEventDescription] = useState('');
@@ -85,7 +92,7 @@ export default function AdminDashboard() {
   const [addAdminLoading, setAddAdminLoading] = useState(false);
 
   const [articlesList, setArticlesList] = useState<{ id: number; title: string }[]>([]);
-  const [galleryList, setGalleryList] = useState<{ id: number; src: string; caption: string | null }[]>([]);
+  const [galleryList, setGalleryList] = useState<{ id: number; src: string; caption: string | null; category_id: number | null }[]>([]);
   const [eventsList, setEventsList] = useState<{ id: string; title: string }[]>([]);
   const [podcastList, setPodcastList] = useState<{ id: number; title: string }[]>([]);
   const [watchList, setWatchList] = useState<{ id: number; title: string }[]>([]);
@@ -103,7 +110,8 @@ export default function AdminDashboard() {
     if (!token) return;
     Promise.all([
       fetch(apiUrl('/api/articles')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setArticlesList(d.map((a: { id: number; title: string }) => ({ id: a.id, title: a.title }))) : null)),
-      fetch(apiUrl('/api/gallery')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setGalleryList(d.map((g: { id: number; src: string; caption?: string }) => ({ id: g.id, src: g.src, caption: g.caption ?? null }))) : null)),
+      fetch(apiUrl('/api/gallery')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setGalleryList(d.map((g: { id: number; src: string; caption?: string; category_id?: number | null }) => ({ id: g.id, src: g.src, caption: g.caption ?? null, category_id: g.category_id ?? null }))) : null)),
+      fetch(apiUrl('/api/gallery/categories')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setGalleryCategoriesList(d.map((c: { id: number; name: string; slug: string; coverImageUrl?: string | null }) => ({ id: c.id, name: c.name, slug: c.slug, coverImageUrl: c.coverImageUrl ?? null }))) : null)),
       fetch(apiUrl('/api/events')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setEventsList(d.map((e: { id: string; title: string }) => ({ id: e.id, title: e.title }))) : null)),
       fetch(apiUrl('/api/podcast')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setPodcastList(d.map((p: { id: number; title: string }) => ({ id: p.id, title: p.title }))) : null)),
       fetch(apiUrl('/api/watch')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setWatchList(d.map((w: { id: number; title: string }) => ({ id: w.id, title: w.title }))) : null)),
@@ -298,8 +306,83 @@ export default function AdminDashboard() {
     const item = galleryList.find((g) => g.id === id);
     if (item) {
       setGalleryCaption(item.caption || '');
+      setGalleryCategoryId(item.category_id != null ? String(item.category_id) : '');
       setGalleryImages([]);
       setEditingGalleryId(id);
+    }
+  }
+
+  async function startEditGalleryCategory(id: number) {
+    try {
+      const res = await fetch(apiUrl(`/api/gallery/categories/${id}`));
+      const data = await res.json();
+      if (!res.ok) return;
+      setGalleryCategoryName(data.name || '');
+      setGalleryCategorySlug(data.slug || '');
+      setGalleryCategoryCover(null);
+      if (galleryCategoryCoverInputRef.current) galleryCategoryCoverInputRef.current.value = '';
+      setEditingGalleryCategoryId(id);
+    } catch {
+      setError('Could not load category');
+    }
+  }
+
+  async function deleteGalleryCategory(id: number) {
+    if (!confirm('Delete this category? Images in it will become uncategorized.')) return;
+    try {
+      const res = await fetch(apiUrl(`/api/gallery/categories/${id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || 'Failed to delete');
+        return;
+      }
+      setSuccess('Category deleted.');
+      if (editingGalleryCategoryId === id) {
+        setEditingGalleryCategoryId(null);
+        setGalleryCategoryName('');
+        setGalleryCategorySlug('');
+      }
+      refetchLists();
+    } catch {
+      setError('Could not connect to server');
+    }
+  }
+
+  async function handleGalleryCategorySubmit(e: FormEvent) {
+    e.preventDefault();
+    clearMessages();
+    if (!galleryCategoryName.trim()) {
+      setError('Category name is required');
+      return;
+    }
+    setLoading(true);
+    try {
+      const form = new FormData();
+      form.append('name', galleryCategoryName.trim());
+      form.append('slug', galleryCategorySlug.trim() || galleryCategoryName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, ''));
+      if (galleryCategoryCover) form.append('cover', galleryCategoryCover);
+      const url = editingGalleryCategoryId ? apiUrl(`/api/gallery/categories/${editingGalleryCategoryId}`) : apiUrl('/api/gallery/categories');
+      const res = await fetch(url, {
+        method: editingGalleryCategoryId ? 'PUT' : 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to save category');
+        return;
+      }
+      setSuccess(editingGalleryCategoryId ? 'Category updated.' : 'Category added.');
+      setEditingGalleryCategoryId(null);
+      setGalleryCategoryName('');
+      setGalleryCategorySlug('');
+      setGalleryCategoryCover(null);
+      if (galleryCategoryCoverInputRef.current) galleryCategoryCoverInputRef.current.value = '';
+      refetchLists();
+    } catch {
+      setError('Could not connect to server');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -359,6 +442,7 @@ export default function AdminDashboard() {
       try {
         const form = new FormData();
         form.append('caption', galleryCaption.trim());
+        if (galleryCategoryId) form.append('category_id', galleryCategoryId);
         if (galleryImages.length) form.append('image', galleryImages[0]);
         const res = await fetch(apiUrl(`/api/gallery/${editingGalleryId}`), {
           method: 'PUT',
@@ -372,6 +456,7 @@ export default function AdminDashboard() {
         }
         setSuccess('Gallery image updated.');
         setGalleryCaption('');
+        setGalleryCategoryId('');
         setGalleryImages([]);
         setEditingGalleryId(null);
         if (galleryInputRef.current) galleryInputRef.current.value = '';
@@ -396,6 +481,7 @@ export default function AdminDashboard() {
         const form = new FormData();
         form.append('image', file);
         if (galleryCaption.trim()) form.append('caption', galleryCaption.trim());
+        if (galleryCategoryId) form.append('category_id', galleryCategoryId);
         const res = await fetch(apiUrl('/api/gallery'), {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
@@ -413,6 +499,7 @@ export default function AdminDashboard() {
       setGalleryUploadProgress(null);
       setSuccess(total === 1 ? 'Image added to gallery.' : `${total} images added to gallery.`);
       setGalleryCaption('');
+      setGalleryCategoryId('');
       setGalleryImages([]);
       if (galleryInputRef.current) galleryInputRef.current.value = '';
       refetchLists();
@@ -912,6 +999,44 @@ export default function AdminDashboard() {
 
         {activeTab === 'gallery' && (
           <>
+            <div className="mb-10">
+              <h3 className="text-offwhite font-semibold mb-3">Gallery categories</h3>
+              <p className="text-offwhite/60 text-sm mb-4">Create categories (e.g. NFL, NBA, Super Bowl) with a cover photo. Visitors see these on the gallery page and click in to see photos in that category.</p>
+              {galleryCategoriesList.length > 0 && (
+                <ul className="space-y-2 mb-6">
+                  {galleryCategoriesList.map((c) => (
+                    <li key={c.id} className="flex items-center justify-between gap-4 py-2 border-b border-offwhite/10">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {c.coverImageUrl && <img src={c.coverImageUrl} alt="" className="w-12 h-12 object-cover border border-offwhite/20 shrink-0" />}
+                        <span className="text-offwhite font-medium">{c.name}</span>
+                        <span className="text-offwhite/50 text-sm">/{c.slug}</span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button type="button" onClick={() => startEditGalleryCategory(c.id)} className="inline-flex items-center gap-1.5 px-2 py-1.5 text-sm text-offwhite border border-offwhite/30 hover:border-lime hover:text-lime transition-colors">Edit</button>
+                        <button type="button" onClick={() => deleteGalleryCategory(c.id)} className="inline-flex items-center gap-1.5 px-2 py-1.5 text-sm text-offwhite border border-offwhite/30 hover:border-red-400 hover:text-red-400 transition-colors">Delete</button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <form onSubmit={handleGalleryCategorySubmit} className="space-y-4 p-4 border border-offwhite/10 rounded">
+                {editingGalleryCategoryId && <p className="text-lime text-sm">Editing category. <button type="button" onClick={() => { setEditingGalleryCategoryId(null); setGalleryCategoryName(''); setGalleryCategorySlug(''); setGalleryCategoryCover(null); if (galleryCategoryCoverInputRef.current) galleryCategoryCoverInputRef.current.value = ''; }} className="underline">Cancel</button></p>}
+                <label className="block">
+                  <span className={labelClass}>Category name *</span>
+                  <input type="text" value={galleryCategoryName} onChange={(e) => setGalleryCategoryName(e.target.value)} className={inputClass} placeholder="e.g. NFL" required />
+                </label>
+                <label className="block">
+                  <span className={labelClass}>URL slug (optional – auto from name)</span>
+                  <input type="text" value={galleryCategorySlug} onChange={(e) => setGalleryCategorySlug(e.target.value)} className={inputClass} placeholder="nfl" />
+                </label>
+                <label className="block">
+                  <span className={labelClass}>Cover photo (optional)</span>
+                  <input ref={galleryCategoryCoverInputRef} type="file" accept="image/*" onChange={(e) => setGalleryCategoryCover(e.target.files?.[0] ?? null)} className={`${inputClass} file:mr-4 file:py-2 file:px-4 file:bg-lime file:text-forest file:border-0`} />
+                </label>
+                <button type="submit" disabled={loading} className="btn-premium py-3 px-6 disabled:opacity-50">{editingGalleryCategoryId ? 'Update category' : 'Add category'}</button>
+              </form>
+            </div>
+
             {galleryList.length > 0 && (
               <div className="mb-8">
                 <h3 className="text-offwhite font-semibold mb-3">Existing gallery images</h3>
@@ -935,8 +1060,17 @@ export default function AdminDashboard() {
             )}
             <form onSubmit={handleGallerySubmit} className="space-y-6">
               {editingGalleryId && (
-                <p className="text-lime text-sm">Editing one image. <button type="button" onClick={() => { setEditingGalleryId(null); setGalleryCaption(''); setGalleryImages([]); }} className="underline">Cancel</button></p>
+                <p className="text-lime text-sm">Editing one image. <button type="button" onClick={() => { setEditingGalleryId(null); setGalleryCaption(''); setGalleryCategoryId(''); setGalleryImages([]); }} className="underline">Cancel</button></p>
               )}
+            <label className="block">
+              <span className={labelClass}>Category (optional – for which album this appears in)</span>
+              <select value={galleryCategoryId} onChange={(e) => setGalleryCategoryId(e.target.value)} className={inputClass}>
+                <option value="">— No category —</option>
+                {galleryCategoriesList.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </label>
             <label className="block">
               <span className={labelClass}>{editingGalleryId ? 'New image (optional)' : 'Photos * (select one or multiple)'}</span>
               <input

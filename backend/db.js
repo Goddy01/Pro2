@@ -51,11 +51,21 @@ export async function initDb() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS gallery_categories (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(200) NOT NULL,
+        slug VARCHAR(100) UNIQUE NOT NULL,
+        cover_image_url TEXT,
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS gallery_images (
         id SERIAL PRIMARY KEY,
         image_url TEXT NOT NULL,
         caption TEXT,
         sort_order INT DEFAULT 0,
+        category_id INT REFERENCES gallery_categories(id) ON DELETE SET NULL,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
@@ -123,6 +133,7 @@ export async function initDb() {
     await client.query(`
       ALTER TABLE podcast_episodes ADD COLUMN IF NOT EXISTS show_name VARCHAR(200);
       ALTER TABLE watch_videos ADD COLUMN IF NOT EXISTS show_name VARCHAR(200);
+      ALTER TABLE gallery_images ADD COLUMN IF NOT EXISTS category_id INT REFERENCES gallery_categories(id) ON DELETE SET NULL;
     `);
     // Seed 3 test submissions when table is empty (for testing)
     const { rows: countRows } = await client.query('SELECT COUNT(*) AS c FROM work_with_us');

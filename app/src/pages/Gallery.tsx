@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import '../App.css';
 
@@ -11,6 +11,7 @@ gsap.registerPlugin(ScrollTrigger);
 const INITIAL_VISIBLE = 12;
 const LOAD_MORE_STEP = 12;
 const LCP_IMAGE_COUNT = 3;
+const CATEGORIES_PER_PAGE = 9;
 
 const DEFAULT_ALT = 'Sideline Sports & Entertainment';
 
@@ -28,6 +29,7 @@ export default function Gallery() {
   const mainRef = useRef<HTMLDivElement>(null);
   const [categories, setCategories] = useState<GalleryCategory[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoryPage, setCategoryPage] = useState(1);
   const [images, setImages] = useState<{ src: string; alt: string }[]>([]);
   const [imagesLoading, setImagesLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
@@ -80,6 +82,11 @@ export default function Gallery() {
 
   const galleryImages = useMemo(() => images, [images]);
   const canLoadMore = visibleCount < galleryImages.length;
+
+  const categoryTotalPages = Math.max(1, Math.ceil(categories.length / CATEGORIES_PER_PAGE));
+  const categorySafePage = Math.min(categoryPage, categoryTotalPages);
+  const categoryStart = (categorySafePage - 1) * CATEGORIES_PER_PAGE;
+  const pageCategories = categories.slice(categoryStart, categoryStart + CATEGORIES_PER_PAGE);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -165,7 +172,7 @@ export default function Gallery() {
             ) : (
               <>
                 <div className="reveal-section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-10">
-                  {categories.map((cat) => (
+                  {pageCategories.map((cat) => (
                     <Link
                       key={cat.id}
                       to={`/gallery/${cat.slug}`}
@@ -189,6 +196,36 @@ export default function Gallery() {
                     </Link>
                   ))}
                 </div>
+                {categories.length > CATEGORIES_PER_PAGE && (
+                  <div className="reveal-section mt-12 flex flex-wrap items-center justify-between gap-6 border-t border-offwhite/10 pt-8">
+                    <p className="text-offwhite/60 text-sm">
+                      Showing {categoryStart + 1}–{Math.min(categoryStart + CATEGORIES_PER_PAGE, categories.length)} of {categories.length} categories
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setCategoryPage((p) => Math.max(1, p - 1))}
+                        disabled={categorySafePage <= 1}
+                        className="p-2 text-offwhite/70 hover:text-lime disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-lime"
+                        aria-label="Previous page"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <span className="text-offwhite/90 text-sm min-w-[7rem] text-center">
+                        Page {categorySafePage} of {categoryTotalPages}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setCategoryPage((p) => Math.min(categoryTotalPages, p + 1))}
+                        disabled={categorySafePage >= categoryTotalPages}
+                        className="p-2 text-offwhite/70 hover:text-lime disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-lime"
+                        aria-label="Next page"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>

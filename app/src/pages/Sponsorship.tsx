@@ -83,6 +83,7 @@ export default function Sponsorship() {
   const [message, setMessage] = useState('');
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [submitError, setSubmitError] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -221,9 +222,24 @@ export default function Sponsorship() {
               Partner with us
             </h2>
             <p className="text-offwhite/60 text-sm text-center mb-8">
-              Fill out the form below and we’ll get back to you to discuss your sponsorship.
+              {formOpen
+                ? "We'll get back to you to discuss your sponsorship."
+                : 'Ready to get started? Fill out the form and we’ll be in touch.'}
             </p>
 
+            {!formOpen ? (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setFormOpen(true)}
+                  className="bg-lime text-forest font-display font-bold uppercase tracking-[0.2em] py-4 px-8 rounded-none border-0 transition-colors hover:bg-lime/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-2 focus-visible:ring-offset-forest"
+                  style={{ textShadow: '0 0 20px rgba(255,255,255,0.3)' }}
+                >
+                  Fill the form
+                </button>
+              </div>
+            ) : (
+              <>
             {submitStatus === 'success' && (
               <div className="mb-6 p-4 rounded bg-lime/20 border border-lime/40 text-lime text-center text-sm">
                 Thanks! We’ve received your inquiry and will be in touch soon.
@@ -321,6 +337,8 @@ export default function Sponsorship() {
                 {submitStatus === 'loading' ? 'Sending…' : 'Submit inquiry'}
               </button>
             </form>
+              </>
+            )}
           </div>
         </div>
       </section>

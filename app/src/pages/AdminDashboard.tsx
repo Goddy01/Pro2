@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../lib/api';
-import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X } from 'lucide-react';
+import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X, ChevronDown } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import '../App.css';
@@ -106,6 +106,27 @@ export default function AdminDashboard() {
   const [editingPodcastId, setEditingPodcastId] = useState<number | null>(null);
   const [editingWatchId, setEditingWatchId] = useState<number | null>(null);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [galleryCategoryDropdownOpen, setGalleryCategoryDropdownOpen] = useState(false);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
+  const galleryCategoryDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(e.target as Node)) setCategoryDropdownOpen(false);
+      if (galleryCategoryDropdownRef.current && !galleryCategoryDropdownRef.current.contains(e.target as Node)) setGalleryCategoryDropdownOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const ARTICLE_CATEGORIES = [
+    { value: 'Features', label: 'Features' },
+    { value: 'Analysis', label: 'Analysis' },
+    { value: 'Events', label: 'Events' },
+    { value: 'Podcast', label: 'Show' },
+    { value: 'Video', label: 'Video' },
+  ] as const;
 
   if (!isAuthenticated) return <Navigate to="/superuser" replace />;
 
@@ -821,13 +842,41 @@ export default function AdminDashboard() {
             </label>
             <label className="block">
               <span className={labelClass}>Category</span>
-              <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass}>
-                <option value="Features">Features</option>
-                <option value="Analysis">Analysis</option>
-                <option value="Events">Events</option>
-                <option value="Podcast">Show</option>
-                <option value="Video">Video</option>
-              </select>
+              <div ref={categoryDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setCategoryDropdownOpen((o) => !o)}
+                  className={`${inputClass} flex items-center justify-between gap-2 text-left cursor-pointer rounded`}
+                  aria-haspopup="listbox"
+                  aria-expanded={categoryDropdownOpen}
+                >
+                  <span>{ARTICLE_CATEGORIES.find((c) => c.value === category)?.label ?? category}</span>
+                  <ChevronDown className={`w-4 h-4 shrink-0 text-offwhite/60 transition-transform ${categoryDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {categoryDropdownOpen && (
+                  <ul
+                    className="absolute z-20 left-0 right-0 mt-1 py-1 rounded border border-offwhite/20 bg-forest shadow-xl shadow-black/40 max-h-60 overflow-y-auto"
+                    role="listbox"
+                  >
+                    {ARTICLE_CATEGORIES.map((opt) => (
+                      <li
+                        key={opt.value}
+                        role="option"
+                        aria-selected={category === opt.value}
+                        onClick={() => {
+                          setCategory(opt.value);
+                          setCategoryDropdownOpen(false);
+                        }}
+                        className={`px-4 py-2.5 cursor-pointer transition-colors ${
+                          category === opt.value ? 'bg-lime/20 text-lime' : 'text-offwhite hover:bg-offwhite/10'
+                        }`}
+                      >
+                        {opt.label}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </label>
             <label className="block">
               <span className={labelClass}>Author</span>
@@ -868,12 +917,54 @@ export default function AdminDashboard() {
               )}
             <label className="block">
               <span className={labelClass}>Category (optional – for which album this appears in)</span>
-              <select value={galleryCategoryId} onChange={(e) => setGalleryCategoryId(e.target.value)} className={inputClass}>
-                <option value="">— No category —</option>
-                {galleryCategoriesList.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+              <div ref={galleryCategoryDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setGalleryCategoryDropdownOpen((o) => !o)}
+                  className={`${inputClass} flex items-center justify-between gap-2 text-left cursor-pointer rounded`}
+                  aria-haspopup="listbox"
+                  aria-expanded={galleryCategoryDropdownOpen}
+                >
+                  <span>
+                    {galleryCategoryId ? (galleryCategoriesList.find((c) => String(c.id) === galleryCategoryId)?.name ?? galleryCategoryId) : '— No category —'}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 shrink-0 text-offwhite/60 transition-transform ${galleryCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {galleryCategoryDropdownOpen && (
+                  <ul
+                    className="absolute z-20 left-0 right-0 mt-1 py-1 rounded border border-offwhite/20 bg-forest shadow-xl shadow-black/40 max-h-60 overflow-y-auto"
+                    role="listbox"
+                  >
+                    <li
+                      role="option"
+                      aria-selected={!galleryCategoryId}
+                      onClick={() => {
+                        setGalleryCategoryId('');
+                        setGalleryCategoryDropdownOpen(false);
+                      }}
+                      className={`px-4 py-2.5 cursor-pointer transition-colors ${!galleryCategoryId ? 'bg-lime/20 text-lime' : 'text-offwhite hover:bg-offwhite/10'}`}
+                    >
+                      — No category —
+                    </li>
+                    {galleryCategoriesList.map((c) => (
+                      <li
+                        key={c.id}
+                        role="option"
+                        aria-selected={galleryCategoryId === String(c.id)}
+                        onClick={() => {
+                          setGalleryCategoryId(String(c.id));
+                          setGalleryCategoryDropdownOpen(false);
+                        }}
+                        className={`px-4 py-2.5 cursor-pointer transition-colors ${
+                          galleryCategoryId === String(c.id) ? 'bg-lime/20 text-lime' : 'text-offwhite hover:bg-offwhite/10'
+                        }`}
+                      >
+                        {c.name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </label>
             <label className="block">
               <span className={labelClass}>{editingGalleryId ? 'New image (optional)' : 'Photos * (select one or multiple)'}</span>

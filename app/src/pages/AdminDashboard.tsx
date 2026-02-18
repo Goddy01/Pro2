@@ -849,31 +849,32 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-forest px-6 py-12">
       <div className="max-w-3xl mx-auto">
-        <div className="flex items-center justify-between gap-4 mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <Link to="/" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm shrink-0 w-fit">
             <ArrowLeft className="w-4 h-4" />
             Back to site
           </Link>
-          {/* Desktop: all nav items in a row */}
-          <div className="hidden md:flex items-center gap-3 flex-wrap">
-            <Link to="/admin/work-with-us-submissions" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
-              View Work with us submissions
+          {/* Desktop: single-line nav bar */}
+          <nav className="hidden md:flex items-center flex-nowrap gap-1 p-1 rounded-md border border-offwhite/20 bg-offwhite/5">
+            <Link to="/admin/work-with-us-submissions" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="View Work with us submissions">
+              Work with us
             </Link>
-            <Link to="/admin/newsletter-signups" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
-              View newsletter signups
+            <Link to="/admin/newsletter-signups" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="View newsletter signups">
+              Newsletter
             </Link>
-            <Link to="/admin/sponsorship-inquiries" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
-              View sponsorship inquiries
+            <Link to="/admin/sponsorship-inquiries" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="View sponsorship inquiries">
+              Sponsorship
             </Link>
-            <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); }} className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
+            <span className="w-px h-5 bg-offwhite/20 mx-1" aria-hidden />
+            <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); }} className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap">
               <UserPlus className="w-4 h-4" />
-              Add new admin
+              Add admin
             </button>
-            <button type="button" onClick={handleLogout} className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
+            <button type="button" onClick={handleLogout} className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap">
               <LogOut className="w-4 h-4" />
               Log out
             </button>
-          </div>
+          </nav>
           {/* Mobile: hamburger toggle */}
           <button
             type="button"

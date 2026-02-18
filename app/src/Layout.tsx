@@ -48,6 +48,7 @@ const navItems = [
   { label: 'Articles', to: '/stories' },
   { label: 'Listen & Watch', to: '/listen-watch' },
   { label: 'About', href: '/#about' },
+  { label: 'Sponsorship', to: '/sponsorship' },
   { label: 'Work with Us', to: '/work-with-us' },
   { label: 'Team', to: '/team' },
   { label: 'Media', to: '/gallery' },

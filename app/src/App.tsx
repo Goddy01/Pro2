@@ -16,6 +16,7 @@ import AdminWorkWithUsSubmissions from './pages/AdminWorkWithUsSubmissions';
 import AdminNewsletterSignups from './pages/AdminNewsletterSignups';
 import WorkWithUs from './pages/WorkWithUs';
 import ListenWatch from './pages/ListenWatch';
+import Sponsorship from './pages/Sponsorship';
 import './App.css';
 
 function ScrollToTop() {
@@ -44,6 +45,7 @@ function App() {
             <Route path="gallery/:categorySlug" element={<Gallery />} />
             <Route path="listen-watch" element={<ListenWatch />} />
             <Route path="work-with-us" element={<WorkWithUs />} />
+            <Route path="sponsorship" element={<Sponsorship />} />
           </Route>
           <Route path="superuser" element={<AdminLogin />} />
           <Route path="admin" element={<AdminDashboard />} />

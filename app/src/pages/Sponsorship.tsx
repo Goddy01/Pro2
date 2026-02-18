@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Trophy, Award, Medal, Star, Check, ChevronDown } from 'lucide-react';
+import { Trophy, Award, Medal, Star, Check, ChevronDown, X } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import '../App.css';
 
@@ -253,7 +253,15 @@ export default function Sponsorship() {
                 </button>
               </div>
             ) : (
-              <>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setFormOpen(false)}
+                  className="absolute top-2 right-2 p-2 text-offwhite/60 hover:text-offwhite rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-2 focus-visible:ring-offset-forest z-10"
+                  aria-label="Close form"
+                >
+                  <X className="w-5 h-5" />
+                </button>
             {submitStatus === 'success' && (
               <div className="mb-6 p-4 rounded bg-lime/20 border border-lime/40 text-lime text-center text-sm">
                 Thanks! We’ve received your inquiry and will be in touch soon.
@@ -406,7 +414,7 @@ export default function Sponsorship() {
                 {submitStatus === 'loading' ? 'Sending…' : 'Submit inquiry'}
               </button>
             </form>
-              </>
+              </div>
             )}
           </div>
         </div>

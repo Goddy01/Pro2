@@ -165,23 +165,6 @@ export default function Gallery() {
             ) : (
               <>
                 <div className="reveal-section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-10">
-                  <Link
-                    to="/gallery/all"
-                    className="overflow-hidden card-editorial group block focus:outline-none focus-visible:ring-2 focus-visible:ring-lime"
-                  >
-                    <div className="relative aspect-[3/4] min-h-[240px] bg-offwhite/10">
-                      <div className="absolute inset-0 flex items-center justify-center text-offwhite/80 text-lg font-medium">
-                        All photos
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-forest/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <div className="p-4 bg-forest/30 border border-offwhite/5 border-t-0">
-                      <span className="label-mono text-lime text-xs">Browse all</span>
-                      <h3 className="headline-article text-offwhite text-xl mt-1 group-hover:text-lime transition-colors">
-                        All photos
-                      </h3>
-                    </div>
-                  </Link>
                   {categories.map((cat) => (
                     <Link
                       key={cat.id}

@@ -20,11 +20,11 @@ type Tier = {
 const inputClass = 'w-full px-4 py-3 bg-offwhite/5 border border-offwhite/20 text-offwhite placeholder:text-offwhite/40 focus:outline-none focus:border-lime rounded';
 const labelClass = 'text-offwhite text-sm font-medium mb-2 block';
 
-const ACCENT_OPTIONS = [
-  { value: 'from-lime/40 via-lime/20 to-transparent', label: 'Lime' },
-  { value: 'from-amber-400/30 via-amber-400/10 to-transparent', label: 'Gold' },
-  { value: 'from-offwhite/20 via-offwhite/5 to-transparent', label: 'Silver' },
-  { value: 'from-amber-700/30 via-amber-700/10 to-transparent', label: 'Bronze' },
+const SPONSORSHIP_LEVELS = [
+  { slug: 'platinum', name: 'Platinum Sponsor', accent: 'from-lime/40 via-lime/20 to-transparent' },
+  { slug: 'gold', name: 'Gold Sponsor', accent: 'from-amber-400/30 via-amber-400/10 to-transparent' },
+  { slug: 'silver', name: 'Silver Sponsor', accent: 'from-offwhite/20 via-offwhite/5 to-transparent' },
+  { slug: 'bronze', name: 'Bronze Sponsor', accent: 'from-amber-700/30 via-amber-700/10 to-transparent' },
 ];
 
 function formatPrice(n: number) {
@@ -44,10 +44,12 @@ export default function AdminSponsorship() {
   const [newTierForm, setNewTierForm] = useState(false);
   const [newBenefitTierId, setNewBenefitTierId] = useState<number | null>(null);
 
+  const [formLevel, setFormLevel] = useState(SPONSORSHIP_LEVELS[0].slug);
   const [formName, setFormName] = useState('');
   const [formPrice, setFormPrice] = useState('');
   const [formTagline, setFormTagline] = useState('');
-  const [formAccent, setFormAccent] = useState(ACCENT_OPTIONS[0].value);
+  const [formAccent, setFormAccent] = useState(SPONSORSHIP_LEVELS[0].accent);
+  const [formBenefits, setFormBenefits] = useState<string[]>(['']);
   const [formBenefitText, setFormBenefitText] = useState('');
   const [formBannerLink, setFormBannerLink] = useState('');
   const [formBannerEnabled, setFormBannerEnabled] = useState(false);
@@ -55,11 +57,21 @@ export default function AdminSponsorship() {
 
   function fetchData() {
     if (!token) return;
+    setError('');
     Promise.all([
-      fetch(apiUrl('/api/sponsorship/admin/tiers'), { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
-      fetch(apiUrl('/api/sponsorship/admin/banner'), { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+      fetch(apiUrl('/api/sponsorship/admin/tiers'), { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(apiUrl('/api/sponsorship/admin/banner'), { headers: { Authorization: `Bearer ${token}` } }),
     ])
-      .then(([tiersData, bannerData]) => {
+      .then(async ([tiersRes, bannerRes]) => {
+        if (!tiersRes.ok) {
+          const msg = (await tiersRes.json().catch(() => ({})) as { error?: string }).error || tiersRes.statusText;
+          throw new Error(msg || `Tiers: ${tiersRes.status}`);
+        }
+        if (!bannerRes.ok) {
+          const msg = (await bannerRes.json().catch(() => ({})) as { error?: string }).error || bannerRes.statusText;
+          throw new Error(msg || `Banner: ${bannerRes.status}`);
+        }
+        const [tiersData, bannerData] = await Promise.all([tiersRes.json(), bannerRes.json()]);
         setTiers(Array.isArray(tiersData) ? tiersData : []);
         setBanner({
           imageUrl: bannerData?.imageUrl ?? null,
@@ -69,7 +81,16 @@ export default function AdminSponsorship() {
         setFormBannerLink(bannerData?.linkUrl ?? '');
         setFormBannerEnabled(!!bannerData?.enabled);
       })
-      .catch(() => setError('Could not load sponsorship data'))
+      .catch((err) => {
+        const message = err?.message || '';
+        if (message.includes('401') || message.toLowerCase().includes('unauthorized')) {
+          setError('Session expired or not logged in. Go to Admin and sign in again.');
+        } else if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
+          setError('Could not reach the server. Is the backend running? Check VITE_API_URL if using a separate API.');
+        } else {
+          setError(message || 'Could not load sponsorship data.');
+        }
+      })
       .finally(() => setLoading(false));
   }
 
@@ -82,25 +103,34 @@ export default function AdminSponsorship() {
     setSuccess('');
   }
 
+  function setFormLevelAndPreset(levelSlug: string) {
+    const level = SPONSORSHIP_LEVELS.find((l) => l.slug === levelSlug) || SPONSORSHIP_LEVELS[0];
+    setFormLevel(level.slug);
+    setFormName(level.name);
+    setFormAccent(level.accent);
+  }
+
   async function handleSaveTier(e: FormEvent) {
     e.preventDefault();
     clearMessages();
     if (!formName.trim()) {
-      setError('Name is required');
+      setError('Level/name is required');
       return;
     }
+    const tierId = editingTierId;
     try {
       const body: Record<string, unknown> = {
         name: formName.trim(),
+        slug: formLevel,
         price: parseInt(formPrice, 10) || 0,
         tagline: formTagline.trim() || null,
         accent: formAccent,
       };
-      const url = editingTierId
-        ? apiUrl(`/api/sponsorship/admin/tiers/${editingTierId}`)
+      const url = tierId
+        ? apiUrl(`/api/sponsorship/admin/tiers/${tierId}`)
         : apiUrl('/api/sponsorship/admin/tiers');
       const res = await fetch(url, {
-        method: editingTierId ? 'PUT' : 'POST',
+        method: tierId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(body),
       });
@@ -109,12 +139,40 @@ export default function AdminSponsorship() {
         setError((data as { error?: string }).error || 'Failed to save tier');
         return;
       }
-      setSuccess(editingTierId ? 'Tier updated.' : 'Tier added.');
+      const savedId = tierId ?? (data as { id?: number }).id;
+      const benefitTexts = formBenefits.map((s) => s.trim()).filter(Boolean);
+
+      if (tierId && savedId) {
+        const tier = tiers.find((t) => t.id === tierId);
+        if (tier) {
+          for (const b of tier.benefits) {
+            await fetch(apiUrl(`/api/sponsorship/admin/benefits/${b.id}`), {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${token}` },
+            });
+          }
+        }
+      }
+
+      if (savedId && benefitTexts.length > 0) {
+        for (const text of benefitTexts) {
+          await fetch(apiUrl(`/api/sponsorship/admin/tiers/${savedId}/benefits`), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ benefit_text: text }),
+          });
+        }
+      }
+
+      setSuccess(tierId ? 'Tier updated.' : 'Tier added.');
       setEditingTierId(null);
       setNewTierForm(false);
+      setFormLevel(SPONSORSHIP_LEVELS[0].slug);
       setFormName('');
       setFormPrice('');
       setFormTagline('');
+      setFormAccent(SPONSORSHIP_LEVELS[0].accent);
+      setFormBenefits(['']);
       fetchData();
     } catch {
       setError('Could not connect to server');
@@ -288,10 +346,13 @@ export default function AdminSponsorship() {
                         type="button"
                         onClick={() => {
                           setEditingTierId(tier.id);
+                          const level = SPONSORSHIP_LEVELS.find((l) => l.slug === tier.slug) || SPONSORSHIP_LEVELS[0];
+                          setFormLevel(level.slug);
                           setFormName(tier.name);
                           setFormPrice(String(tier.price));
                           setFormTagline(tier.tagline || '');
-                          setFormAccent(tier.accent || ACCENT_OPTIONS[0].value);
+                          setFormAccent(tier.accent || level.accent);
+                          setFormBenefits(tier.benefits.length ? tier.benefits.map((b) => b.text) : ['']);
                           setExpandedTierId(tier.id);
                         }}
                         className="p-2 text-offwhite/70 hover:text-lime transition-colors"
@@ -314,27 +375,62 @@ export default function AdminSponsorship() {
                       {editingTierId === tier.id ? (
                         <form onSubmit={handleSaveTier} className="space-y-3 mb-4">
                           <label className="block">
-                            <span className={labelClass}>Name</span>
-                            <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} className={inputClass} required />
+                            <span className={labelClass}>Level</span>
+                            <select
+                              value={formLevel}
+                              onChange={(e) => setFormLevelAndPreset(e.target.value)}
+                              className={inputClass}
+                            >
+                              {SPONSORSHIP_LEVELS.map((l) => (
+                                <option key={l.slug} value={l.slug}>
+                                  {l.name}
+                                </option>
+                              ))}
+                            </select>
                           </label>
                           <label className="block">
                             <span className={labelClass}>Price ($)</span>
                             <input type="number" value={formPrice} onChange={(e) => setFormPrice(e.target.value)} className={inputClass} min={0} step={1} />
                           </label>
                           <label className="block">
-                            <span className={labelClass}>Tagline</span>
+                            <span className={labelClass}>Tagline (optional)</span>
                             <input type="text" value={formTagline} onChange={(e) => setFormTagline(e.target.value)} className={inputClass} placeholder="Optional" />
                           </label>
-                          <label className="block">
-                            <span className={labelClass}>Accent color</span>
-                            <select value={formAccent} onChange={(e) => setFormAccent(e.target.value)} className={inputClass}>
-                              {ACCENT_OPTIONS.map((o) => (
-                                <option key={o.value} value={o.value}>
-                                  {o.label}
-                                </option>
+                          <div>
+                            <span className={labelClass}>Benefits</span>
+                            <div className="space-y-2 mt-2">
+                              {formBenefits.map((text, i) => (
+                                <div key={i} className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    value={text}
+                                    onChange={(e) => setFormBenefits((prev) => {
+                                      const next = [...prev];
+                                      next[i] = e.target.value;
+                                      return next;
+                                    })}
+                                    className={inputClass}
+                                    placeholder="Benefit description"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => setFormBenefits((prev) => prev.filter((_, j) => j !== i))}
+                                    className="p-2 text-offwhite/70 hover:text-red-400 shrink-0"
+                                    title="Remove benefit"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
                               ))}
-                            </select>
-                          </label>
+                              <button
+                                type="button"
+                                onClick={() => setFormBenefits((prev) => [...prev, ''])}
+                                className="text-sm text-lime hover:underline flex items-center gap-1"
+                              >
+                                <Plus className="w-4 h-4" /> Add benefit
+                              </button>
+                            </div>
+                          </div>
                           <div className="flex gap-2">
                             <button type="submit" className="px-4 py-2 bg-lime text-forest font-medium text-sm hover:bg-lime/90">
                               Save
@@ -424,27 +520,62 @@ export default function AdminSponsorship() {
                 <form onSubmit={handleSaveTier} className="border border-offwhite/15 rounded p-4 space-y-3">
                   <h3 className="text-offwhite font-medium">New tier</h3>
                   <label className="block">
-                    <span className={labelClass}>Name</span>
-                    <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} className={inputClass} required />
+                    <span className={labelClass}>Level</span>
+                    <select
+                      value={formLevel}
+                      onChange={(e) => setFormLevelAndPreset(e.target.value)}
+                      className={inputClass}
+                    >
+                      {SPONSORSHIP_LEVELS.map((l) => (
+                        <option key={l.slug} value={l.slug}>
+                          {l.name}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                   <label className="block">
                     <span className={labelClass}>Price ($)</span>
                     <input type="number" value={formPrice} onChange={(e) => setFormPrice(e.target.value)} className={inputClass} min={0} step={1} />
                   </label>
                   <label className="block">
-                    <span className={labelClass}>Tagline</span>
-                    <input type="text" value={formTagline} onChange={(e) => setFormTagline(e.target.value)} className={inputClass} />
+                    <span className={labelClass}>Tagline (optional)</span>
+                    <input type="text" value={formTagline} onChange={(e) => setFormTagline(e.target.value)} className={inputClass} placeholder="Optional" />
                   </label>
-                  <label className="block">
-                    <span className={labelClass}>Accent</span>
-                    <select value={formAccent} onChange={(e) => setFormAccent(e.target.value)} className={inputClass}>
-                      {ACCENT_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
+                  <div>
+                    <span className={labelClass}>Benefits</span>
+                    <div className="space-y-2 mt-2">
+                      {formBenefits.map((text, i) => (
+                        <div key={i} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={text}
+                            onChange={(e) => setFormBenefits((prev) => {
+                              const next = [...prev];
+                              next[i] = e.target.value;
+                              return next;
+                            })}
+                            className={inputClass}
+                            placeholder="Benefit description"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setFormBenefits((prev) => prev.filter((_, j) => j !== i))}
+                            className="p-2 text-offwhite/70 hover:text-red-400 shrink-0"
+                            title="Remove benefit"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       ))}
-                    </select>
-                  </label>
+                      <button
+                        type="button"
+                        onClick={() => setFormBenefits((prev) => [...prev, ''])}
+                        className="text-sm text-lime hover:underline flex items-center gap-1"
+                      >
+                        <Plus className="w-4 h-4" /> Add benefit
+                      </button>
+                    </div>
+                  </div>
                   <div className="flex gap-2">
                     <button type="submit" className="px-4 py-2 bg-lime text-forest font-medium text-sm">Add tier</button>
                     <button type="button" onClick={() => setNewTierForm(false)} className="px-4 py-2 border border-offwhite/30 text-offwhite text-sm">
@@ -455,7 +586,15 @@ export default function AdminSponsorship() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => setNewTierForm(true)}
+                  onClick={() => {
+                  setFormLevel(SPONSORSHIP_LEVELS[0].slug);
+                  setFormName(SPONSORSHIP_LEVELS[0].name);
+                  setFormPrice('');
+                  setFormTagline('');
+                  setFormAccent(SPONSORSHIP_LEVELS[0].accent);
+                  setFormBenefits(['']);
+                  setNewTierForm(true);
+                }}
                   className="inline-flex items-center gap-2 px-4 py-2 border border-offwhite/20 text-offwhite hover:border-lime hover:text-lime text-sm"
                 >
                   <Plus className="w-4 h-4" />

@@ -7,63 +7,12 @@ import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const PACKAGES = [
-  {
-    id: 'platinum',
-    icon: Trophy,
-    name: 'Platinum Sponsor',
-    price: 2000,
-    tagline: 'Maximum visibility and category exclusivity.',
-    accent: 'from-lime/40 via-lime/20 to-transparent',
-    features: [
-      'Business name featured in the show title: "Sideline Sports presented by [Your Business Name]"',
-      'Three (3) 30-second commercial spots per episode',
-      'Exclusive 20-minute in-show guest interview',
-      'First priority for on-location appearances at live events',
-      'Premium brand integration throughout the show',
-    ],
-  },
-  {
-    id: 'gold',
-    icon: Award,
-    name: 'Gold Sponsor',
-    price: 1500,
-    tagline: 'Strong brand placement with recurring feature mentions.',
-    accent: 'from-amber-400/30 via-amber-400/10 to-transparent',
-    features: [
-      'Segment naming rights: "Quick Hits brought to you by [Your Business Name]"',
-      'Two (2) 30-second commercial spots per episode',
-      '10-minute guest interview opportunity',
-      'Second priority for live event appearances',
-    ],
-  },
-  {
-    id: 'silver',
-    icon: Medal,
-    name: 'Silver Sponsor',
-    price: 1000,
-    tagline: 'Consistent exposure with on-air engagement.',
-    accent: 'from-offwhite/20 via-offwhite/5 to-transparent',
-    features: [
-      'Two (2) 30-second commercial spots per episode',
-      '5-minute guest interview opportunity',
-      'Third priority for live event appearances',
-    ],
-  },
-  {
-    id: 'bronze',
-    icon: Star,
-    name: 'Bronze Sponsor',
-    price: 750,
-    tagline: 'Affordable brand visibility with direct audience reach.',
-    accent: 'from-amber-700/30 via-amber-700/10 to-transparent',
-    features: [
-      'Business name featured on bottom ticker during show',
-      'One (1) 30-second commercial spot per episode',
-      'Fourth priority for live event appearances',
-    ],
-  },
-];
+const ICON_BY_SLUG: Record<string, typeof Trophy> = {
+  platinum: Trophy,
+  gold: Award,
+  silver: Medal,
+  bronze: Star,
+};
 
 function formatPrice(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
@@ -73,8 +22,12 @@ const inputClass =
   'w-full px-4 py-3 bg-forest/50 border border-offwhite/20 text-offwhite placeholder:text-offwhite/40 focus:outline-none focus:border-lime rounded transition-colors';
 const labelClass = 'text-offwhite text-sm font-medium mb-2 block';
 
+type TierFromApi = { id: number; slug: string; name: string; price: number; tagline: string; accent: string; features: string[] };
+
 export default function Sponsorship() {
   const mainRef = useRef<HTMLDivElement>(null);
+  const [packages, setPackages] = useState<TierFromApi[]>([]);
+  const [packagesLoading, setPackagesLoading] = useState(true);
   const [name, setName] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('');
@@ -98,6 +51,14 @@ export default function Sponsorship() {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [tierDropdownOpen]);
+
+  useEffect(() => {
+    fetch(apiUrl('/api/sponsorship/tiers'))
+      .then((r) => r.json())
+      .then((d) => (Array.isArray(d) ? setPackages(d) : []))
+      .catch(() => setPackages([]))
+      .finally(() => setPackagesLoading(false));
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -192,8 +153,13 @@ export default function Sponsorship() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 mb-20">
-            {PACKAGES.map((pkg) => {
-              const Icon = pkg.icon;
+            {packagesLoading ? (
+              <p className="text-offwhite/60 col-span-full text-center py-12">Loading tiers…</p>
+            ) : packages.length === 0 ? (
+              <p className="text-offwhite/60 col-span-full text-center py-12">No sponsorship tiers yet. Add them in the admin.</p>
+            ) : (
+            packages.map((pkg) => {
+              const Icon = ICON_BY_SLUG[pkg.slug] ?? Star;
               return (
                 <article
                   key={pkg.id}
@@ -228,7 +194,8 @@ export default function Sponsorship() {
                   </div>
                 </article>
               );
-            })}
+            })
+            )}
           </div>
 
           <div className="reveal-section max-w-xl mx-auto">
@@ -335,9 +302,9 @@ export default function Sponsorship() {
                   >
                     {tier ? (
                       (() => {
-                        const pkg = PACKAGES.find((p) => p.id === tier);
+                        const pkg = packages.find((p) => p.slug === tier);
                         if (!pkg) return <span>Select a tier</span>;
-                        const Icon = pkg.icon;
+                        const Icon = ICON_BY_SLUG[pkg.slug] ?? Star;
                         return (
                           <span className="flex items-center gap-3">
                             <span className={`flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-r ${pkg.accent} text-lime shrink-0`}>
@@ -360,16 +327,16 @@ export default function Sponsorship() {
                       className="absolute z-10 left-0 right-0 mt-1 py-1 rounded border border-offwhite/20 bg-forest shadow-xl shadow-black/30 max-h-[280px] overflow-y-auto"
                       role="listbox"
                     >
-                      {PACKAGES.map((p) => {
-                        const Icon = p.icon;
-                        const selected = tier === p.id;
+                      {packages.map((p) => {
+                        const Icon = ICON_BY_SLUG[p.slug] ?? Star;
+                        const selected = tier === p.slug;
                         return (
                           <li
                             key={p.id}
                             role="option"
                             aria-selected={selected}
                             onClick={() => {
-                              setTier(p.id);
+                              setTier(p.slug);
                               setTierDropdownOpen(false);
                             }}
                             className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors border-l-2 border-transparent ${

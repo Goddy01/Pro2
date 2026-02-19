@@ -9,7 +9,6 @@ const MAX_BUSINESS = 300;
 const MAX_EMAIL = 254;
 const MAX_PHONE = 30;
 const MAX_MESSAGE = 2000;
-const VALID_TIERS = ['platinum', 'gold', 'silver', 'bronze'];
 
 // Admin: list all inquiries (auth required)
 router.get('/', authMiddleware, async (req, res) => {
@@ -44,7 +43,9 @@ router.post('/', async (req, res) => {
     const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     if (!email || !emailRegex.test(email)) return res.status(400).json({ error: 'Valid email required' });
     if (!phone || phone.replace(/\D/g, '').length < 10) return res.status(400).json({ error: 'Valid phone number required' });
-    if (!VALID_TIERS.includes(tier)) return res.status(400).json({ error: 'Please select a sponsorship tier' });
+    const { rows: validTiers } = await db.query('SELECT slug FROM sponsorship_tiers');
+    const validSlugs = validTiers.map((t) => t.slug);
+    if (!validSlugs.includes(tier)) return res.status(400).json({ error: 'Please select a valid sponsorship tier' });
 
     await db.query(
       'INSERT INTO sponsorship_inquiries (name, business_name, email, phone, tier, message) VALUES ($1, $2, $3, $4, $5, $6)',

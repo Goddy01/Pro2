@@ -140,6 +140,33 @@ export async function initDb() {
         message TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS sponsorship_tiers (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(200) NOT NULL,
+        slug VARCHAR(50) UNIQUE NOT NULL,
+        price INT NOT NULL DEFAULT 0,
+        tagline VARCHAR(500),
+        accent VARCHAR(200) DEFAULT 'from-offwhite/20 via-offwhite/5 to-transparent',
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS sponsorship_benefits (
+        id SERIAL PRIMARY KEY,
+        tier_id INT NOT NULL REFERENCES sponsorship_tiers(id) ON DELETE CASCADE,
+        benefit_text TEXT NOT NULL,
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS sponsorship_banner (
+        id SERIAL PRIMARY KEY,
+        image_url TEXT,
+        link_url TEXT,
+        enabled BOOLEAN DEFAULT false,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
     `);
     await client.query(`
       ALTER TABLE podcast_episodes ADD COLUMN IF NOT EXISTS show_name VARCHAR(200);
@@ -210,6 +237,55 @@ export async function initDb() {
         ('James Tatum', 'Director of Content & Media Operations', 'James Tatum is a multimedia sports journalist and media executive with Sideline Sports & Entertainment, overseeing content strategy, video production, website management, and talent recruitment. A first-generation graduate driven by passion and determination, he has covered major events across the NFL, MLB, and Premier League. From interviewing athletes and executives to delivering in-depth analysis, feature stories, and digital content, James brings energy and insight to every platform, blending on-camera presence with strong writing and leadership skills to build an authentic, impactful sports media brand.', '/JAMES-TATUM.jpg', 'https://x.com/JTP0V', 'https://www.youtube.com/@jtpointofview', 'https://www.tiktok.com/@jtpointofview', 'https://www.instagram.com/jtpov_', 3),
         ('Will Peralta', 'Multimedia Photographer', 'Will Peralta is a Multimedia Photographer for Sideline Sports & Entertainment, covering professional sports and entertainment events. He has photographed the NBA, NFL, MLB, and major artists, focusing on capturing authentic moments that reflect the atmosphere and story of each client and event.', '/WILL-PERALTA.jpg', NULL, NULL, 'https://www.tiktok.com/@will_media_peralta?_r=1&_t=ZP-93riibpsdF0', 'https://www.instagram.com/will_media_peralta', 4)
       `);
+    }
+    // Seed sponsorship tiers when empty (from original PACKAGES)
+    const { rows: tierCount } = await client.query('SELECT COUNT(*) AS c FROM sponsorship_tiers');
+    if (Number(tierCount[0]?.c) === 0) {
+      await client.query(`
+        INSERT INTO sponsorship_tiers (name, slug, price, tagline, accent, sort_order) VALUES
+        ('Platinum Sponsor', 'platinum', 2000, 'Maximum visibility and category exclusivity.', 'from-lime/40 via-lime/20 to-transparent', 0),
+        ('Gold Sponsor', 'gold', 1500, 'Strong brand placement with recurring feature mentions.', 'from-amber-400/30 via-amber-400/10 to-transparent', 1),
+        ('Silver Sponsor', 'silver', 1000, 'Consistent exposure with on-air engagement.', 'from-offwhite/20 via-offwhite/5 to-transparent', 2),
+        ('Bronze Sponsor', 'bronze', 750, 'Affordable brand visibility with direct audience reach.', 'from-amber-700/30 via-amber-700/10 to-transparent', 3)
+      `);
+      const { rows: tierIds } = await client.query('SELECT id, slug FROM sponsorship_tiers ORDER BY sort_order');
+      const benefitsBySlug = {
+        platinum: [
+          'Business name featured in the show title: "Sideline Sports presented by [Your Business Name]"',
+          'Three (3) 30-second commercial spots per episode',
+          'Exclusive 20-minute in-show guest interview',
+          'First priority for on-location appearances at live events',
+          'Premium brand integration throughout the show',
+        ],
+        gold: [
+          'Segment naming rights: "Quick Hits brought to you by [Your Business Name]"',
+          'Two (2) 30-second commercial spots per episode',
+          '10-minute guest interview opportunity',
+          'Second priority for live event appearances',
+        ],
+        silver: [
+          'Two (2) 30-second commercial spots per episode',
+          '5-minute guest interview opportunity',
+          'Third priority for live event appearances',
+        ],
+        bronze: [
+          'Business name featured on bottom ticker during show',
+          'One (1) 30-second commercial spot per episode',
+          'Fourth priority for live event appearances',
+        ],
+      };
+      for (const t of tierIds) {
+        const benefits = benefitsBySlug[t.slug] || [];
+        for (let i = 0; i < benefits.length; i++) {
+          await client.query('INSERT INTO sponsorship_benefits (tier_id, benefit_text, sort_order) VALUES ($1, $2, $3)', [t.id, benefits[i], i]);
+        }
+      }
+      await client.query('INSERT INTO sponsorship_banner (image_url, link_url, enabled) VALUES (NULL, NULL, false)');
+    }
+    // Ensure banner row exists (for DBs created before the tier seed)
+    const { rows: bannerCount } = await client.query('SELECT COUNT(*) AS c FROM sponsorship_banner');
+    if (Number(bannerCount[0]?.c) === 0) {
+      await client.query('INSERT INTO sponsorship_banner (image_url, link_url, enabled) VALUES (NULL, NULL, false)');
     }
   } finally {
     client.release();

@@ -15,6 +15,7 @@ import podcastRoutes from './routes/podcast.js';
 import watchRoutes from './routes/watch.js';
 import teamRoutes from './routes/team.js';
 import sponsorshipInquiriesRoutes from './routes/sponsorshipInquiries.js';
+import sponsorshipRoutes from './routes/sponsorship.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 4000;
@@ -44,6 +45,7 @@ app.use('/api/podcast', podcastRoutes);
 app.use('/api/watch', watchRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/sponsorship-inquiries', sponsorshipInquiriesRoutes);
+app.use('/api/sponsorship', sponsorshipRoutes);
 
 async function start() {
   if (!process.env.DATABASE_URL) {

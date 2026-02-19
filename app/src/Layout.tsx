@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, Outlet } from 'react-router-dom';
+import SponsorshipBanner from './components/SponsorshipBanner';
 import { Zap, Menu, X, Youtube, Instagram } from 'lucide-react';
 import { apiUrl } from './lib/api';
 
@@ -241,6 +242,7 @@ export default function Layout() {
       </div>
 
       <main className="pt-[110px]">
+        <SponsorshipBanner />
         <Outlet />
       </main>
 

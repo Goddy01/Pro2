@@ -334,9 +334,9 @@ export default function AdminDashboard() {
           headers: { Authorization: `Bearer ${token}` },
           body: form,
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          setError(data.error || 'Failed to update');
+          setError(typeof (data as { error?: string }).error === 'string' ? (data as { error: string }).error : 'Failed to update');
           return;
         }
         setSuccess('Gallery image updated.');
@@ -347,7 +347,7 @@ export default function AdminDashboard() {
         if (galleryInputRef.current) galleryInputRef.current.value = '';
         refetchLists();
       } catch {
-        setError('Could not connect to server');
+        setError('Could not reach the server. Check that the backend is running and your connection.');
       } finally {
         setLoading(false);
       }
@@ -361,21 +361,31 @@ export default function AdminDashboard() {
     const total = galleryImages.length;
     let uploaded = 0;
     setGalleryUploadProgress({ uploaded: 0, total });
+    const UPLOAD_TIMEOUT_MS = 90_000;
+    const DELAY_BETWEEN_UPLOADS_MS = 300;
+    const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
     try {
-      for (const file of galleryImages) {
+      for (let i = 0; i < galleryImages.length; i++) {
+        if (i > 0) await delay(DELAY_BETWEEN_UPLOADS_MS);
+        const file = galleryImages[i];
         const form = new FormData();
         form.append('image', file);
         if (galleryCaption.trim()) form.append('caption', galleryCaption.trim());
         if (galleryCategoryId) form.append('category_id', galleryCategoryId);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
         const res = await fetch(apiUrl('/api/gallery'), {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: form,
+          signal: controller.signal,
         });
-        const data = await res.json();
+        clearTimeout(timeoutId);
+        const data = await res.json().catch(() => ({}));
         if (!res.ok) {
           setGalleryUploadProgress(null);
-          setError(data.error || `Upload failed (${uploaded} of ${total} uploaded)`);
+          const msg = typeof data?.error === 'string' ? data.error : `Upload failed (${uploaded} of ${total} uploaded).`;
+          setError(uploaded > 0 ? `${msg} ${uploaded} image(s) were saved.` : msg);
           return;
         }
         uploaded += 1;
@@ -388,9 +398,15 @@ export default function AdminDashboard() {
       setGalleryImages([]);
       if (galleryInputRef.current) galleryInputRef.current.value = '';
       refetchLists();
-    } catch {
+    } catch (err) {
       setGalleryUploadProgress(null);
-      setError('Could not connect to server' + (uploaded ? ` (${uploaded} of ${total} uploaded)` : ''));
+      const isAbort = err instanceof Error && err.name === 'AbortError';
+      const partial = uploaded > 0 ? ` ${uploaded} of ${total} image(s) were saved.` : '';
+      setError(
+        isAbort
+          ? `Upload timed out.${partial} Try fewer images or smaller file sizes.`
+          : `Could not reach the server.${partial} Check that the backend is running and your connection.`
+      );
     } finally {
       setLoading(false);
     }
@@ -987,6 +1003,7 @@ export default function AdminDashboard() {
             {galleryUploadProgress && (
               <p className="text-lime text-sm">{galleryUploadProgress.total > 1 ? `Uploading ${galleryUploadProgress.uploaded} of ${galleryUploadProgress.total}...` : 'Uploading...'}</p>
             )}
+            <p className="text-offwhite/40 text-xs">Max 15MB per image. If uploads fail, ensure the backend is running and Cloudinary is configured on the server.</p>
             <button type="submit" disabled={loading || (!editingGalleryId && !galleryImages.length)} className="btn-premium py-4 px-8 disabled:opacity-50">
               {loading ? (galleryUploadProgress ? `Uploading ${galleryUploadProgress.uploaded}/${galleryUploadProgress.total}...` : (editingGalleryId ? 'Updating...' : 'Uploading...')) : editingGalleryId ? 'Update image' : galleryImages.length > 1 ? `Add ${galleryImages.length} to Gallery` : 'Add to Gallery'}
             </button>

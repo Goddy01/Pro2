@@ -12,7 +12,7 @@ const router = Router();
 const memoryStorage = multer.memoryStorage();
 const upload = multer({
   storage: memoryStorage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB per image so large photos don't fail
   fileFilter: (req, file, cb) => {
     const allowed = /jpeg|jpg|png|gif|webp/i;
     const ext = path.extname(file.originalname).slice(1);
@@ -179,7 +179,8 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
     res.status(201).json(rows[0]);
   } catch (err) {
     console.error('Gallery upload error:', err);
-    res.status(500).json({ error: err.message || 'Upload failed' });
+    const message = err.message || (err.code === 'LIMIT_FILE_SIZE' ? 'Image is too large (max 15MB).' : 'Upload failed');
+    res.status(500).json({ error: message });
   }
 });
 
@@ -227,6 +228,17 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Multer errors (e.g. LIMIT_FILE_SIZE) get passed to next(); return JSON so frontend can show them
+router.use((err, req, res, next) => {
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ error: 'Image is too large (max 15MB per file).' });
+  }
+  if (err.message) {
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
 });
 
 export default router;

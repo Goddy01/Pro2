@@ -1003,7 +1003,7 @@ export default function AdminDashboard() {
             {galleryUploadProgress && (
               <p className="text-lime text-sm">{galleryUploadProgress.total > 1 ? `Uploading ${galleryUploadProgress.uploaded} of ${galleryUploadProgress.total}...` : 'Uploading...'}</p>
             )}
-            <p className="text-offwhite/40 text-xs">Max 15MB per image. If uploads fail, ensure the backend is running and Cloudinary is configured on the server.</p>
+            <p className="text-offwhite/40 text-xs">Max 25MB per image. If uploads fail, ensure the backend is running and Cloudinary is configured on the server.</p>
             <button type="submit" disabled={loading || (!editingGalleryId && !galleryImages.length)} className="btn-premium py-4 px-8 disabled:opacity-50">
               {loading ? (galleryUploadProgress ? `Uploading ${galleryUploadProgress.uploaded}/${galleryUploadProgress.total}...` : (editingGalleryId ? 'Updating...' : 'Uploading...')) : editingGalleryId ? 'Update image' : galleryImages.length > 1 ? `Add ${galleryImages.length} to Gallery` : 'Add to Gallery'}
             </button>

@@ -176,16 +176,16 @@ export default function Gallery() {
                     <Link
                       key={cat.id}
                       to={`/gallery/${cat.slug}`}
-                      className="overflow-hidden card-editorial group block focus:outline-none focus-visible:ring-2 focus-visible:ring-lime"
+                      className="overflow-hidden card-editorial gallery-category-card group block focus:outline-none focus-visible:ring-2 focus-visible:ring-lime"
                     >
-                      <div className="relative aspect-[3/4] min-h-[240px]">
+                      <div className="relative aspect-[3/4] min-h-[240px] overflow-hidden">
                         <img
                           src={cat.coverImageUrl || '/team.jpg'}
                           alt=""
-                          className="w-full h-full object-cover object-center img-editorial transition-transform duration-700 group-hover:scale-105"
+                          className="block w-full h-full object-cover object-center img-editorial transition-transform duration-700 group-hover:scale-105"
                           loading="lazy"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-forest/85 via-forest/20 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-forest/85 via-forest/20 to-transparent pointer-events-none" />
                       </div>
                       <div className="p-4 bg-forest/30 border border-offwhite/5 border-t-0">
                         <span className="label-mono text-lime text-xs">{cat.imageCount} photo{cat.imageCount !== 1 ? 's' : ''}</span>

@@ -72,6 +72,11 @@ img {
   opacity: 1;
 }
 
+/* Gallery category cards: no lift on hover to avoid gap below image */
+.gallery-category-card.card-editorial:hover {
+  transform: none;
+}
+
 /* Button ripple effect */
 .btn-premium,
 .btn-outline-premium {

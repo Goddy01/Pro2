@@ -54,13 +54,21 @@ router.get('/tiers', async (req, res) => {
   }
 });
 
-// Public: get banner (if enabled)
+// Public: get banner (if enabled and within show period)
 router.get('/banner', async (req, res) => {
   try {
-    const { rows } = await db.query('SELECT image_url, link_url, enabled FROM sponsorship_banner ORDER BY id DESC LIMIT 1');
+    const { rows } = await db.query(
+      `SELECT image_url, link_url, enabled, sponsor_name, show_until FROM sponsorship_banner ORDER BY id DESC LIMIT 1`
+    );
     const b = rows[0];
     if (!b || !b.enabled || !b.image_url) return res.json({ enabled: false });
-    res.json({ enabled: true, imageUrl: b.image_url, linkUrl: b.link_url || null });
+    if (b.show_until && new Date(b.show_until) <= new Date()) return res.json({ enabled: false });
+    res.json({
+      enabled: true,
+      imageUrl: b.image_url,
+      linkUrl: b.link_url || null,
+      sponsorName: b.sponsor_name || null,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -226,10 +234,18 @@ router.delete('/admin/benefits/:id', authMiddleware, async (req, res) => {
 // Admin: get banner
 router.get('/admin/banner', authMiddleware, async (req, res) => {
   try {
-    const { rows } = await db.query('SELECT image_url, link_url, enabled FROM sponsorship_banner ORDER BY id DESC LIMIT 1');
+    const { rows } = await db.query(
+      'SELECT image_url, link_url, enabled, sponsor_name, show_until FROM sponsorship_banner ORDER BY id DESC LIMIT 1'
+    );
     const b = rows[0];
-    if (!b) return res.json({ imageUrl: null, linkUrl: null, enabled: false });
-    res.json({ imageUrl: b.image_url, linkUrl: b.link_url, enabled: b.enabled });
+    if (!b) return res.json({ imageUrl: null, linkUrl: null, enabled: false, sponsorName: '', showUntil: null });
+    res.json({
+      imageUrl: b.image_url,
+      linkUrl: b.link_url,
+      enabled: b.enabled,
+      sponsorName: b.sponsor_name || '',
+      showUntil: b.show_until || null,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -245,6 +261,11 @@ router.put('/admin/banner', authMiddleware, upload.single('image'), async (req, 
     }
     const linkUrl = typeof req.body?.link_url === 'string' ? req.body.link_url.trim() || null : null;
     const enabled = req.body?.enabled === true || req.body?.enabled === 'true';
+    const sponsorName = typeof req.body?.sponsor_name === 'string' ? req.body.sponsor_name.trim().slice(0, 200) || null : null;
+    const durationDays = req.body?.duration_days != null ? parseInt(req.body.duration_days, 10) : null;
+    const showUntil = Number.isInteger(durationDays) && durationDays > 0
+      ? new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000)
+      : null;
 
     const { rows: existing } = await db.query('SELECT id, image_url FROM sponsorship_banner ORDER BY id DESC LIMIT 1');
     const finalImageUrl = imageUrl !== null ? imageUrl : (existing[0]?.image_url ?? null);
@@ -255,6 +276,8 @@ router.put('/admin/banner', authMiddleware, upload.single('image'), async (req, 
       if (imageUrl !== null) { updates.push(`image_url = $${v++}`); values.push(imageUrl); }
       updates.push(`link_url = $${v++}`); values.push(linkUrl);
       updates.push(`enabled = $${v++}`); values.push(enabled);
+      updates.push(`sponsor_name = $${v++}`); values.push(sponsorName);
+      updates.push(`show_until = $${v++}`); values.push(showUntil);
       updates.push(`updated_at = NOW()`);
       values.push(existing[0].id);
       await db.query(
@@ -263,13 +286,21 @@ router.put('/admin/banner', authMiddleware, upload.single('image'), async (req, 
       );
     } else {
       await db.query(
-        'INSERT INTO sponsorship_banner (image_url, link_url, enabled) VALUES ($1, $2, $3)',
-        [finalImageUrl, linkUrl, enabled]
+        'INSERT INTO sponsorship_banner (image_url, link_url, enabled, sponsor_name, show_until) VALUES ($1, $2, $3, $4, $5)',
+        [finalImageUrl, linkUrl, enabled, sponsorName, showUntil]
       );
     }
-    const { rows } = await db.query('SELECT image_url, link_url, enabled FROM sponsorship_banner ORDER BY id DESC LIMIT 1');
+    const { rows } = await db.query(
+      'SELECT image_url, link_url, enabled, sponsor_name, show_until FROM sponsorship_banner ORDER BY id DESC LIMIT 1'
+    );
     const b = rows[0];
-    res.json(b ? { imageUrl: b.image_url, linkUrl: b.link_url, enabled: b.enabled } : { imageUrl: null, linkUrl: null, enabled: false });
+    res.json(b ? {
+      imageUrl: b.image_url,
+      linkUrl: b.link_url,
+      enabled: b.enabled,
+      sponsorName: b.sponsor_name || '',
+      showUntil: b.show_until || null,
+    } : { imageUrl: null, linkUrl: null, enabled: false, sponsorName: '', showUntil: null });
   } catch (err) {
     console.error('Banner update error:', err);
     res.status(500).json({ error: err.message });

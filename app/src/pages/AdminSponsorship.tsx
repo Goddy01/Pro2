@@ -50,17 +50,52 @@ export default function AdminSponsorship() {
   const [formBenefits, setFormBenefits] = useState<string[]>(['']);
   const [formBenefitText, setFormBenefitText] = useState('');
 
+  const [banner, setBanner] = useState<{ imageUrl: string | null; linkUrl: string | null; enabled: boolean; sponsorName: string; showUntil: string | null }>({
+    imageUrl: null, linkUrl: null, enabled: false, sponsorName: '', showUntil: null,
+  });
+  const [formBannerSponsorName, setFormBannerSponsorName] = useState('');
+  const [formBannerDurationDays, setFormBannerDurationDays] = useState<string>('');
+  const [formBannerLink, setFormBannerLink] = useState('');
+  const [formBannerEnabled, setFormBannerEnabled] = useState(false);
+  const [formBannerImage, setFormBannerImage] = useState<File | null>(null);
+
+  const BANNER_DURATION_OPTIONS = [
+    { value: '', label: 'No end date' },
+    { value: '7', label: '7 days' },
+    { value: '14', label: '14 days' },
+    { value: '30', label: '30 days' },
+    { value: '60', label: '60 days' },
+    { value: '90', label: '90 days' },
+  ];
+
   function fetchData() {
     if (!token) return;
     setError('');
-    fetch(apiUrl('/api/sponsorship/admin/tiers'), { headers: { Authorization: `Bearer ${token}` } })
-      .then(async (tiersRes) => {
+    Promise.all([
+      fetch(apiUrl('/api/sponsorship/admin/tiers'), { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(apiUrl('/api/sponsorship/admin/banner'), { headers: { Authorization: `Bearer ${token}` } }),
+    ])
+      .then(async ([tiersRes, bannerRes]) => {
         if (!tiersRes.ok) {
           const msg = (await tiersRes.json().catch(() => ({})) as { error?: string }).error || tiersRes.statusText;
           throw new Error(msg || `Tiers: ${tiersRes.status}`);
         }
         const tiersData = await tiersRes.json();
         setTiers(Array.isArray(tiersData) ? tiersData : []);
+        if (bannerRes.ok) {
+          const bannerData = await bannerRes.json();
+          setBanner({
+            imageUrl: bannerData.imageUrl ?? null,
+            linkUrl: bannerData.linkUrl ?? null,
+            enabled: !!bannerData.enabled,
+            sponsorName: bannerData.sponsorName ?? '',
+            showUntil: bannerData.showUntil ?? null,
+          });
+          setFormBannerSponsorName(bannerData.sponsorName ?? '');
+          setFormBannerDurationDays('');
+          setFormBannerLink(bannerData.linkUrl ?? '');
+          setFormBannerEnabled(!!bannerData.enabled);
+        }
       })
       .catch((err) => {
         const message = err?.message || '';
@@ -243,6 +278,45 @@ export default function AdminSponsorship() {
     }
   }
 
+  async function handleSaveBanner(e: FormEvent) {
+    e.preventDefault();
+    clearMessages();
+    if (!formBannerSponsorName.trim()) {
+      setError('Sponsor name is required');
+      return;
+    }
+    try {
+      const form = new FormData();
+      form.append('sponsor_name', formBannerSponsorName.trim());
+      form.append('duration_days', formBannerDurationDays || '0');
+      form.append('link_url', formBannerLink.trim());
+      form.append('enabled', String(formBannerEnabled));
+      if (formBannerImage) form.append('image', formBannerImage);
+      const res = await fetch(apiUrl('/api/sponsorship/admin/banner'), {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError((data as { error?: string }).error || 'Failed to save banner');
+        return;
+      }
+      setSuccess('Banner saved.');
+      setFormBannerImage(null);
+      setBanner({
+        imageUrl: data.imageUrl ?? banner.imageUrl,
+        linkUrl: data.linkUrl ?? null,
+        enabled: !!data.enabled,
+        sponsorName: data.sponsorName ?? '',
+        showUntil: data.showUntil ?? null,
+      });
+      fetchData();
+    } catch {
+      setError('Could not connect to server');
+    }
+  }
+
   if (!isAuthenticated) return <Navigate to="/superuser" replace />;
 
   return (
@@ -259,7 +333,7 @@ export default function AdminSponsorship() {
         </div>
         <h1 className="text-offwhite font-editorial font-bold text-2xl mb-2">Sponsorship Tiers &amp; Banner</h1>
         <p className="text-offwhite/60 text-sm mb-8">
-          Manage sponsorship tiers and their benefits.
+          Manage sponsorship tiers, benefits, and the sponsor banner shown across the site.
         </p>
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
         {success && <p className="text-lime text-sm mb-4">{success}</p>}
@@ -541,6 +615,78 @@ export default function AdminSponsorship() {
                   Add tier
                 </button>
               )}
+            </section>
+
+            <section className="border-t border-offwhite/15 pt-8">
+              <h2 className="text-offwhite font-semibold text-lg mb-2">Sponsor banner</h2>
+              <p className="text-offwhite/60 text-sm mb-4">
+                Upload a sponsor banner to show at the top of the site (below the header) on every page—homepage, Sponsorship, Gallery, etc. Set how long it should run and optionally link the banner to a URL.
+              </p>
+              {banner.imageUrl && (
+                <div className="mb-4">
+                  <img src={banner.imageUrl} alt={banner.sponsorName || 'Banner'} className="max-w-full max-h-32 object-contain border border-offwhite/20 rounded" />
+                  {banner.sponsorName && <p className="text-offwhite/50 text-xs mt-1">Sponsor: {banner.sponsorName}</p>}
+                </div>
+              )}
+              <form onSubmit={handleSaveBanner} className="space-y-4">
+                <label className="block">
+                  <span className={labelClass}>Sponsor name</span>
+                  <input
+                    type="text"
+                    value={formBannerSponsorName}
+                    onChange={(e) => setFormBannerSponsorName(e.target.value)}
+                    className={inputClass}
+                    placeholder="e.g. Acme Corp"
+                    required
+                  />
+                </label>
+                <label className="block">
+                  <span className={labelClass}>How long to show</span>
+                  <select
+                    value={formBannerDurationDays}
+                    onChange={(e) => setFormBannerDurationDays(e.target.value)}
+                    className={inputClass}
+                  >
+                    {BANNER_DURATION_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                  <p className="text-offwhite/40 text-xs mt-1">From when you save, the banner will show for this period. &quot;No end date&quot; keeps it until you change it.</p>
+                </label>
+                <label className="block">
+                  <span className={labelClass}>Banner image</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setFormBannerImage(e.target.files?.[0] ?? null)}
+                    className={`${inputClass} file:mr-4 file:py-2 file:px-4 file:bg-lime file:text-forest file:border-0`}
+                  />
+                  <p className="text-offwhite/40 text-xs mt-1">{banner.imageUrl ? 'Upload a new image to replace, or leave empty to keep current.' : 'Upload an image to enable the banner.'}</p>
+                </label>
+                <label className="block">
+                  <span className={labelClass}>Link URL (optional)</span>
+                  <input
+                    type="url"
+                    value={formBannerLink}
+                    onChange={(e) => setFormBannerLink(e.target.value)}
+                    className={inputClass}
+                    placeholder="https://..."
+                  />
+                  <p className="text-offwhite/40 text-xs mt-1">Where the banner goes when clicked.</p>
+                </label>
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={formBannerEnabled}
+                    onChange={(e) => setFormBannerEnabled(e.target.checked)}
+                    className="w-4 h-4 accent-lime"
+                  />
+                  <span className="text-offwhite text-sm">Show banner on site</span>
+                </label>
+                <button type="submit" className="px-4 py-2 bg-lime text-forest font-medium text-sm hover:bg-lime/90">
+                  Save banner
+                </button>
+              </form>
             </section>
           </>
         )}

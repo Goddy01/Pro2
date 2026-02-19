@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { apiUrl } from '../lib/api';
 
 export default function SponsorshipBanner() {
-  const [banner, setBanner] = useState<{ enabled: boolean; imageUrl?: string; linkUrl?: string | null } | null>(null);
+  const [banner, setBanner] = useState<{ enabled: boolean; imageUrl?: string; linkUrl?: string | null; sponsorName?: string | null } | null>(null);
 
   useEffect(() => {
     fetch(apiUrl('/api/sponsorship/banner'))
@@ -14,10 +14,11 @@ export default function SponsorshipBanner() {
 
   if (!banner?.enabled || !banner.imageUrl) return null;
 
+  const alt = banner.sponsorName ? `Sponsor: ${banner.sponsorName}` : 'Sponsorship';
   const img = (
     <img
       src={banner.imageUrl}
-      alt="Sponsorship"
+      alt={alt}
       className="w-full h-full object-cover object-center"
     />
   );

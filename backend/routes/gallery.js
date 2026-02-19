@@ -12,7 +12,7 @@ const router = Router();
 const memoryStorage = multer.memoryStorage();
 const upload = multer({
   storage: memoryStorage,
-  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB per image
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB per image.
   fileFilter: (req, file, cb) => {
     const allowed = /jpeg|jpg|png|gif|webp/i;
     const ext = path.extname(file.originalname).slice(1);

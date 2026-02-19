@@ -34,7 +34,6 @@ function formatPrice(n: number) {
 export default function AdminSponsorship() {
   const { token, isAuthenticated } = useAuth();
   const [tiers, setTiers] = useState<Tier[]>([]);
-  const [banner, setBanner] = useState<{ imageUrl: string | null; linkUrl: string | null; enabled: boolean }>({ imageUrl: null, linkUrl: null, enabled: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -51,35 +50,18 @@ export default function AdminSponsorship() {
   const [formAccent, setFormAccent] = useState(SPONSORSHIP_LEVELS[0].accent);
   const [formBenefits, setFormBenefits] = useState<string[]>(['']);
   const [formBenefitText, setFormBenefitText] = useState('');
-  const [formBannerLink, setFormBannerLink] = useState('');
-  const [formBannerEnabled, setFormBannerEnabled] = useState(false);
-  const [formBannerImage, setFormBannerImage] = useState<File | null>(null);
 
   function fetchData() {
     if (!token) return;
     setError('');
-    Promise.all([
-      fetch(apiUrl('/api/sponsorship/admin/tiers'), { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(apiUrl('/api/sponsorship/admin/banner'), { headers: { Authorization: `Bearer ${token}` } }),
-    ])
-      .then(async ([tiersRes, bannerRes]) => {
+    fetch(apiUrl('/api/sponsorship/admin/tiers'), { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (tiersRes) => {
         if (!tiersRes.ok) {
           const msg = (await tiersRes.json().catch(() => ({})) as { error?: string }).error || tiersRes.statusText;
           throw new Error(msg || `Tiers: ${tiersRes.status}`);
         }
-        if (!bannerRes.ok) {
-          const msg = (await bannerRes.json().catch(() => ({})) as { error?: string }).error || bannerRes.statusText;
-          throw new Error(msg || `Banner: ${bannerRes.status}`);
-        }
-        const [tiersData, bannerData] = await Promise.all([tiersRes.json(), bannerRes.json()]);
+        const tiersData = await tiersRes.json();
         setTiers(Array.isArray(tiersData) ? tiersData : []);
-        setBanner({
-          imageUrl: bannerData?.imageUrl ?? null,
-          linkUrl: bannerData?.linkUrl ?? null,
-          enabled: !!bannerData?.enabled,
-        });
-        setFormBannerLink(bannerData?.linkUrl ?? '');
-        setFormBannerEnabled(!!bannerData?.enabled);
       })
       .catch((err) => {
         const message = err?.message || '';
@@ -271,33 +253,6 @@ export default function AdminSponsorship() {
     }
   }
 
-  async function handleSaveBanner(e: FormEvent) {
-    e.preventDefault();
-    clearMessages();
-    try {
-      const form = new FormData();
-      form.append('link_url', formBannerLink.trim());
-      form.append('enabled', String(formBannerEnabled));
-      if (formBannerImage) form.append('image', formBannerImage);
-      const res = await fetch(apiUrl('/api/sponsorship/admin/banner'), {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` },
-        body: form,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError((data as { error?: string }).error || 'Failed to save banner');
-        return;
-      }
-      setSuccess('Banner saved.');
-      setFormBannerImage(null);
-      setBanner({ imageUrl: data.imageUrl ?? banner.imageUrl, linkUrl: data.linkUrl ?? null, enabled: !!data.enabled });
-      fetchData();
-    } catch {
-      setError('Could not connect to server');
-    }
-  }
-
   if (!isAuthenticated) return <Navigate to="/superuser" replace />;
 
   return (
@@ -311,7 +266,7 @@ export default function AdminSponsorship() {
         </div>
         <h1 className="text-offwhite font-editorial font-bold text-2xl mb-2">Sponsorship Tiers &amp; Banner</h1>
         <p className="text-offwhite/60 text-sm mb-8">
-          Manage sponsorship tiers, their benefits, and the promotional banner shown on the site.
+          Manage sponsorship tiers and their benefits.
         </p>
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
         {success && <p className="text-lime text-sm mb-4">{success}</p>}
@@ -339,7 +294,6 @@ export default function AdminSponsorship() {
                       )}
                       <span className="text-offwhite font-medium">{tier.name}</span>
                       <span className="text-lime">{formatPrice(tier.price)}</span>
-                      <span className="text-offwhite/50 text-sm">/{tier.slug}</span>
                     </div>
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                       <button
@@ -601,52 +555,6 @@ export default function AdminSponsorship() {
                   Add tier
                 </button>
               )}
-            </section>
-
-            <section>
-              <h2 className="text-offwhite font-semibold text-lg mb-4">Sponsorship Banner</h2>
-              <p className="text-offwhite/60 text-sm mb-4">
-                Optional banner shown on the homepage and sponsorship page. Upload an image, add a link (optional), and toggle visibility.
-              </p>
-              {banner.imageUrl && (
-                <div className="mb-4">
-                  <img src={banner.imageUrl} alt="Banner preview" className="max-w-full max-h-32 object-contain border border-offwhite/20" />
-                </div>
-              )}
-              <form onSubmit={handleSaveBanner} className="space-y-4">
-                <label className="block">
-                  <span className={labelClass}>Banner image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setFormBannerImage(e.target.files?.[0] ?? null)}
-                    className={`${inputClass} file:mr-4 file:py-2 file:px-4 file:bg-lime file:text-forest file:border-0`}
-                  />
-                  <p className="text-offwhite/40 text-xs mt-1">{banner.imageUrl ? 'Upload a new image to replace, or leave empty to keep current.' : 'Upload an image to enable the banner.'}</p>
-                </label>
-                <label className="block">
-                  <span className={labelClass}>Link URL (optional – where the banner links when clicked)</span>
-                  <input
-                    type="url"
-                    value={formBannerLink}
-                    onChange={(e) => setFormBannerLink(e.target.value)}
-                    className={inputClass}
-                    placeholder="https://..."
-                  />
-                </label>
-                <label className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={formBannerEnabled}
-                    onChange={(e) => setFormBannerEnabled(e.target.checked)}
-                    className="w-4 h-4 accent-lime"
-                  />
-                  <span className="text-offwhite text-sm">Show banner on site</span>
-                </label>
-                <button type="submit" className="px-4 py-2 bg-lime text-forest font-medium text-sm hover:bg-lime/90">
-                  Save banner
-                </button>
-              </form>
             </section>
           </>
         )}

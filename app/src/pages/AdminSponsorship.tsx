@@ -263,6 +263,9 @@ export default function AdminSponsorship() {
             <ArrowLeft className="w-4 h-4" />
             Back to Admin
           </Link>
+          <Link to="/admin/sponsorship-inquiries" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
+            Sponsorship inquiries
+          </Link>
         </div>
         <h1 className="text-offwhite font-editorial font-bold text-2xl mb-2">Sponsorship Tiers &amp; Banner</h1>
         <p className="text-offwhite/60 text-sm mb-8">

@@ -757,9 +757,6 @@ export default function AdminDashboard() {
             <Link to="/admin/newsletter-signups" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="View newsletter signups">
               Newsletter
             </Link>
-            <Link to="/admin/sponsorship-inquiries" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="View sponsorship inquiries">
-              Sponsorship
-            </Link>
             <Link to="/admin/sponsorship" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="Manage sponsorship tiers &amp; banner">
               Sponsorship Tiers
             </Link>
@@ -793,9 +790,6 @@ export default function AdminDashboard() {
               </Link>
               <Link to="/admin/newsletter-signups" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
                 View newsletter signups
-              </Link>
-              <Link to="/admin/sponsorship-inquiries" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
-                Sponsorship inquiries
               </Link>
               <Link to="/admin/sponsorship" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
                 Sponsorship Tiers

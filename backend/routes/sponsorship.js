@@ -12,7 +12,7 @@ const router = Router();
 const memoryStorage = multer.memoryStorage();
 const upload = multer({
   storage: memoryStorage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB per image
   fileFilter: (req, file, cb) => {
     const allowed = /jpeg|jpg|png|gif|webp/i;
     const ext = path.extname(file.originalname).slice(1);
@@ -360,7 +360,7 @@ router.delete('/admin/banners/:id', authMiddleware, async (req, res) => {
 
 router.use((err, req, res, next) => {
   if (err.code === 'LIMIT_FILE_SIZE') {
-    return res.status(413).json({ error: 'Image is too large (max 5MB).' });
+    return res.status(413).json({ error: 'Image is too large (max 50MB).' });
   }
   if (err.message) {
     return res.status(400).json({ error: err.message });

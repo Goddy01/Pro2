@@ -173,6 +173,7 @@ export async function initDb() {
     await client.query(`
       ALTER TABLE sponsorship_banner ADD COLUMN IF NOT EXISTS sponsor_name TEXT;
       ALTER TABLE sponsorship_banner ADD COLUMN IF NOT EXISTS show_until TIMESTAMPTZ;
+      ALTER TABLE sponsorship_banner ADD COLUMN IF NOT EXISTS sort_order INT DEFAULT 0;
     `);
     await client.query(`
       ALTER TABLE podcast_episodes ADD COLUMN IF NOT EXISTS show_name VARCHAR(200);

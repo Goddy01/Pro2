@@ -54,20 +54,22 @@ router.get('/tiers', async (req, res) => {
   }
 });
 
-// Public: get banner (if enabled and within show period)
+// Public: get all active banners (enabled, within show period)
 router.get('/banner', async (req, res) => {
   try {
     const { rows } = await db.query(
-      `SELECT image_url, link_url, enabled, sponsor_name, show_until FROM sponsorship_banner ORDER BY id DESC LIMIT 1`
+      `SELECT id, image_url, link_url, sponsor_name FROM sponsorship_banner
+       WHERE enabled = true AND image_url IS NOT NULL
+       AND (show_until IS NULL OR show_until > NOW())
+       ORDER BY sort_order ASC, id ASC`
     );
-    const b = rows[0];
-    if (!b || !b.enabled || !b.image_url) return res.json({ enabled: false });
-    if (b.show_until && new Date(b.show_until) <= new Date()) return res.json({ enabled: false });
     res.json({
-      enabled: true,
-      imageUrl: b.image_url,
-      linkUrl: b.link_url || null,
-      sponsorName: b.sponsor_name || null,
+      banners: rows.map((b) => ({
+        id: b.id,
+        imageUrl: b.image_url,
+        linkUrl: b.link_url || null,
+        sponsorName: b.sponsor_name || null,
+      })),
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -231,29 +233,31 @@ router.delete('/admin/benefits/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// Admin: get banner
-router.get('/admin/banner', authMiddleware, async (req, res) => {
+// Admin: list all banners
+router.get('/admin/banners', authMiddleware, async (req, res) => {
   try {
     const { rows } = await db.query(
-      'SELECT image_url, link_url, enabled, sponsor_name, show_until FROM sponsorship_banner ORDER BY id DESC LIMIT 1'
+      'SELECT id, sponsor_name, image_url, link_url, show_until, enabled, sort_order FROM sponsorship_banner ORDER BY sort_order ASC, id ASC'
     );
-    const b = rows[0];
-    if (!b) return res.json({ imageUrl: null, linkUrl: null, enabled: false, sponsorName: '', showUntil: null });
-    res.json({
-      imageUrl: b.image_url,
-      linkUrl: b.link_url,
-      enabled: b.enabled,
+    res.json(rows.map((b) => ({
+      id: b.id,
       sponsorName: b.sponsor_name || '',
+      imageUrl: b.image_url || null,
+      linkUrl: b.link_url || null,
       showUntil: b.show_until || null,
-    });
+      enabled: b.enabled,
+      sortOrder: b.sort_order ?? 0,
+    })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Admin: update banner
-router.put('/admin/banner', authMiddleware, upload.single('image'), async (req, res) => {
+// Admin: create banner
+router.post('/admin/banners', authMiddleware, upload.single('image'), async (req, res) => {
   try {
+    const sponsorName = typeof req.body?.sponsor_name === 'string' ? req.body.sponsor_name.trim().slice(0, 200) || null : null;
+    if (!sponsorName) return res.status(400).json({ error: 'Sponsor name is required' });
     let imageUrl = null;
     if (req.file && hasCloudinaryConfig()) {
       const result = await uploadImageBuffer(req.file.buffer, 'sideline-sponsorship', { upload_preset: 'Sideline.Gallery' });
@@ -261,48 +265,95 @@ router.put('/admin/banner', authMiddleware, upload.single('image'), async (req, 
     }
     const linkUrl = typeof req.body?.link_url === 'string' ? req.body.link_url.trim() || null : null;
     const enabled = req.body?.enabled === true || req.body?.enabled === 'true';
-    const sponsorName = typeof req.body?.sponsor_name === 'string' ? req.body.sponsor_name.trim().slice(0, 200) || null : null;
     const durationDays = req.body?.duration_days != null ? parseInt(req.body.duration_days, 10) : null;
     const showUntil = Number.isInteger(durationDays) && durationDays > 0
       ? new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000)
       : null;
-
-    const { rows: existing } = await db.query('SELECT id, image_url FROM sponsorship_banner ORDER BY id DESC LIMIT 1');
-    const finalImageUrl = imageUrl !== null ? imageUrl : (existing[0]?.image_url ?? null);
-    if (existing.length) {
-      const updates = [];
-      const values = [];
-      let v = 1;
-      if (imageUrl !== null) { updates.push(`image_url = $${v++}`); values.push(imageUrl); }
-      updates.push(`link_url = $${v++}`); values.push(linkUrl);
-      updates.push(`enabled = $${v++}`); values.push(enabled);
-      updates.push(`sponsor_name = $${v++}`); values.push(sponsorName);
-      updates.push(`show_until = $${v++}`); values.push(showUntil);
-      updates.push(`updated_at = NOW()`);
-      values.push(existing[0].id);
-      await db.query(
-        `UPDATE sponsorship_banner SET ${updates.join(', ')} WHERE id = $${v}`,
-        values
-      );
-    } else {
-      await db.query(
-        'INSERT INTO sponsorship_banner (image_url, link_url, enabled, sponsor_name, show_until) VALUES ($1, $2, $3, $4, $5)',
-        [finalImageUrl, linkUrl, enabled, sponsorName, showUntil]
-      );
-    }
+    const { rows: maxRow } = await db.query('SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM sponsorship_banner');
+    const sortOrder = maxRow[0]?.next_order ?? 0;
     const { rows } = await db.query(
-      'SELECT image_url, link_url, enabled, sponsor_name, show_until FROM sponsorship_banner ORDER BY id DESC LIMIT 1'
+      `INSERT INTO sponsorship_banner (sponsor_name, image_url, link_url, enabled, show_until, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, sponsor_name, image_url, link_url, show_until, enabled, sort_order`,
+      [sponsorName, imageUrl, linkUrl, enabled, showUntil, sortOrder]
     );
     const b = rows[0];
-    res.json(b ? {
-      imageUrl: b.image_url,
-      linkUrl: b.link_url,
-      enabled: b.enabled,
+    res.status(201).json({
+      id: b.id,
       sponsorName: b.sponsor_name || '',
+      imageUrl: b.image_url || null,
+      linkUrl: b.link_url || null,
       showUntil: b.show_until || null,
-    } : { imageUrl: null, linkUrl: null, enabled: false, sponsorName: '', showUntil: null });
+      enabled: b.enabled,
+      sortOrder: b.sort_order ?? 0,
+    });
+  } catch (err) {
+    console.error('Banner create error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin: update banner
+router.put('/admin/banners/:id', authMiddleware, upload.single('image'), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid banner ID' });
+    const sponsorName = typeof req.body?.sponsor_name === 'string' ? req.body.sponsor_name.trim().slice(0, 200) : null;
+    if (sponsorName !== null && !sponsorName) return res.status(400).json({ error: 'Sponsor name is required' });
+    let imageUrl = null;
+    if (req.file && hasCloudinaryConfig()) {
+      const result = await uploadImageBuffer(req.file.buffer, 'sideline-sponsorship', { upload_preset: 'Sideline.Gallery' });
+      imageUrl = result.secure_url;
+    }
+    const linkUrl = typeof req.body?.link_url === 'string' ? req.body.link_url.trim() || null : null;
+    const enabled = req.body?.enabled === true || req.body?.enabled === 'true';
+    const durationDays = req.body?.duration_days != null ? parseInt(req.body.duration_days, 10) : null;
+    const showUntil = Number.isInteger(durationDays) && durationDays > 0
+      ? new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000)
+      : durationDays === 0 ? null : undefined;
+
+    const { rows: existing } = await db.query('SELECT id, image_url FROM sponsorship_banner WHERE id = $1', [id]);
+    if (!existing.length) return res.status(404).json({ error: 'Banner not found' });
+    const updates = [];
+    const values = [];
+    let v = 1;
+    if (imageUrl !== null) { updates.push(`image_url = $${v++}`); values.push(imageUrl); }
+    if (sponsorName !== null) { updates.push(`sponsor_name = $${v++}`); values.push(sponsorName); }
+    updates.push(`link_url = $${v++}`); values.push(linkUrl);
+    updates.push(`enabled = $${v++}`); values.push(enabled);
+    if (showUntil !== undefined) { updates.push(`show_until = $${v++}`); values.push(showUntil); }
+    updates.push(`updated_at = NOW()`);
+    values.push(id);
+    await db.query(`UPDATE sponsorship_banner SET ${updates.join(', ')} WHERE id = $${v}`, values);
+    const { rows } = await db.query(
+      'SELECT id, sponsor_name, image_url, link_url, show_until, enabled, sort_order FROM sponsorship_banner WHERE id = $1',
+      [id]
+    );
+    const b = rows[0];
+    res.json({
+      id: b.id,
+      sponsorName: b.sponsor_name || '',
+      imageUrl: b.image_url || null,
+      linkUrl: b.link_url || null,
+      showUntil: b.show_until || null,
+      enabled: b.enabled,
+      sortOrder: b.sort_order ?? 0,
+    });
   } catch (err) {
     console.error('Banner update error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin: delete banner
+router.delete('/admin/banners/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid banner ID' });
+    const { rowCount } = await db.query('DELETE FROM sponsorship_banner WHERE id = $1', [id]);
+    if (rowCount === 0) return res.status(404).json({ error: 'Banner not found' });
+    res.status(204).send();
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });

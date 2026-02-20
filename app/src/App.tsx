@@ -16,6 +16,7 @@ import AdminWorkWithUsSubmissions from './pages/AdminWorkWithUsSubmissions';
 import AdminNewsletterSignups from './pages/AdminNewsletterSignups';
 import AdminSponsorshipInquiries from './pages/AdminSponsorshipInquiries';
 import AdminSponsorship from './pages/AdminSponsorship';
+import AdminSponsorshipBanners from './pages/AdminSponsorshipBanners';
 import AdminArticlesList from './pages/AdminArticlesList';
 import AdminEventsList from './pages/AdminEventsList';
 import AdminGalleryList from './pages/AdminGalleryList';
@@ -61,6 +62,7 @@ function App() {
           <Route path="admin/newsletter-signups" element={<AdminNewsletterSignups />} />
           <Route path="admin/sponsorship-inquiries" element={<AdminSponsorshipInquiries />} />
           <Route path="admin/sponsorship" element={<AdminSponsorship />} />
+          <Route path="admin/sponsorship-banners" element={<AdminSponsorshipBanners />} />
           <Route path="admin/articles" element={<AdminArticlesList />} />
           <Route path="admin/events" element={<AdminEventsList />} />
           <Route path="admin/gallery" element={<AdminGalleryList />} />

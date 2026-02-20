@@ -23,33 +23,38 @@ export default function SponsorshipBanner() {
 
   return (
     <div className="w-full bg-offwhite/5 border-b border-offwhite/10">
-      <div className="flex flex-wrap items-stretch justify-center gap-4 px-4 py-4 max-h-[220px] overflow-hidden">
+      <div className="flex flex-col sm:flex-row flex-wrap sm:items-center justify-center gap-3 sm:gap-4 px-3 py-3 sm:px-4 sm:py-4">
         {banners.map((b) => {
           const alt = b.sponsorName ? `Sponsor: ${b.sponsorName}` : 'Sponsorship';
-          const img = (
+          const isExternal = b.linkUrl?.startsWith('http');
+          const linkClass = 'block w-full h-full min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-lime rounded overflow-hidden bg-offwhite/5 flex items-center justify-center';
+          const imgClass = 'w-full h-full object-contain object-center';
+          const content = (
             <img
               src={b.imageUrl}
               alt={alt}
-              className="w-full h-full object-contain object-center max-h-[180px]"
+              className={imgClass}
+              loading="lazy"
             />
           );
-          const isExternal = b.linkUrl?.startsWith('http');
-          const wrapperClass = 'block h-full min-h-[100px] max-h-[180px] focus:outline-none focus-visible:ring-2 focus-visible:ring-lime rounded overflow-hidden flex items-center justify-center bg-offwhite/5';
           const inner = b.linkUrl ? (
             isExternal ? (
-              <a href={b.linkUrl} target="_blank" rel="noopener noreferrer" className={wrapperClass}>
-                {img}
+              <a href={b.linkUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                {content}
               </a>
             ) : (
-              <Link to={b.linkUrl} className={wrapperClass}>
-                {img}
+              <Link to={b.linkUrl} className={linkClass}>
+                {content}
               </Link>
             )
           ) : (
-            <div className={wrapperClass}>{img}</div>
+            <div className={linkClass}>{content}</div>
           );
           return (
-            <div key={b.id} className="flex-1 min-w-[200px] max-w-[400px] flex flex-col">
+            <div
+              key={b.id}
+              className="w-full sm:flex-1 sm:min-w-[200px] sm:max-w-[400px] aspect-[3/1] sm:aspect-[16/9] max-h-[120px] sm:max-h-[180px] min-h-0 flex shrink-0"
+            >
               {inner}
             </div>
           );

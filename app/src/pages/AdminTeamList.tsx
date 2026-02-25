@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { apiUrl } from '../lib/api';
+import { apiUrl, authenticatedFetch } from '../lib/api';
 import { ArrowLeft, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import '../App.css';
 
@@ -19,7 +19,7 @@ export default function AdminTeamList() {
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
-    fetch(apiUrl('/api/team'), { headers: { Authorization: `Bearer ${token}` } })
+    authenticatedFetch(apiUrl('/api/team'), {}, token)
       .then((r) => r.json())
       .then((data) => {
         if (!cancelled && Array.isArray(data)) setList(data.map((t: Member) => ({ id: t.id, name: t.name, role: t.role ?? null })));
@@ -41,7 +41,7 @@ export default function AdminTeamList() {
   async function handleDelete(id: number) {
     if (!confirm('Delete this team member?')) return;
     try {
-      const res = await fetch(apiUrl(`/api/team/${id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      const res = await authenticatedFetch(apiUrl(`/api/team/${id}`), { method: 'DELETE' }, token);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Failed to delete');

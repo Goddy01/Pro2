@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { apiUrl } from '../lib/api';
+import { apiUrl, authenticatedFetch } from '../lib/api';
 import { ArrowLeft, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import '../App.css';
 
@@ -58,7 +58,7 @@ export default function AdminGalleryList() {
   async function deleteCategory(id: number) {
     if (!confirm('Delete this category? Images in it will become uncategorized.')) return;
     try {
-      const res = await fetch(apiUrl(`/api/gallery/categories/${id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      const res = await authenticatedFetch(apiUrl(`/api/gallery/categories/${id}`), { method: 'DELETE' }, token);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Failed to delete');
@@ -73,7 +73,7 @@ export default function AdminGalleryList() {
   async function deleteImage(id: number) {
     if (!confirm('Remove this image from the gallery?')) return;
     try {
-      const res = await fetch(apiUrl(`/api/gallery/${id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      const res = await authenticatedFetch(apiUrl(`/api/gallery/${id}`), { method: 'DELETE' }, token);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Failed to delete');

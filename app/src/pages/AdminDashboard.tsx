@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { apiUrl } from '../lib/api';
+import { apiUrl, authenticatedFetch } from '../lib/api';
 import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X, ChevronDown } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
@@ -172,11 +172,10 @@ export default function AdminDashboard() {
       form.append('author', author);
       if (image) form.append('image', image);
       const url = editingArticleId ? apiUrl(`/api/articles/${editingArticleId}`) : apiUrl('/api/articles');
-      const res = await fetch(url, {
+      const res = await authenticatedFetch(url, {
         method: editingArticleId ? 'PUT' : 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: form,
-      });
+      }, token);
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || (editingArticleId ? 'Failed to update article' : 'Failed to publish article'));
@@ -198,7 +197,7 @@ export default function AdminDashboard() {
 
   async function startEditArticle(id: number) {
     try {
-      const res = await fetch(apiUrl(`/api/articles/${id}`));
+      const res = await authenticatedFetch(apiUrl(`/api/articles/${id}`), {}, token);
       const data = await res.json();
       if (!res.ok) return;
       setTitle(data.title || '');
@@ -223,7 +222,7 @@ export default function AdminDashboard() {
 
   async function startEditGalleryCategory(id: number) {
     try {
-      const res = await fetch(apiUrl(`/api/gallery/categories/${id}`));
+      const res = await authenticatedFetch(apiUrl(`/api/gallery/categories/${id}`), {}, token);
       const data = await res.json();
       if (!res.ok) return;
       setGalleryCategoryName(data.name || '');
@@ -248,11 +247,10 @@ export default function AdminDashboard() {
       form.append('name', galleryCategoryName.trim());
       if (galleryCategoryCover) form.append('cover', galleryCategoryCover);
       const url = editingGalleryCategoryId ? apiUrl(`/api/gallery/categories/${editingGalleryCategoryId}`) : apiUrl('/api/gallery/categories');
-      const res = await fetch(url, {
+      const res = await authenticatedFetch(url, {
         method: editingGalleryCategoryId ? 'PUT' : 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: form,
-      });
+      }, token);
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || 'Failed to save category');
@@ -273,7 +271,7 @@ export default function AdminDashboard() {
 
   async function startEditEvent(slug: string) {
     try {
-      const res = await fetch(apiUrl(`/api/events/${slug}`));
+      const res = await authenticatedFetch(apiUrl(`/api/events/${slug}`), {}, token);
       const data = await res.json();
       if (!res.ok) return;
       setEventTitle(data.title || '');
@@ -287,7 +285,7 @@ export default function AdminDashboard() {
 
   async function startEditPodcast(id: number) {
     try {
-      const res = await fetch(apiUrl(`/api/podcast/${id}`));
+      const res = await authenticatedFetch(apiUrl(`/api/podcast/${id}`), {}, token);
       const data = await res.json();
       if (!res.ok) return;
       setPodcastTitle(data.title || '');
@@ -306,7 +304,7 @@ export default function AdminDashboard() {
 
   async function startEditWatch(id: number) {
     try {
-      const res = await fetch(apiUrl(`/api/watch/${id}`));
+      const res = await authenticatedFetch(apiUrl(`/api/watch/${id}`), {}, token);
       const data = await res.json();
       if (!res.ok) return;
       setWatchTitle(data.title || '');
@@ -329,11 +327,10 @@ export default function AdminDashboard() {
         form.append('caption', galleryCaption.trim());
         if (galleryCategoryId) form.append('category_id', galleryCategoryId);
         if (galleryImages.length) form.append('image', galleryImages[0]);
-        const res = await fetch(apiUrl(`/api/gallery/${editingGalleryId}`), {
+        const res = await authenticatedFetch(apiUrl(`/api/gallery/${editingGalleryId}`), {
           method: 'PUT',
-          headers: { Authorization: `Bearer ${token}` },
           body: form,
-        });
+        }, token);
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
           setError(typeof (data as { error?: string }).error === 'string' ? (data as { error: string }).error : 'Failed to update');
@@ -374,12 +371,11 @@ export default function AdminDashboard() {
         if (galleryCategoryId) form.append('category_id', galleryCategoryId);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
-        const res = await fetch(apiUrl('/api/gallery'), {
+        const res = await authenticatedFetch(apiUrl('/api/gallery'), {
           method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
           body: form,
           signal: controller.signal,
-        });
+        }, token);
         clearTimeout(timeoutId);
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
@@ -429,11 +425,10 @@ export default function AdminDashboard() {
       form.append('title', eventTitle.trim());
       form.append('description', eventDescription.trim());
       eventImages.forEach((f) => form.append('images', f));
-      const res = await fetch(apiUrl('/api/events'), {
+      const res = await authenticatedFetch(apiUrl('/api/events'), {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: form,
-      });
+      }, token);
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || 'Failed to create event');
@@ -466,11 +461,10 @@ export default function AdminDashboard() {
       form.append('title', eventTitle.trim());
       form.append('description', eventDescription.trim());
       if (eventImages.length) eventImages.forEach((f) => form.append('images', f));
-      const res = await fetch(apiUrl(`/api/events/${editingEventSlug}`), {
+      const res = await authenticatedFetch(apiUrl(`/api/events/${editingEventSlug}`), {
         method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` },
         body: form,
-      });
+      }, token);
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || 'Failed to update event');
@@ -520,11 +514,10 @@ export default function AdminDashboard() {
       if (podcastType === 'audio' && podcastAudioUrl.trim()) form.append('audio_url', podcastAudioUrl.trim());
       if (podcastType === 'video' && podcastVideoUrl.trim()) form.append('video_url', podcastVideoUrl.trim());
       const url = editingPodcastId ? apiUrl(`/api/podcast/${editingPodcastId}`) : apiUrl('/api/podcast');
-      const res = await fetch(url, {
+      const res = await authenticatedFetch(url, {
         method: editingPodcastId ? 'PUT' : 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: form,
-      });
+      }, token);
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || 'Failed to add episode');
@@ -559,11 +552,10 @@ export default function AdminDashboard() {
         form.append('duration_label', watchDuration.trim());
         form.append('video_id', watchVideoId.trim());
         if (watchShowName.trim()) form.append('show_name', watchShowName.trim());
-        const res = await fetch(apiUrl(`/api/watch/${editingWatchId}`), {
+        const res = await authenticatedFetch(apiUrl(`/api/watch/${editingWatchId}`), {
           method: 'PUT',
-          headers: { Authorization: `Bearer ${token}` },
           body: form,
-        });
+        }, token);
         const data = await res.json();
         if (!res.ok) {
           setError(data.error || 'Failed to update video');
@@ -598,11 +590,10 @@ export default function AdminDashboard() {
       form.append('duration_label', watchDuration.trim());
       form.append('video_id', watchVideoId.trim());
       if (watchShowName.trim()) form.append('show_name', watchShowName.trim());
-      const res = await fetch(apiUrl('/api/watch'), {
+      const res = await authenticatedFetch(apiUrl('/api/watch'), {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: form,
-      });
+      }, token);
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || 'Failed to add video');
@@ -623,7 +614,7 @@ export default function AdminDashboard() {
 
   async function startEditTeam(id: number) {
     try {
-      const res = await fetch(apiUrl(`/api/team/${id}`));
+      const res = await authenticatedFetch(apiUrl(`/api/team/${id}`), {}, token);
       const data = await res.json();
       if (!res.ok) return;
       setTeamName(data.name || '');
@@ -660,11 +651,10 @@ export default function AdminDashboard() {
       form.append('social_tiktok', teamSocialTiktok.trim());
       form.append('social_instagram', teamSocialInstagram.trim());
       const url = editingTeamId ? apiUrl(`/api/team/${editingTeamId}`) : apiUrl('/api/team');
-      const res = await fetch(url, {
+      const res = await authenticatedFetch(url, {
         method: editingTeamId ? 'PUT' : 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: form,
-      });
+      }, token);
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || (editingTeamId ? 'Failed to update team member' : 'Failed to add team member'));
@@ -703,11 +693,11 @@ export default function AdminDashboard() {
     }
     setAddAdminLoading(true);
     try {
-      const res = await fetch(apiUrl('/api/auth/admins'), {
+      const res = await authenticatedFetch(apiUrl('/api/auth/admins'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: newAdminUsername.trim(), password: newAdminPassword }),
-      });
+      }, token);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setAddAdminError(data.error || 'Failed to add admin');

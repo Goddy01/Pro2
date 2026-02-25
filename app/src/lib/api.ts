@@ -14,3 +14,28 @@ export function apiUrl(path: string): string {
   const p = path.startsWith('/') ? path : `/${path}`;
   return `${API_BASE}${p}`;
 }
+
+const AUTH_SESSION_EXPIRED = 'auth:session-expired';
+
+/** Dispatches event so AuthSessionHandler can logout and redirect. Call after detecting 401. */
+export function notifySessionExpired(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(AUTH_SESSION_EXPIRED));
+  }
+}
+
+/**
+ * Fetch with optional auth token. On 401 response, dispatches session-expired and returns the response.
+ * Use this for all admin API calls so expired tokens trigger automatic logout and redirect to login.
+ */
+export async function authenticatedFetch(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+  token: string | null
+): Promise<Response> {
+  const headers = new Headers(init.headers);
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  const res = await fetch(input, { ...init, headers });
+  if (res.status === 401) notifySessionExpired();
+  return res;
+}

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './Layout';
 import Home from './pages/Home';
 import Team from './pages/Team';
@@ -36,10 +36,25 @@ function ScrollToTop() {
   return null;
 }
 
+function AuthSessionHandler() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      logout();
+      navigate('/superuser', { replace: true });
+    };
+    window.addEventListener('auth:session-expired', handleSessionExpired);
+    return () => window.removeEventListener('auth:session-expired', handleSessionExpired);
+  }, [logout, navigate]);
+  return null;
+}
+
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <AuthSessionHandler />
         <ScrollToTop />
         <Routes>
           <Route element={<Layout />}>

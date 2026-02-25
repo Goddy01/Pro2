@@ -1,7 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { apiUrl } from '../lib/api';
+import { apiUrl, authenticatedFetch } from '../lib/api';
 import { ArrowLeft, Plus, Pencil, Trash2 } from 'lucide-react';
 import '../App.css';
 
@@ -56,7 +56,7 @@ export default function AdminSponsorshipBanners() {
   function fetchBanners() {
     if (!token) return;
     setError('');
-    fetch(apiUrl('/api/sponsorship/admin/banners'), { headers: { Authorization: `Bearer ${token}` } })
+    authenticatedFetch(apiUrl('/api/sponsorship/admin/banners'), {}, token)
       .then(async (res) => {
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
@@ -125,11 +125,7 @@ export default function AdminSponsorshipBanners() {
       if (formImage) form.append('image', formImage);
 
       if (editingId !== null) {
-        const res = await fetch(apiUrl(`/api/sponsorship/admin/banners/${editingId}`), {
-          method: 'PUT',
-          headers: { Authorization: `Bearer ${token}` },
-          body: form,
-        });
+        const res = await authenticatedFetch(apiUrl(`/api/sponsorship/admin/banners/${editingId}`), { method: 'PUT', body: form }, token);
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
           setError((data as { error?: string }).error || 'Failed to update banner');
@@ -138,11 +134,7 @@ export default function AdminSponsorshipBanners() {
         setSuccess('Banner updated.');
         setBanners((prev) => prev.map((b) => (b.id === editingId ? { ...b, ...data } : b)));
       } else {
-        const res = await fetch(apiUrl('/api/sponsorship/admin/banners'), {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: form,
-        });
+        const res = await authenticatedFetch(apiUrl('/api/sponsorship/admin/banners'), { method: 'POST', body: form }, token);
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
           setError((data as { error?: string }).error || 'Failed to add banner');
@@ -163,10 +155,7 @@ export default function AdminSponsorshipBanners() {
     if (!confirm('Delete this sponsor banner?')) return;
     clearMessages();
     try {
-      const res = await fetch(apiUrl(`/api/sponsorship/admin/banners/${id}`), {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await authenticatedFetch(apiUrl(`/api/sponsorship/admin/banners/${id}`), { method: 'DELETE' }, token);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError((data as { error?: string }).error || 'Failed to delete');

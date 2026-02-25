@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { apiUrl } from '../lib/api';
+import { apiUrl, authenticatedFetch } from '../lib/api';
 import { ArrowLeft } from 'lucide-react';
 import '../App.css';
 
@@ -37,9 +37,7 @@ export default function AdminSponsorshipInquiries() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(apiUrl('/api/sponsorship-inquiries'), {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await authenticatedFetch(apiUrl('/api/sponsorship-inquiries'), {}, token);
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           if (!cancelled) setError(data.error || 'Failed to load inquiries');

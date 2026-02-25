@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { apiUrl } from '../lib/api';
+import { apiUrl, authenticatedFetch } from '../lib/api';
 import { ArrowLeft, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import '../App.css';
 
@@ -19,7 +19,7 @@ export default function AdminArticlesList() {
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
-    fetch(apiUrl('/api/articles'), { headers: { Authorization: `Bearer ${token}` } })
+    authenticatedFetch(apiUrl('/api/articles'), {}, token)
       .then((r) => r.json())
       .then((data) => {
         if (!cancelled && Array.isArray(data)) setList(data.map((a: Article) => ({ id: a.id, title: a.title })));
@@ -41,7 +41,7 @@ export default function AdminArticlesList() {
   async function handleDelete(id: number) {
     if (!confirm('Delete this article? This cannot be undone.')) return;
     try {
-      const res = await fetch(apiUrl(`/api/articles/${id}`), { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      const res = await authenticatedFetch(apiUrl(`/api/articles/${id}`), { method: 'DELETE' }, token);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Failed to delete');

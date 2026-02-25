@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { apiUrl } from '../lib/api';
+import { apiUrl, authenticatedFetch } from '../lib/api';
 import { ArrowLeft, Download } from 'lucide-react';
 import '../App.css';
 
@@ -27,9 +27,7 @@ export default function AdminNewsletterSignups() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(apiUrl('/api/newsletter-signups'), {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await authenticatedFetch(apiUrl('/api/newsletter-signups'), {}, token);
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           if (!cancelled) setError(data.error || 'Failed to load signups');
@@ -70,7 +68,7 @@ export default function AdminNewsletterSignups() {
     link.href = url;
     link.setAttribute('download', 'newsletter-signups.csv');
     document.body.appendChild(link);
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    authenticatedFetch(url, {}, token)
       .then((res) => res.text())
       .then((csv) => {
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });

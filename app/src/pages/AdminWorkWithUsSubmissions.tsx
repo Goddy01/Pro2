@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { apiUrl } from '../lib/api';
+import { apiUrl, authenticatedFetch } from '../lib/api';
 import { ArrowLeft } from 'lucide-react';
 import '../App.css';
 
@@ -28,9 +28,7 @@ export default function AdminWorkWithUsSubmissions() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(apiUrl('/api/work-with-us'), {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await authenticatedFetch(apiUrl('/api/work-with-us'), {}, token);
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           if (!cancelled) setError(data.error || 'Failed to load submissions');

@@ -1,7 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { apiUrl } from '../lib/api';
+import { apiUrl, authenticatedFetch } from '../lib/api';
 import { ArrowLeft, Plus, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import '../App.css';
 
@@ -53,7 +53,7 @@ export default function AdminSponsorship() {
   function fetchData() {
     if (!token) return;
     setError('');
-    fetch(apiUrl('/api/sponsorship/admin/tiers'), { headers: { Authorization: `Bearer ${token}` } })
+    authenticatedFetch(apiUrl('/api/sponsorship/admin/tiers'), {}, token)
       .then(async (tiersRes) => {
         if (!tiersRes.ok) {
           const msg = (await tiersRes.json().catch(() => ({})) as { error?: string }).error || tiersRes.statusText;
@@ -102,11 +102,11 @@ export default function AdminSponsorship() {
       const url = tierId
         ? apiUrl(`/api/sponsorship/admin/tiers/${tierId}`)
         : apiUrl('/api/sponsorship/admin/tiers');
-      const res = await fetch(url, {
+      const res = await authenticatedFetch(url, {
         method: tierId ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-      });
+      }, token);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError((data as { error?: string }).error || 'Failed to save tier');
@@ -119,21 +119,18 @@ export default function AdminSponsorship() {
         const tier = tiers.find((t) => t.id === tierId);
         if (tier) {
           for (const b of tier.benefits) {
-            await fetch(apiUrl(`/api/sponsorship/admin/benefits/${b.id}`), {
-              method: 'DELETE',
-              headers: { Authorization: `Bearer ${token}` },
-            });
+            await authenticatedFetch(apiUrl(`/api/sponsorship/admin/benefits/${b.id}`), { method: 'DELETE' }, token);
           }
         }
       }
 
       if (savedId && benefitTexts.length > 0) {
         for (const text of benefitTexts) {
-          await fetch(apiUrl(`/api/sponsorship/admin/tiers/${savedId}/benefits`), {
+          await authenticatedFetch(apiUrl(`/api/sponsorship/admin/tiers/${savedId}/benefits`), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ benefit_text: text }),
-          });
+          }, token);
         }
       }
 
@@ -154,10 +151,7 @@ export default function AdminSponsorship() {
   async function handleDeleteTier(id: number) {
     if (!confirm('Delete this tier? All its benefits will be removed.')) return;
     try {
-      const res = await fetch(apiUrl(`/api/sponsorship/admin/tiers/${id}`), {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await authenticatedFetch(apiUrl(`/api/sponsorship/admin/tiers/${id}`), { method: 'DELETE' }, token);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError((data as { error?: string }).error || 'Failed to delete');
@@ -175,11 +169,11 @@ export default function AdminSponsorship() {
     if (!newBenefitTierId || !formBenefitText.trim()) return;
     clearMessages();
     try {
-      const res = await fetch(apiUrl(`/api/sponsorship/admin/tiers/${newBenefitTierId}/benefits`), {
+      const res = await authenticatedFetch(apiUrl(`/api/sponsorship/admin/tiers/${newBenefitTierId}/benefits`), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ benefit_text: formBenefitText.trim() }),
-      });
+      }, token);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError((data as { error?: string }).error || 'Failed to add benefit');
@@ -199,11 +193,11 @@ export default function AdminSponsorship() {
     if (!editingBenefitId || !formBenefitText.trim()) return;
     clearMessages();
     try {
-      const res = await fetch(apiUrl(`/api/sponsorship/admin/benefits/${editingBenefitId}`), {
+      const res = await authenticatedFetch(apiUrl(`/api/sponsorship/admin/benefits/${editingBenefitId}`), {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ benefit_text: formBenefitText.trim() }),
-      });
+      }, token);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError((data as { error?: string }).error || 'Failed to update benefit');
@@ -221,10 +215,7 @@ export default function AdminSponsorship() {
   async function handleDeleteBenefit(id: number) {
     if (!confirm('Remove this benefit?')) return;
     try {
-      const res = await fetch(apiUrl(`/api/sponsorship/admin/benefits/${id}`), {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await authenticatedFetch(apiUrl(`/api/sponsorship/admin/benefits/${id}`), { method: 'DELETE' }, token);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError((data as { error?: string }).error || 'Failed to delete');

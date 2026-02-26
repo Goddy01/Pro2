@@ -20,7 +20,7 @@ function IconTikTok({ className }: { className?: string }) {
   );
 }
 
-const SOCIAL_LINKS = [
+const FALLBACK_SOCIAL_LINKS = [
   { href: 'https://x.com/sidelinesport1', icon: IconXLogo, label: 'X' },
   { href: 'https://www.instagram.com/sidelinesport1', icon: Instagram, label: 'Instagram' },
   { href: 'https://www.tiktok.com/@sidelinesports?_r=1&_t=ZP-93rbPS1Y3Be', icon: IconTikTok, label: 'TikTok' },
@@ -57,10 +57,13 @@ const navItems = [
   { label: 'Events', to: '/events' },
 ];
 
+type SocialLink = { href: string; icon: React.ComponentType<{ className?: string }>; label: string };
+
 export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [marqueeItems, setMarqueeItems] = useState<{ title: string; source: string }[]>([]);
   const [marqueeReady, setMarqueeReady] = useState(false);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>(FALLBACK_SOCIAL_LINKS);
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupCell, setSignupCell] = useState('');
@@ -76,6 +79,20 @@ export default function Layout() {
     return items.slice(0, 10);
   })();
   const marqueeLoopItems = [...marqueeDisplayItems, ...marqueeDisplayItems];
+
+  useEffect(() => {
+    fetch(apiUrl('/api/social-links'))
+      .then((r) => r.json())
+      .then((data: { x?: string | null; instagram?: string | null; tiktok?: string | null; youtube?: string | null }) => {
+        const links: SocialLink[] = [];
+        if (data.x) links.push({ href: data.x, icon: IconXLogo, label: 'X' });
+        if (data.instagram) links.push({ href: data.instagram, icon: Instagram, label: 'Instagram' });
+        if (data.tiktok) links.push({ href: data.tiktok, icon: IconTikTok, label: 'TikTok' });
+        if (data.youtube) links.push({ href: data.youtube, icon: Youtube, label: 'YouTube' });
+        if (links.length > 0) setSocialLinks(links);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -299,7 +316,7 @@ export default function Layout() {
                 Original reporting, in-depth analysis, and compelling storytelling, built for fans who want more than the box score.
               </p>
               <div className="flex items-center gap-4">
-                {SOCIAL_LINKS.map((social, i) => (
+                {socialLinks.map((social, i) => (
                   <a key={i} href={social.href} target="_blank" rel="noopener noreferrer" className="w-10 h-10 border border-offwhite/20 flex items-center justify-center text-offwhite/50 hover:text-lime hover:border-lime transition-all" aria-label={social.label}>
                     <social.icon className="w-4 h-4" />
                   </a>

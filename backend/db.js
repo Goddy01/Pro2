@@ -176,6 +176,28 @@ export async function initDb() {
       ALTER TABLE sponsorship_banner ADD COLUMN IF NOT EXISTS sort_order INT DEFAULT 0;
     `);
     await client.query(`
+      CREATE TABLE IF NOT EXISTS site_social_links (
+        id SERIAL PRIMARY KEY,
+        x_url TEXT,
+        instagram_url TEXT,
+        tiktok_url TEXT,
+        youtube_url TEXT,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+    const { rows: socialCount } = await client.query('SELECT COUNT(*) AS c FROM site_social_links');
+    if (Number(socialCount[0]?.c) === 0) {
+      await client.query(`
+        INSERT INTO site_social_links (x_url, instagram_url, tiktok_url, youtube_url)
+        VALUES (
+          'https://x.com/sidelinesport1',
+          'https://www.instagram.com/sidelinesport1',
+          'https://www.tiktok.com/@sidelinesports?_r=1&_t=ZP-93rbPS1Y3Be',
+          'https://www.youtube.com/@sidelinesports3840?si=E5TmSrVYn-l-qBWh'
+        )
+      `);
+    }
+    await client.query(`
       ALTER TABLE podcast_episodes ADD COLUMN IF NOT EXISTS show_name VARCHAR(200);
       ALTER TABLE watch_videos ADD COLUMN IF NOT EXISTS show_name VARCHAR(200);
       ALTER TABLE gallery_images ADD COLUMN IF NOT EXISTS category_id INT REFERENCES gallery_categories(id) ON DELETE SET NULL;

@@ -23,6 +23,7 @@ import AdminGalleryList from './pages/AdminGalleryList';
 import AdminPodcastList from './pages/AdminPodcastList';
 import AdminWatchList from './pages/AdminWatchList';
 import AdminTeamList from './pages/AdminTeamList';
+import AdminSocialLinks from './pages/AdminSocialLinks';
 import WorkWithUs from './pages/WorkWithUs';
 import ListenWatch from './pages/ListenWatch';
 import Sponsorship from './pages/Sponsorship';
@@ -84,6 +85,7 @@ function App() {
           <Route path="admin/show" element={<AdminPodcastList />} />
           <Route path="admin/watch" element={<AdminWatchList />} />
           <Route path="admin/team" element={<AdminTeamList />} />
+          <Route path="admin/social-links" element={<AdminSocialLinks />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

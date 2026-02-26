@@ -398,8 +398,7 @@ export default function Home() {
 
             <p className="hero-subheadline body-large text-offwhite/70 max-w-2xl mx-auto mb-10">
               Original reporting, in-depth analysis, and compelling storytelling, built for fans 
-              who want more than the box score. From Philadelphia to Chicago, Washington DC, and 
-              Houston, we bring you closer to the games, the players, and the moments that matter.
+              who want more than the box score. Across national media, we bring you closer to the games, the players, and the moments that matter.
             </p>
 
             <div className="hero-cta-group flex flex-col items-center gap-4 mb-12">

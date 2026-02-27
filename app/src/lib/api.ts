@@ -25,7 +25,7 @@ export function notifySessionExpired(): void {
 }
 
 /**
- * Fetch with optional auth token. On 401 response, dispatches session-expired and returns the response.
+ * Fetch with optional auth token. On 401 response, dispatches session-expired and returns the response..
  * Use this for all admin API calls so expired tokens trigger automatic logout and redirect to login.
  */
 export async function authenticatedFetch(

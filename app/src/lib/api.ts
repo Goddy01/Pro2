@@ -35,7 +35,18 @@ export async function authenticatedFetch(
 ): Promise<Response> {
   const headers = new Headers(init.headers);
   if (token) headers.set('Authorization', `Bearer ${token}`);
-  const res = await fetch(input, { ...init, headers });
-  if (res.status === 401) notifySessionExpired();
-  return res;
+  try {
+    const res = await fetch(input, { ...init, headers });
+    if (res.status === 401) notifySessionExpired();
+    return res;
+  } catch (err) {
+    const url =
+      typeof input === 'string'
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : '';
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(url ? `Network error contacting ${url}: ${msg}` : `Network error contacting API: ${msg}`);
+  }
 }

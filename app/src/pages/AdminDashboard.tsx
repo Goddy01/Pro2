@@ -188,8 +188,9 @@ export default function AdminDashboard() {
       setEditingArticleId(null);
       if (imageInputRef.current) imageInputRef.current.value = '';
       refetchLists();
-    } catch {
-      setError('Could not connect to server');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Could not connect to server';
+      setError(msg.includes('Failed to fetch') ? `${msg} (often CORS/mixed-content/adblock)` : msg);
     } finally {
       setLoading(false);
     }

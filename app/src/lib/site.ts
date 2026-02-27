@@ -29,10 +29,10 @@ export const SEO_KEYWORDS = [
 ].join(', ');
 
 /** Default OG/Twitter image path (relative); full URL built with SITE_URL */
-export const SEO_DEFAULT_OG_IMAGE = '/og-image.png';
+export const SEO_DEFAULT_OG_IMAGE = '/media/favicon-logo.jpg';
 
-/** Fallback image if og-image.png is missing */
-export const SEO_FALLBACK_OG_IMAGE = '/logo-180.png';
+/** Fallback image if default OG image is missing */
+export const SEO_FALLBACK_OG_IMAGE = '/media/favicon-logo.jpg';
 
 /** Build Organization + WebSite JSON-LD for rich results and knowledge panel */
 export function getDefaultStructuredData(): object[] {
@@ -43,7 +43,7 @@ export function getDefaultStructuredData(): object[] {
       '@id': `${SITE_URL}/#organization`,
       name: SITE_NAME,
       url: SITE_URL,
-      logo: `${SITE_URL}/logo-180.png`,
+      logo: `${SITE_URL}/media/favicon-logo.jpg`,
       description: SEO_DEFAULT_DESCRIPTION,
       sameAs: [
         'https://x.com/sidelinesport1',

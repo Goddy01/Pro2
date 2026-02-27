@@ -22,10 +22,10 @@ export const SEO_KEYWORDS = [
   'NFL coverage',
   'NBA analysis',
   'sports podcast',
-  'sideline sports',
-  'sports news',
-  'sports reporting',
-  'entertainment news',
+  'sideline sports and entertainment',
+  'sideline sports and entertainment news',
+  'sideline sports and entertainment reporting',
+  'sideline sports and entertainment entertainment news',
 ].join(', ');
 
 /** Default OG/Twitter image path (relative); full URL built with SITE_URL */

@@ -1,10 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import SponsorshipBanner from './components/SponsorshipBanner';
 import { Zap, Menu, X, Youtube, Instagram } from 'lucide-react';
 import { apiUrl } from './lib/api';
 import { getDefaultStructuredData } from './lib/site';
+
+const DATA_SEO_DEFAULT_LD = 'data-seo-default-ld';
 
 function IconXLogo({ className }: { className?: string }) {
   return (
@@ -187,19 +188,20 @@ export default function Layout() {
     }
   }
 
-  const defaultJsonLd = getDefaultStructuredData();
+  useEffect(() => {
+    const head = document.head;
+    if (head.querySelector(`[${DATA_SEO_DEFAULT_LD}]`)) return;
+    getDefaultStructuredData().forEach((script) => {
+      const el = document.createElement('script');
+      el.type = 'application/ld+json';
+      el.setAttribute(DATA_SEO_DEFAULT_LD, '');
+      el.textContent = JSON.stringify(script);
+      head.appendChild(el);
+    });
+  }, []);
 
   return (
     <div className="relative">
-      <Helmet>
-        {defaultJsonLd.map((script, i) => (
-          <script
-            key={i}
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(script) }}
-          />
-        ))}
-      </Helmet>
       <nav className="fixed top-0 left-0 right-0 z-50 bg-forest/95 backdrop-blur-md border-b border-offwhite/5">
         <div className="px-6 lg:px-12 py-4 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-3">

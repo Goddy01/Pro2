@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async';
+import { useEffect } from 'react';
 import {
   SITE_URL,
   SITE_NAME,
@@ -6,6 +6,9 @@ import {
   SEO_KEYWORDS,
   SEO_DEFAULT_OG_IMAGE,
 } from '../lib/site';
+
+const DATA_SEO = 'data-seo';
+const DATA_SEO_LD = 'data-seo-ld';
 
 export type SEOProps = {
   /** Page title (e.g. "Stories | Sideline Sports & Entertainment") */
@@ -44,6 +47,37 @@ function imageUrl(image: string | undefined): string {
   return absoluteUrl(image.startsWith('/') ? image : `/${image}`);
 }
 
+function setMeta(
+  head: HTMLHeadElement,
+  attr: 'name' | 'property',
+  key: string,
+  content: string,
+) {
+  const el = head.querySelector(`meta[${attr}="${key}"][${DATA_SEO}]`) as HTMLMetaElement | null;
+  if (el) {
+    el.setAttribute('content', content);
+  } else {
+    const meta = document.createElement('meta');
+    meta.setAttribute(attr, key);
+    meta.setAttribute('content', content);
+    meta.setAttribute(DATA_SEO, '');
+    head.appendChild(meta);
+  }
+}
+
+function setLink(head: HTMLHeadElement, rel: string, href: string) {
+  const el = head.querySelector(`link[rel="${rel}"][${DATA_SEO}]`) as HTMLLinkElement | null;
+  if (el) {
+    el.setAttribute('href', href);
+  } else {
+    const link = document.createElement('link');
+    link.setAttribute('rel', rel);
+    link.setAttribute('href', href);
+    link.setAttribute(DATA_SEO, '');
+    head.appendChild(link);
+  }
+}
+
 export function SEO({
   title,
   description = SEO_DEFAULT_DESCRIPTION,
@@ -62,54 +96,76 @@ export function SEO({
   const ogImage = imageUrl(image);
 
   const scripts: object[] = Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : [];
+  const scriptsKey = scripts.length ? JSON.stringify(scripts) : '';
 
-  return (
-    <Helmet>
-      <title>{fullTitle}</title>
-      <meta name="description" content={description} />
-      <meta name="keywords" content={SEO_KEYWORDS} />
-      {noindex ? (
-        <meta name="robots" content="noindex, nofollow" />
-      ) : (
-        <link rel="canonical" href={canonical} />
-      )}
+  useEffect(() => {
+    const head = document.head;
+    head.querySelectorAll(`[${DATA_SEO}]`).forEach((n) => n.remove());
+    head.querySelectorAll(`[${DATA_SEO_LD}]`).forEach((n) => n.remove());
 
-      {/* Open Graph */}
-      <meta property="og:type" content={ogType} />
-      <meta property="og:url" content={canonical} />
-      <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
-      <meta property="og:image" content={ogImage} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <meta property="og:site_name" content={SITE_NAME} />
-      <meta property="og:locale" content="en_US" />
-      {ogType === 'article' && (
-        <>
-          {articlePublishedTime && <meta property="article:published_time" content={articlePublishedTime} />}
-          {articleModifiedTime && <meta property="article:modified_time" content={articleModifiedTime} />}
-          {articleAuthor && <meta property="article:author" content={articleAuthor} />}
-          {articleSection && <meta property="article:section" content={articleSection} />}
-        </>
-      )}
+    document.title = fullTitle;
 
-      {/* Twitter Card */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:url" content={canonical} />
-      <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={ogImage} />
+    setMeta(head, 'name', 'description', description);
+    setMeta(head, 'name', 'keywords', SEO_KEYWORDS);
 
-      {/* JSON-LD */}
-      {scripts.map((script, i) => (
-        <script
-          key={i}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(script) }}
-        />
-      ))}
-    </Helmet>
-  );
+    if (noindex) {
+      setMeta(head, 'name', 'robots', 'noindex, nofollow');
+    } else {
+      setLink(head, 'canonical', canonical);
+    }
+
+    setMeta(head, 'property', 'og:type', ogType);
+    setMeta(head, 'property', 'og:url', canonical);
+    setMeta(head, 'property', 'og:title', fullTitle);
+    setMeta(head, 'property', 'og:description', description);
+    setMeta(head, 'property', 'og:image', ogImage);
+    setMeta(head, 'property', 'og:image:width', '1200');
+    setMeta(head, 'property', 'og:image:height', '630');
+    setMeta(head, 'property', 'og:site_name', SITE_NAME);
+    setMeta(head, 'property', 'og:locale', 'en_US');
+
+    if (ogType === 'article') {
+      if (articlePublishedTime) setMeta(head, 'property', 'article:published_time', articlePublishedTime);
+      if (articleModifiedTime) setMeta(head, 'property', 'article:modified_time', articleModifiedTime);
+      if (articleAuthor) setMeta(head, 'property', 'article:author', articleAuthor);
+      if (articleSection) setMeta(head, 'property', 'article:section', articleSection);
+    }
+
+    setMeta(head, 'name', 'twitter:card', 'summary_large_image');
+    setMeta(head, 'name', 'twitter:url', canonical);
+    setMeta(head, 'name', 'twitter:title', fullTitle);
+    setMeta(head, 'name', 'twitter:description', description);
+    setMeta(head, 'name', 'twitter:image', ogImage);
+
+    const ldContainer = document.createDocumentFragment();
+    scripts.forEach((script) => {
+      const el = document.createElement('script');
+      el.type = 'application/ld+json';
+      el.setAttribute(DATA_SEO_LD, '');
+      el.textContent = JSON.stringify(script);
+      ldContainer.appendChild(el);
+    });
+    head.appendChild(ldContainer);
+
+    return () => {
+      head.querySelectorAll(`[${DATA_SEO}]`).forEach((n) => n.remove());
+      head.querySelectorAll(`[${DATA_SEO_LD}]`).forEach((n) => n.remove());
+    };
+  }, [
+    fullTitle,
+    description,
+    canonical,
+    noindex,
+    ogType,
+    ogImage,
+    articlePublishedTime,
+    articleModifiedTime,
+    articleAuthor,
+    articleSection,
+    scriptsKey,
+  ]);
+
+  return null;
 }
 
 export default SEO;

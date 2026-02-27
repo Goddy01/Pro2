@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Trophy, Award, Medal, Star, Check, ChevronDown, X } from 'lucide-react';
 import { apiUrl } from '../lib/api';
+import SEO from '../components/SEO';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -139,6 +140,11 @@ export default function Sponsorship() {
 
   return (
     <div ref={mainRef} className="relative">
+      <SEO
+        title="Sponsorship"
+        description="Partner with Sideline Sports & Entertainment. Sponsorship tiers and opportunities for brands and advertisers."
+        canonicalPath="/sponsorship"
+      />
       <section className="section-premium py-24">
         <div className="w-full px-6 lg:px-12 max-w-6xl mx-auto">
           <div className="reveal-section text-center mb-16">

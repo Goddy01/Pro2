@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ExternalLink, Youtube, ArrowRight } from 'lucide-react';
+import SEO from '../components/SEO';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -105,6 +106,11 @@ export default function Coverage() {
 
   return (
     <div ref={mainRef} className="relative">
+      <SEO
+        title="Coverage"
+        description="Video coverage and highlights from Sideline Sports & Entertainment. Press conferences, interviews, and event coverage."
+        canonicalPath="/coverage"
+      />
       <section className="section-premium py-24">
         <div className="w-full px-6 lg:px-12 max-w-7xl mx-auto">
           <div className="reveal-section mb-16 text-center">

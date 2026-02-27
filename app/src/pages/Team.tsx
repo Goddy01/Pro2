@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Instagram, Youtube } from 'lucide-react';
 import { apiUrl } from '../lib/api';
+import SEO from '../components/SEO';
 import './../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -170,6 +171,11 @@ export default function Team() {
 
   return (
     <div ref={mainRef} className="relative">
+      <SEO
+        title="Team"
+        description="Meet the Sideline Sports & Entertainment team. Journalists, hosts, and creators behind our sports and entertainment coverage."
+        canonicalPath="/team"
+      />
       <section className="section-premium py-24">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section mb-16 text-center">

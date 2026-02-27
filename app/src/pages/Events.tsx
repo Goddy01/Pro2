@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiUrl } from '../lib/api';
+import SEO from '../components/SEO';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -96,6 +97,11 @@ export default function Events() {
 
   return (
     <div ref={mainRef} className="relative">
+      <SEO
+        title="Events"
+        description="Event galleries and coverage from Sideline Sports & Entertainment. Browse past and upcoming events."
+        canonicalPath="/events"
+      />
       <section className="section-premium py-24">
         <div className="w-full px-6 lg:px-12 max-w-7xl mx-auto">
           <div className="reveal-section mb-16 text-center">

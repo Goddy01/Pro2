@@ -1,6 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { sanitizeName, sanitizePhone, sanitizeEmail, sanitizeIntroduction, MAX_INTRO } from '../lib/sanitize';
 import { apiUrl } from '../lib/api';
+import SEO from '../components/SEO';
 import '../App.css';
 
 const inputClass =
@@ -156,6 +157,11 @@ export default function WorkWithUs() {
 
   return (
     <div className="section-premium px-6">
+      <SEO
+        title="Work With Us"
+        description="Join Sideline Sports & Entertainment. Careers and opportunities in sports media and entertainment."
+        canonicalPath="/work-with-us"
+      />
       <div className="max-w-2xl mx-auto py-12 mt-4">
         <h1 className="text-lime font-editorial font-black text-3xl md:text-4xl italic mb-2">
           Work with us

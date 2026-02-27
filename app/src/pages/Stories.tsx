@@ -5,6 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Clock, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import { encodeArticleId } from '../lib/articleId';
+import SEO from '../components/SEO';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -121,6 +122,11 @@ export default function Stories() {
 
   return (
     <div ref={mainRef} className="relative">
+      <SEO
+        title="Articles"
+        description="Read the latest sports and entertainment articles, analysis, and features from Sideline Sports & Entertainment."
+        canonicalPath="/stories"
+      />
       <section className="section-light-premium py-24">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section mb-12">

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import { encodeArticleId } from '../lib/articleId';
+import SEO from '../components/SEO';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -377,6 +378,11 @@ export default function Home() {
 
   return (
     <div ref={mainRef} className="relative">
+      <SEO
+        title="Home"
+        description="Sideline Sports & Entertainment — original reporting, in-depth analysis, and compelling storytelling. Sports and entertainment journalism reimagined."
+        canonicalPath="/"
+      />
       {/* Section 1: Hero. */}
       <section className="section-premium min-h-screen flex items-center relative overflow-hidden">
         <div

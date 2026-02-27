@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Headphones, Video, Search } from 'lucide-react';
 import { apiUrl } from '../lib/api';
+import SEO from '../components/SEO';
 import '../App.css';
 
 const DEFAULT_SHOW_NAME = 'Sideline Sports';
@@ -98,6 +99,11 @@ export default function ListenWatch() {
 
   return (
     <div className="relative">
+      <SEO
+        title="Listen & Watch"
+        description="Stream Sideline Sports podcasts and watch video content. Browse episodes and shows in one place."
+        canonicalPath="/listen-watch"
+      />
       <section className="section-premium py-24">
         <div className="w-full px-6 lg:px-12">
           <div className="text-center mb-16">

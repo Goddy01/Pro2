@@ -3,6 +3,9 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Clock, User, Share2 } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import { decodeArticleId } from '../lib/articleId';
+import { encodeArticleId } from '../lib/articleId';
+import { SITE_URL } from '../lib/site';
+import SEO from '../components/SEO';
 import '../App.css';
 
 type Article = {
@@ -42,6 +45,11 @@ function readingTimeMinutes(html: string) {
   const text = (html || '').replace(/<[^>]*>/g, '');
   const words = text.trim().split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 200));
+}
+
+function articleExcerpt(html: string, maxLen = 160) {
+  const text = (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return text.length <= maxLen ? text : text.slice(0, maxLen) + '…';
 }
 
 export default function StoryDetail() {
@@ -143,9 +151,36 @@ export default function StoryDetail() {
   }
 
   const readMins = readingTimeMinutes(article.content);
+  const slug = idHash || (article.id != null ? encodeArticleId(article.id) : '');
+  const canonicalPath = slug ? `/stories/${slug}` : '/stories';
+  const articleUrl = slug ? `${SITE_URL}/stories/${slug}` : SITE_URL + '/stories';
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: articleExcerpt(article.content, 160),
+    image: article.image || undefined,
+    datePublished: article.created_at,
+    dateModified: article.created_at,
+    author: { '@type': 'Person', name: article.author },
+    publisher: { '@type': 'Organization', name: 'Sideline Sports & Entertainment', logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo-180.png` } },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': articleUrl },
+  };
 
   return (
     <div className="min-h-screen bg-forest">
+      <SEO
+        title={article.title}
+        description={articleExcerpt(article.content, 160)}
+        canonicalPath={canonicalPath}
+        image={article.image || undefined}
+        ogType="article"
+        articlePublishedTime={article.created_at}
+        articleModifiedTime={article.created_at}
+        articleAuthor={article.author}
+        articleSection={article.category || undefined}
+        jsonLd={articleJsonLd}
+      />
       <article className="max-w-5xl lg:max-w-6xl mx-auto px-6 py-8 lg:py-10">
         <Link
           to="/stories"

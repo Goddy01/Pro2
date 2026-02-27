@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { apiUrl } from '../lib/api';
+import SEO from '../components/SEO';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -100,8 +101,16 @@ export default function EventGallery() {
   const imagesToShow = showAll ? images : images.slice(0, INITIAL_IMAGE_COUNT);
   const hasMore = images.length > INITIAL_IMAGE_COUNT;
 
+  const description = event.description?.trim() || `Event gallery: ${event.title}. Photos and coverage from Sideline Sports & Entertainment.`;
+
   return (
     <div ref={mainRef} className="relative">
+      <SEO
+        title={event.title}
+        description={description}
+        canonicalPath={`/coverage/event/${event.id}`}
+        image={event.images?.[0]}
+      />
       <section className="section-premium py-24">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section mb-10">

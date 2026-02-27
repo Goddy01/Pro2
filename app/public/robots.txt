@@ -1,0 +1,11 @@
+# Sideline Sports & Entertainment - robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap (update base URL when deploying to a different domain)
+Sitemap: https://sideline-se.com/sitemap.xml
+
+# Disallow admin and auth from indexing
+Disallow: /superuser
+Disallow: /admin
+Disallow: /admin/

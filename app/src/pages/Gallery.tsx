@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiUrl } from '../lib/api';
+import SEO from '../components/SEO';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -148,6 +149,11 @@ export default function Gallery() {
   if (!isCategoryView) {
     return (
       <div ref={mainRef} className="relative">
+        <SEO
+          title="Media Gallery"
+          description="Browse photos and media from Sideline Sports & Entertainment events, games, and coverage."
+          canonicalPath="/gallery"
+        />
         <section className="section-premium py-24">
           <div className="w-full px-6 lg:px-12">
             <div className="reveal-section text-center mb-16">
@@ -239,6 +245,11 @@ export default function Gallery() {
 
   return (
     <div ref={mainRef} className="relative">
+      <SEO
+        title={isAllView ? 'All Photos' : (categories.find((c) => c.slug === categorySlug)?.name ?? 'Gallery')}
+        description={isAllView ? 'All event photos and media from Sideline Sports & Entertainment.' : `Photos and media: ${categories.find((c) => c.slug === categorySlug)?.name ?? categorySlug}.`}
+        canonicalPath={categorySlug ? `/gallery/${categorySlug}` : '/gallery'}
+      />
       <section className="section-premium py-24">
         <div className="w-full px-6 lg:px-12">
           <div className="reveal-section mb-8">

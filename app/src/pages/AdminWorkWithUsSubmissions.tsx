@@ -113,8 +113,8 @@ export default function AdminWorkWithUsSubmissions() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-forest px-4 sm:px-6 py-8 sm:py-12">
-      <div className="w-full max-w-6xl mx-auto">
+    <div className="min-h-screen w-full min-w-0 overflow-x-hidden bg-forest px-4 sm:px-6 py-8 sm:py-12">
+      <div className="w-full max-w-6xl min-w-0 mx-auto">
         <div className="flex items-center justify-between mb-8">
           <Link to="/admin" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
             <ArrowLeft className="w-4 h-4" />
@@ -155,7 +155,7 @@ export default function AdminWorkWithUsSubmissions() {
               {paginatedSubmissions.map((s) => (
                 <article
                   key={s.id}
-                  className={`border rounded text-offwhite p-4 sm:p-5 ${
+                  className={`border rounded text-offwhite p-4 sm:p-5 min-w-0 overflow-hidden ${
                     s.read_at
                       ? 'border-offwhite/15 bg-offwhite/5 opacity-90'
                       : 'border-lime/40 bg-offwhite/10'
@@ -204,9 +204,9 @@ export default function AdminWorkWithUsSubmissions() {
                       <a href={`tel:${s.phone}`} className="text-offwhite hover:underline break-all">{s.phone}</a>
                     </div>
                   </dl>
-                  <div className="mt-4 pt-4 border-t border-offwhite/10">
+                  <div className="mt-4 pt-4 border-t border-offwhite/10 min-w-0">
                     <span className="text-offwhite/50 text-sm block mb-1">Introduction</span>
-                    <p className="text-offwhite whitespace-pre-wrap">{s.introduction}</p>
+                    <p className="text-offwhite whitespace-pre-wrap break-words">{s.introduction}</p>
                   </div>
                 </article>
               ))}

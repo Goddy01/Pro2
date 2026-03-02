@@ -108,8 +108,17 @@ export default function AdminDashboard() {
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [galleryCategoryDropdownOpen, setGalleryCategoryDropdownOpen] = useState(false);
+  const [workWithUsUnreadCount, setWorkWithUsUnreadCount] = useState(0);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const galleryCategoryDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!token) return;
+    authenticatedFetch(apiUrl('/api/work-with-us/unread-count'), {}, token)
+      .then((r) => r.ok ? r.json() : { count: 0 })
+      .then((d) => setWorkWithUsUnreadCount(typeof d?.count === 'number' ? d.count : 0))
+      .catch(() => {});
+  }, [token]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -742,8 +751,13 @@ export default function AdminDashboard() {
           </Link>
           {/* Desktop: single-line nav bar */}
           <nav className="hidden md:flex items-center flex-nowrap gap-1 p-1 rounded-md border border-offwhite/20 bg-offwhite/5">
-            <Link to="/admin/work-with-us-submissions" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="View Work with us submissions">
+            <Link to="/admin/work-with-us-submissions" className="relative inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="View Work with us submissions">
               Work with us
+              {workWithUsUnreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-lime text-forest text-xs font-bold px-1" aria-label={`${workWithUsUnreadCount} unread`}>
+                  {workWithUsUnreadCount > 99 ? '99+' : workWithUsUnreadCount}
+                </span>
+              )}
             </Link>
             <Link to="/admin/newsletter-signups" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="View newsletter signups">
               Newsletter
@@ -779,8 +793,13 @@ export default function AdminDashboard() {
         {adminMenuOpen && (
           <div className="md:hidden mb-6 py-4 px-4 border border-offwhite/20 bg-offwhite/5 rounded">
             <nav className="flex flex-col gap-3">
-              <Link to="/admin/work-with-us-submissions" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
+              <Link to="/admin/work-with-us-submissions" className="relative inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
                 View Work with us submissions
+                {workWithUsUnreadCount > 0 && (
+                  <span className="ml-1 min-w-[20px] h-5 flex items-center justify-center rounded-full bg-lime text-forest text-xs font-bold px-1.5" aria-label={`${workWithUsUnreadCount} unread`}>
+                    {workWithUsUnreadCount > 99 ? '99+' : workWithUsUnreadCount}
+                  </span>
+                )}
               </Link>
               <Link to="/admin/newsletter-signups" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
                 View newsletter signups

@@ -4,15 +4,62 @@ import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
+// Admin: unread count for notification badge (auth required)
+router.get('/unread-count', authMiddleware, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      'SELECT COUNT(*) AS count FROM work_with_us WHERE read_at IS NULL'
+    );
+    res.json({ count: parseInt(rows[0]?.count ?? '0', 10) });
+  } catch (err) {
+    console.error('work-with-us unread-count error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Admin: list all submissions (auth required)
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const { rows } = await db.query(
-      'SELECT id, name, phone, email, introduction, created_at FROM work_with_us ORDER BY created_at DESC'
+      'SELECT id, name, phone, email, introduction, created_at, read_at FROM work_with_us ORDER BY created_at DESC'
     );
     res.json(rows);
   } catch (err) {
     console.error('work-with-us list error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin: delete one submission (auth required)
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+    const { rowCount } = await db.query('DELETE FROM work_with_us WHERE id = $1', [id]);
+    if (rowCount === 0) return res.status(404).json({ error: 'Submission not found' });
+    res.status(204).send();
+  } catch (err) {
+    console.error('work-with-us delete error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin: mark submission read or unread (auth required)
+router.patch('/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+    const read = req.body && req.body.read === true;
+    const { rows } = await db.query(
+      read
+        ? 'UPDATE work_with_us SET read_at = NOW() WHERE id = $1 RETURNING id, read_at'
+        : 'UPDATE work_with_us SET read_at = NULL WHERE id = $1 RETURNING id, read_at',
+      [id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Submission not found' });
+    res.json({ id: rows[0].id, read_at: rows[0].read_at });
+  } catch (err) {
+    console.error('work-with-us patch error:', err);
     res.status(500).json({ error: err.message });
   }
 });

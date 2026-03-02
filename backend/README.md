@@ -54,8 +54,11 @@ Express API for admin authentication and article publishing.
 
 ### Work with us
 
-- `GET /api/work-with-us` – **Protected.** List all submissions.
+- `GET /api/work-with-us/unread-count` – **Protected.** Returns `{ count }` (number of submissions with `read_at` null). Used for notification badge.
+- `GET /api/work-with-us` – **Protected.** List all submissions (includes `read_at`).
 - `POST /api/work-with-us` – Public. Submits a “Work with us” application. Body: `{ name, phone, email, introduction }`. Stored in PostgreSQL. Rate limited by IP (5 per 15 min). Returns `201 { ok: true }` or `4xx` with `{ error }`.
+- `PATCH /api/work-with-us/:id` – **Protected.** Body `{ read: true }` or `{ read: false }` to mark submission read/unread. Returns `{ id, read_at }`.
+- `DELETE /api/work-with-us/:id` – **Protected.** Remove a submission. Returns `204`.
 
 ### Newsletter signups
 
@@ -70,4 +73,4 @@ Express API for admin authentication and article publishing.
 - An admin user is created on **first run only** using `ADMIN_USERNAME` and `ADMIN_PASSWORD`. After that, the stored credentials are fixed. If you get "Invalid credentials" on Railway, the admin was likely created with different env vars (or defaults) when the app first started.
 - **Reset admin password:** set `ADMIN_RESET_PASSWORD` to the new password in your env, redeploy/restart, then **remove** `ADMIN_RESET_PASSWORD` from env. The next startup will set the existing admin’s password to that value (for the admin matching `ADMIN_USERNAME`, or the first admin).
 - **Multiple admins:** Any logged-in admin can create more admins from the dashboard (“Add another admin”). Multiple admins can be logged in at the same time (different browsers/devices). `POST /api/auth/admins` (auth required) creates a new admin with body `{ username, password }`.
-- **work_with_us** – Table stores name, phone, email, introduction, created_at for “Work with us” form submissions.
+- **work_with_us** – Table stores name, phone, email, introduction, created_at, read_at (nullable; null = unread) for “Work with us” form submissions.

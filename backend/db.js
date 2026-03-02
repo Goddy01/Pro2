@@ -50,6 +50,7 @@ export async function initDb() {
         introduction TEXT NOT NULL,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      ALTER TABLE work_with_us ADD COLUMN IF NOT EXISTS read_at TIMESTAMPTZ;
 
       CREATE TABLE IF NOT EXISTS gallery_categories (
         id SERIAL PRIMARY KEY,

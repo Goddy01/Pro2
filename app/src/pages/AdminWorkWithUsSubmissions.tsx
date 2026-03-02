@@ -113,8 +113,8 @@ export default function AdminWorkWithUsSubmissions() {
   }
 
   return (
-    <div className="min-h-screen bg-forest px-4 sm:px-6 py-8 sm:py-12">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen w-full bg-forest px-4 sm:px-6 py-8 sm:py-12">
+      <div className="w-full max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <Link to="/admin" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
             <ArrowLeft className="w-4 h-4" />

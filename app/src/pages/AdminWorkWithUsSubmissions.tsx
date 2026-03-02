@@ -113,7 +113,7 @@ export default function AdminWorkWithUsSubmissions() {
   }
 
   return (
-    <div className="min-h-screen bg-forest px-6 py-12">
+    <div className="min-h-screen bg-forest px-4 sm:px-6 py-8 sm:py-12">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <Link to="/admin" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
@@ -133,14 +133,14 @@ export default function AdminWorkWithUsSubmissions() {
           <p className="text-offwhite/60">No submissions yet.</p>
         ) : (
           <>
-            <div className="flex flex-wrap items-center gap-4 mb-6">
-              <span className="text-offwhite/60 text-sm">Filter:</span>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-6">
+              <span className="text-offwhite/60 text-sm">Filter</span>
               {(['all', 'unread', 'read'] as const).map((f) => (
                 <button
                   key={f}
                   type="button"
                   onClick={() => { setFilter(f); setPage(1); }}
-                  className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors w-fit ${
                     filter === f
                       ? 'bg-lime text-forest'
                       : 'bg-offwhite/10 text-offwhite/80 hover:bg-offwhite/20'
@@ -155,26 +155,28 @@ export default function AdminWorkWithUsSubmissions() {
               {paginatedSubmissions.map((s) => (
                 <article
                   key={s.id}
-                  className={`border rounded text-offwhite p-5 ${
+                  className={`border rounded text-offwhite p-4 sm:p-5 ${
                     s.read_at
                       ? 'border-offwhite/15 bg-offwhite/5 opacity-90'
                       : 'border-lime/40 bg-offwhite/10'
                   }`}
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                    <div className="flex items-start gap-2 min-w-0">
                       {!s.read_at && (
-                        <span className="w-2 h-2 rounded-full bg-lime shrink-0" title="Unread" aria-hidden />
+                        <span className="w-2 h-2 rounded-full bg-lime shrink-0 mt-2" title="Unread" aria-hidden />
                       )}
-                      <h2 className="text-lg font-semibold text-lime">{s.name}</h2>
+                      <div className="min-w-0">
+                        <h2 className="text-lg font-semibold text-lime leading-snug break-words">{s.name}</h2>
+                        <time className="text-offwhite/50 text-sm mt-1 block">{formatDate(s.created_at)}</time>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <time className="text-offwhite/50 text-sm">{formatDate(s.created_at)}</time>
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
                       <button
                         type="button"
                         onClick={() => handleToggleRead(s.id, !!s.read_at)}
                         disabled={actionLoadingId === s.id}
-                        className="p-2 text-offwhite/60 hover:text-lime transition-colors rounded"
+                        className="p-2 text-offwhite/60 hover:text-lime transition-colors rounded border border-offwhite/15 hover:border-lime/50 disabled:opacity-50"
                         title={s.read_at ? 'Mark as unread' : 'Mark as read'}
                         aria-label={s.read_at ? 'Mark as unread' : 'Mark as read'}
                       >
@@ -184,7 +186,7 @@ export default function AdminWorkWithUsSubmissions() {
                         type="button"
                         onClick={() => handleDelete(s.id)}
                         disabled={actionLoadingId === s.id}
-                        className="p-2 text-offwhite/60 hover:text-red-400 transition-colors rounded"
+                        className="p-2 text-offwhite/60 hover:text-red-400 transition-colors rounded border border-offwhite/15 hover:border-red-400/40 disabled:opacity-50"
                         title="Remove submission"
                         aria-label="Remove submission"
                       >
@@ -192,17 +194,17 @@ export default function AdminWorkWithUsSubmissions() {
                       </button>
                     </div>
                   </div>
-                  <dl className="grid gap-1 text-sm">
-                    <div>
-                      <span className="text-offwhite/50">Email: </span>
-                      <a href={`mailto:${s.email}`} className="text-lime hover:underline">{s.email}</a>
+                  <dl className="text-sm space-y-2">
+                    <div className="flex flex-wrap gap-x-2 gap-y-1">
+                      <span className="text-offwhite/50">Email</span>
+                      <a href={`mailto:${s.email}`} className="text-lime hover:underline break-all">{s.email}</a>
                     </div>
-                    <div>
-                      <span className="text-offwhite/50">Phone: </span>
-                      <a href={`tel:${s.phone}`} className="text-offwhite hover:underline">{s.phone}</a>
+                    <div className="flex flex-wrap gap-x-2 gap-y-1">
+                      <span className="text-offwhite/50">Phone</span>
+                      <a href={`tel:${s.phone}`} className="text-offwhite hover:underline break-all">{s.phone}</a>
                     </div>
                   </dl>
-                  <div className="mt-3 pt-3 border-t border-offwhite/10">
+                  <div className="mt-4 pt-4 border-t border-offwhite/10">
                     <span className="text-offwhite/50 text-sm block mb-1">Introduction</span>
                     <p className="text-offwhite whitespace-pre-wrap">{s.introduction}</p>
                   </div>

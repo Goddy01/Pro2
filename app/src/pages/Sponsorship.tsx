@@ -1,65 +1,27 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Trophy, Award, Medal, Star, Check, ChevronDown, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import SEO from '../components/SEO';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const ICON_BY_SLUG: Record<string, typeof Trophy> = {
-  platinum: Trophy,
-  gold: Award,
-  silver: Medal,
-  bronze: Star,
-};
-
-function formatPrice(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
-}
-
 const inputClass =
   'w-full px-4 py-3 bg-forest/50 border border-offwhite/20 text-offwhite placeholder:text-offwhite/40 focus:outline-none focus:border-lime rounded transition-colors';
 const labelClass = 'text-offwhite text-sm font-medium mb-2 block';
 
-type TierFromApi = { id: number; slug: string; name: string; price: number; tagline: string; accent: string; features: string[] };
-
 export default function Sponsorship() {
   const mainRef = useRef<HTMLDivElement>(null);
-  const [packages, setPackages] = useState<TierFromApi[]>([]);
-  const [packagesLoading, setPackagesLoading] = useState(true);
   const [name, setName] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [tier, setTier] = useState('');
   const [message, setMessage] = useState('');
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [submitError, setSubmitError] = useState('');
   const [formOpen, setFormOpen] = useState(false);
-  const [tierDropdownOpen, setTierDropdownOpen] = useState(false);
-  const tierDropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (tierDropdownRef.current && !tierDropdownRef.current.contains(e.target as Node)) {
-        setTierDropdownOpen(false);
-      }
-    }
-    if (tierDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [tierDropdownOpen]);
-
-  useEffect(() => {
-    fetch(apiUrl('/api/sponsorship/tiers'))
-      .then((r) => r.json())
-      .then((d) => (Array.isArray(d) ? setPackages(d) : []))
-      .catch(() => setPackages([]))
-      .finally(() => setPackagesLoading(false));
-  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -75,24 +37,6 @@ export default function Sponsorship() {
             scrollTrigger: {
               trigger: section,
               start: 'top 85%',
-              toggleActions: 'play none none reverse',
-            },
-          }
-        );
-      });
-      gsap.utils.toArray<HTMLElement>('.sponsor-card').forEach((card, i) => {
-        gsap.fromTo(
-          card,
-          { y: 60, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.7,
-            delay: i * 0.08,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: card,
-              start: 'top 90%',
               toggleActions: 'play none none reverse',
             },
           }
@@ -115,7 +59,6 @@ export default function Sponsorship() {
           business_name: businessName.trim(),
           email: email.trim().toLowerCase(),
           phone: phone.trim(),
-          tier: tier || undefined,
           message: message.trim() || undefined,
         }),
       });
@@ -130,7 +73,6 @@ export default function Sponsorship() {
       setBusinessName('');
       setEmail('');
       setPhone('');
-      setTier('');
       setMessage('');
     } catch {
       setSubmitError('Could not connect. Please try again.');
@@ -142,7 +84,7 @@ export default function Sponsorship() {
     <div ref={mainRef} className="relative">
       <SEO
         title="Sponsorship"
-        description="Partner with Sideline Sports & Entertainment. Sponsorship tiers and opportunities for brands and advertisers."
+        description="Custom sponsorship packages tailored to your brand's goals, audience, and activation needs. Contact us for a custom proposal."
         canonicalPath="/sponsorship"
       />
       <section className="section-premium py-24">
@@ -150,68 +92,25 @@ export default function Sponsorship() {
           <div className="reveal-section text-center mb-16">
             <span className="label-mono text-lime mb-4 block">Sponsorship</span>
             <h1 className="headline-section text-offwhite text-4xl lg:text-5xl mb-4">
-              Sideline Sports Sponsorship Packages
+              Custom Sponsorship Packages Available
             </h1>
+            <p className="body-large text-offwhite/80 max-w-2xl mx-auto mb-4">
+              Tailored to your brand's goals, audience, and activation needs.
+            </p>
             <p className="body-large text-offwhite/60 max-w-2xl mx-auto mb-6">
-              Partner with Sideline Sports and connect your brand with a passionate, sports-driven audience. Our sponsorship tiers are designed to maximize visibility, engagement, and brand recognition across every episode and live event.
+              Contact us for a custom proposal.
             </p>
             <div className="h-px w-24 mx-auto bg-offwhite/20" aria-hidden />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 mb-20">
-            {packagesLoading ? (
-              <p className="text-offwhite/60 col-span-full text-center py-12">Loading tiers…</p>
-            ) : packages.length === 0 ? (
-              <p className="text-offwhite/60 col-span-full text-center py-12">No sponsorship tiers yet. Add them in the admin.</p>
-            ) : (
-            packages.map((pkg) => {
-              const Icon = ICON_BY_SLUG[pkg.slug] ?? Star;
-              return (
-                <article
-                  key={pkg.id}
-                  className="sponsor-card group relative overflow-hidden flex flex-col rounded-sm border border-offwhite/15 bg-gradient-to-b from-offwhite/5 to-transparent shadow-lg hover:shadow-xl hover:border-offwhite/25 transition-all duration-300"
-                >
-                  <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${pkg.accent}`} />
-                  <div className="p-6 lg:p-8 flex flex-col flex-1">
-                    <div className="flex items-start justify-between gap-4 mb-5">
-                      <span className="flex items-center justify-center w-14 h-14 rounded-xl bg-offwhite/10 text-lime group-hover:bg-lime/20 transition-colors shrink-0">
-                        <Icon className="w-7 h-7" />
-                      </span>
-                      <p className="text-2xl lg:text-3xl font-display font-bold text-lime tracking-tight">
-                        {formatPrice(pkg.price)}
-                      </p>
-                    </div>
-                    <h2 className="headline-article text-offwhite text-xl lg:text-2xl mb-1">
-                      {pkg.name}
-                    </h2>
-                    <ul className="space-y-3 mb-5 flex-1">
-                      {pkg.features.map((feature, i) => (
-                        <li key={i} className="flex gap-3 text-offwhite/85 text-sm lg:text-base">
-                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-lime/20 text-lime shrink-0 mt-0.5">
-                            <Check className="w-3 h-3" strokeWidth={3} />
-                          </span>
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <p className="text-offwhite/50 text-sm italic border-t border-offwhite/10 pt-4 mt-auto">
-                      {pkg.tagline}
-                    </p>
-                  </div>
-                </article>
-              );
-            })
-            )}
-          </div>
-
           <div className="reveal-section max-w-xl mx-auto">
             <h2 className="headline-section text-offwhite text-2xl lg:text-3xl mb-2 text-center">
-              Partner with us
+              Get in touch
             </h2>
             <p className="text-offwhite/60 text-sm text-center mb-8">
               {formOpen
-                ? "We'll get back to you to discuss your sponsorship."
-                : 'Ready to get started? Fill out the form and we’ll be in touch.'}
+                ? "We'll get back to you with a custom proposal."
+                : "Tell us about your goals and we'll put together a tailored package."}
             </p>
 
             {!formOpen ? (
@@ -222,7 +121,7 @@ export default function Sponsorship() {
                   className="bg-lime text-forest font-display font-bold uppercase tracking-[0.2em] py-4 px-8 rounded-none border-0 transition-colors hover:bg-lime/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-2 focus-visible:ring-offset-forest"
                   style={{ textShadow: '0 0 20px rgba(255,255,255,0.3)' }}
                 >
-                  Fill the form
+                  Contact us for a custom proposal
                 </button>
               </div>
             ) : (
@@ -294,77 +193,6 @@ export default function Sponsorship() {
                   required
                   maxLength={30}
                 />
-              </label>
-              <label className="block">
-                <span className={labelClass}>Sponsorship tier *</span>
-                <div ref={tierDropdownRef} className="relative">
-                  <input type="hidden" name="tier" value={tier} required />
-                  <button
-                    type="button"
-                    onClick={() => setTierDropdownOpen((o) => !o)}
-                    className={`${inputClass} flex items-center justify-between gap-3 text-left cursor-pointer`}
-                    aria-haspopup="listbox"
-                    aria-expanded={tierDropdownOpen}
-                  >
-                    {tier ? (
-                      (() => {
-                        const pkg = packages.find((p) => p.slug === tier);
-                        if (!pkg) return <span>Select a tier</span>;
-                        const Icon = ICON_BY_SLUG[pkg.slug] ?? Star;
-                        return (
-                          <span className="flex items-center gap-3">
-                            <span className={`flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-r ${pkg.accent} text-lime shrink-0`}>
-                              <Icon className="w-4 h-4" />
-                            </span>
-                            <span>
-                              <span className="font-medium">{pkg.name}</span>
-                              <span className="text-offwhite/60 ml-2">{formatPrice(pkg.price)}</span>
-                            </span>
-                          </span>
-                        );
-                      })()
-                    ) : (
-                      <span className="text-offwhite/40">Select a tier</span>
-                    )}
-                    <ChevronDown className={`w-5 h-5 shrink-0 text-offwhite/60 transition-transform ${tierDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {tierDropdownOpen && (
-                    <ul
-                      className="absolute z-10 left-0 right-0 mt-1 py-1 rounded border border-offwhite/20 bg-forest shadow-xl shadow-black/30 max-h-[280px] overflow-y-auto"
-                      role="listbox"
-                    >
-                      {packages.map((p) => {
-                        const Icon = ICON_BY_SLUG[p.slug] ?? Star;
-                        const selected = tier === p.slug;
-                        return (
-                          <li
-                            key={p.id}
-                            role="option"
-                            aria-selected={selected}
-                            onClick={() => {
-                              setTier(p.slug);
-                              setTierDropdownOpen(false);
-                            }}
-                            className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors border-l-2 border-transparent ${
-                              selected
-                                ? 'bg-lime/15 border-lime text-lime'
-                                : 'hover:bg-offwhite/10 text-offwhite border-offwhite/10 hover:border-offwhite/30'
-                            }`}
-                          >
-                            <span className={`flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-r ${p.accent} text-lime shrink-0`}>
-                              <Icon className="w-5 h-5" />
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate">{p.name}</p>
-                              <p className="text-offwhite/60 text-sm">{formatPrice(p.price)}</p>
-                            </div>
-                            {selected && <Check className="w-4 h-4 shrink-0 text-lime" strokeWidth={3} />}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </div>
               </label>
               <label className="block">
                 <span className={labelClass}>Message (optional)</span>

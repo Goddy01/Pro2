@@ -36,20 +36,36 @@ router.post('/', async (req, res) => {
     const email = typeof body.email === 'string' ? body.email.trim().slice(0, MAX_EMAIL).toLowerCase() : '';
     const phone = typeof body.phone === 'string' ? body.phone.trim().slice(0, MAX_PHONE) : '';
     const tier = typeof body.tier === 'string' ? body.tier.trim().toLowerCase() : '';
-    const message = typeof body.message === 'string' ? body.message.trim().slice(0, MAX_MESSAGE) : null;
+    // Strip any HTML/script from message and enforce max length
+    const rawMessage = typeof body.message === 'string' ? body.message.slice(0, MAX_MESSAGE) : '';
+    const message = rawMessage
+      ? rawMessage
+          .replace(/<[^>]*>/g, '')
+          .replace(/javascript:/gi, '')
+          .replace(/data:/gi, '')
+          .trim()
+      : null;
 
     if (!name || name.length < 2) return res.status(400).json({ error: 'Name must be at least 2 characters' });
     if (!businessName || businessName.length < 2) return res.status(400).json({ error: 'Business name is required' });
     const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
     if (!email || !emailRegex.test(email)) return res.status(400).json({ error: 'Valid email required' });
     if (!phone || phone.replace(/\D/g, '').length < 10) return res.status(400).json({ error: 'Valid phone number required' });
-    const { rows: validTiers } = await db.query('SELECT slug FROM sponsorship_tiers');
-    const validSlugs = validTiers.map((t) => t.slug);
-    if (!validSlugs.includes(tier)) return res.status(400).json({ error: 'Please select a valid sponsorship tier' });
+
+    // Tier is now optional: only validate if provided, otherwise store null
+    let normalizedTier = null;
+    if (tier) {
+      const { rows: validTiers } = await db.query('SELECT slug FROM sponsorship_tiers');
+      const validSlugs = validTiers.map((t) => t.slug);
+      if (!validSlugs.includes(tier)) {
+        return res.status(400).json({ error: 'Please select a valid sponsorship tier' });
+      }
+      normalizedTier = tier;
+    }
 
     await db.query(
       'INSERT INTO sponsorship_inquiries (name, business_name, email, phone, tier, message) VALUES ($1, $2, $3, $4, $5, $6)',
-      [name, businessName, email, phone, tier, message || null]
+      [name, businessName, email, phone, normalizedTier, message || null]
     );
 
     res.status(201).json({ ok: true });

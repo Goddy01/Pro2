@@ -137,10 +137,16 @@ export async function initDb() {
         business_name VARCHAR(300) NOT NULL,
         email VARCHAR(254) NOT NULL,
         phone VARCHAR(30) NOT NULL,
-        tier VARCHAR(50) NOT NULL,
+        tier VARCHAR(50),
         message TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'sponsorship_inquiries' AND column_name = 'tier' AND is_nullable = 'NO') THEN
+          ALTER TABLE sponsorship_inquiries ALTER COLUMN tier DROP NOT NULL;
+        END IF;
+      END $$;
 
       CREATE TABLE IF NOT EXISTS sponsorship_tiers (
         id SERIAL PRIMARY KEY,

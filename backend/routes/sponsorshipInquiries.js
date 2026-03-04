@@ -75,4 +75,18 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Admin: delete one inquiry (auth required)
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+    const { rowCount } = await db.query('DELETE FROM sponsorship_inquiries WHERE id = $1', [id]);
+    if (rowCount === 0) return res.status(404).json({ error: 'Inquiry not found' });
+    res.status(204).send();
+  } catch (err) {
+    console.error('sponsorship-inquiry delete error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

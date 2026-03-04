@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl, authenticatedFetch } from '../lib/api';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import '../App.css';
 
 type Inquiry = {
@@ -11,7 +11,7 @@ type Inquiry = {
   business_name: string;
   email: string;
   phone: string;
-  tier: string;
+  tier: string | null;
   message: string | null;
   created_at: string;
 };
@@ -31,6 +31,7 @@ export default function AdminSponsorshipInquiries() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -71,6 +72,24 @@ export default function AdminSponsorshipInquiries() {
   const start = (page - 1) * PER_PAGE;
   const paginated = inquiries.slice(start, start + PER_PAGE);
 
+  async function handleDelete(id: number) {
+    if (!token || !window.confirm('Delete this inquiry? This cannot be undone.')) return;
+    setDeletingId(id);
+    setError('');
+    try {
+      const res = await authenticatedFetch(apiUrl(`/api/sponsorship-inquiries/${id}`), { method: 'DELETE' }, token);
+      if (res.ok) setInquiries((prev) => prev.filter((i) => i.id !== id));
+      else {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || 'Failed to delete');
+      }
+    } catch {
+      setError('Could not connect to server');
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-forest px-6 py-12">
       <div className="max-w-4xl mx-auto">
@@ -96,13 +115,27 @@ export default function AdminSponsorshipInquiries() {
               {paginated.map((s) => (
                 <article
                   key={s.id}
-                  className="border border-offwhite/20 bg-offwhite/5 p-5 rounded text-offwhite"
+                  className="border border-offwhite/20 bg-offwhite/5 p-5 rounded text-offwhite relative"
                 >
                   <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
                     <h2 className="text-lg font-semibold text-lime">{s.business_name}</h2>
-                    <span className="px-2 py-0.5 bg-lime/20 text-lime text-sm font-medium rounded">
-                      {TIER_LABELS[s.tier] ?? s.tier}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {s.tier != null && s.tier !== '' && (
+                        <span className="px-2 py-0.5 bg-lime/20 text-lime text-sm font-medium rounded">
+                          {TIER_LABELS[s.tier] ?? s.tier}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(s.id)}
+                        disabled={deletingId === s.id}
+                        className="p-2 text-offwhite/60 hover:text-red-400 transition-colors rounded disabled:opacity-50"
+                        title="Delete inquiry"
+                        aria-label="Delete inquiry"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                   <time className="text-offwhite/50 text-sm block mb-3">{formatDate(s.created_at)}</time>
                   <dl className="grid gap-1 text-sm">

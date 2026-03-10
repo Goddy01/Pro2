@@ -71,7 +71,7 @@ export default function Sponsorship() {
         }
       })
       .catch(() => {
-        // silently ignore – page still works without questions
+        // silently ignore – page still works without questions.
       });
     return () => {
       cancelled = true;

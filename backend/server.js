@@ -48,7 +48,7 @@ app.use(express.json({ limit: '50kb' }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Root and /health for Railway (and other platforms) that probe for liveness
+// Root and /health for Railway (and other platforms) that probe for liveness.
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });

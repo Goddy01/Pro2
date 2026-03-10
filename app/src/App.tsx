@@ -16,6 +16,8 @@ import AdminWorkWithUsSubmissions from './pages/AdminWorkWithUsSubmissions';
 import AdminNewsletterSignups from './pages/AdminNewsletterSignups';
 import AdminSponsorshipInquiries from './pages/AdminSponsorshipInquiries';
 import AdminSponsorship from './pages/AdminSponsorship';
+import AdminSponsorshipDiscoveryQuestions from './pages/AdminSponsorshipDiscoveryQuestions';
+import AdminSponsorshipDiscoverySubmissions from './pages/AdminSponsorshipDiscoverySubmissions';
 import AdminSponsorshipBanners from './pages/AdminSponsorshipBanners';
 import AdminArticlesList from './pages/AdminArticlesList';
 import AdminEventsList from './pages/AdminEventsList';
@@ -78,6 +80,8 @@ function App() {
           <Route path="admin/newsletter-signups" element={<AdminNewsletterSignups />} />
           <Route path="admin/sponsorship-inquiries" element={<AdminSponsorshipInquiries />} />
           <Route path="admin/sponsorship" element={<AdminSponsorship />} />
+          <Route path="admin/sponsorship-discovery-questions" element={<AdminSponsorshipDiscoveryQuestions />} />
+          <Route path="admin/sponsorship-discovery-submissions" element={<AdminSponsorshipDiscoverySubmissions />} />
           <Route path="admin/sponsorship-banners" element={<AdminSponsorshipBanners />} />
           <Route path="admin/articles" element={<AdminArticlesList />} />
           <Route path="admin/events" element={<AdminEventsList />} />

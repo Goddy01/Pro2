@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type FormEvent } from 'react';
+import { useState, useRef, useEffect, useCallback, type FormEvent } from 'react';
 import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl, authenticatedFetch } from '../lib/api';
@@ -109,15 +109,32 @@ export default function AdminDashboard() {
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [galleryCategoryDropdownOpen, setGalleryCategoryDropdownOpen] = useState(false);
   const [workWithUsUnreadCount, setWorkWithUsUnreadCount] = useState(0);
+  const [discoveryNeedsFollowupCount, setDiscoveryNeedsFollowupCount] = useState(0);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const galleryCategoryDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!token) return;
-    authenticatedFetch(apiUrl('/api/work-with-us/unread-count'), {}, token)
-      .then((r) => r.ok ? r.json() : { count: 0 })
-      .then((d) => setWorkWithUsUnreadCount(typeof d?.count === 'number' ? d.count : 0))
-      .catch(() => {});
+    let cancelled = false;
+    Promise.all([
+      authenticatedFetch(apiUrl('/api/work-with-us/unread-count'), {}, token)
+        .then((r) => (r.ok ? r.json() : { count: 0 }))
+        .catch(() => ({ count: 0 })),
+      authenticatedFetch(apiUrl('/api/sponsorship-discovery-submissions/admin/needs-followup-count'), {}, token)
+        .then((r) => (r.ok ? r.json() : { count: 0 }))
+        .catch(() => ({ count: 0 })),
+    ])
+      .then(([wwu, discovery]) => {
+        if (cancelled) return;
+        setWorkWithUsUnreadCount(typeof wwu?.count === 'number' ? wwu.count : 0);
+        setDiscoveryNeedsFollowupCount(typeof discovery?.count === 'number' ? discovery.count : 0);
+      })
+      .catch(() => {
+        // ignore badge errors
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [token]);
 
   useEffect(() => {
@@ -137,19 +154,18 @@ export default function AdminDashboard() {
     { value: 'Video', label: 'Video' },
   ] as const;
 
-  if (!isAuthenticated) return <Navigate to="/superuser" replace />;
-
-  function refetchLists() {
+  const refetchLists = useCallback(() => {
     if (!token) return;
     Promise.all([
       fetch(apiUrl('/api/gallery')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setGalleryList(d.map((g: { id: number; src: string; caption?: string; category_id?: number | null }) => ({ id: g.id, src: g.src, caption: g.caption ?? null, category_id: g.category_id ?? null }))) : null)),
       fetch(apiUrl('/api/gallery/categories')).then((r) => r.json()).then((d) => (Array.isArray(d) ? setGalleryCategoriesList(d.map((c: { id: number; name: string; slug: string; coverImageUrl?: string | null }) => ({ id: c.id, name: c.name, slug: c.slug, coverImageUrl: c.coverImageUrl ?? null }))) : null)),
     ]);
-  }
+  }, [token]);
 
   useEffect(() => {
-    if (token) refetchLists();
-  }, [token]);
+    if (!token) return;
+    refetchLists();
+  }, [token, refetchLists]);
 
   function clearMessages() {
     setError('');
@@ -205,7 +221,7 @@ export default function AdminDashboard() {
     }
   }
 
-  async function startEditArticle(id: number) {
+  const startEditArticle = useCallback(async (id: number) => {
     try {
       const res = await authenticatedFetch(apiUrl(`/api/articles/${id}`), {}, token);
       const data = await res.json();
@@ -218,9 +234,9 @@ export default function AdminDashboard() {
     } catch {
       setError('Could not load article');
     }
-  }
+  }, [token]);
 
-  function startEditGallery(id: number) {
+  const startEditGallery = useCallback((id: number) => {
     const item = galleryList.find((g) => g.id === id);
     if (item) {
       setGalleryCaption(item.caption || '');
@@ -228,9 +244,9 @@ export default function AdminDashboard() {
       setGalleryImages([]);
       setEditingGalleryId(id);
     }
-  }
+  }, [galleryList]);
 
-  async function startEditGalleryCategory(id: number) {
+  const startEditGalleryCategory = useCallback(async (id: number) => {
     try {
       const res = await authenticatedFetch(apiUrl(`/api/gallery/categories/${id}`), {}, token);
       const data = await res.json();
@@ -242,7 +258,7 @@ export default function AdminDashboard() {
     } catch {
       setError('Could not load category');
     }
-  }
+  }, [token]);
 
   async function handleGalleryCategorySubmit(e: FormEvent) {
     e.preventDefault();
@@ -279,7 +295,7 @@ export default function AdminDashboard() {
     }
   }
 
-  async function startEditEvent(slug: string) {
+  const startEditEvent = useCallback(async (slug: string) => {
     try {
       const res = await authenticatedFetch(apiUrl(`/api/events/${slug}`), {}, token);
       const data = await res.json();
@@ -291,9 +307,9 @@ export default function AdminDashboard() {
     } catch {
       setError('Could not load event');
     }
-  }
+  }, [token]);
 
-  async function startEditPodcast(id: number) {
+  const startEditPodcast = useCallback(async (id: number) => {
     try {
       const res = await authenticatedFetch(apiUrl(`/api/podcast/${id}`), {}, token);
       const data = await res.json();
@@ -310,9 +326,9 @@ export default function AdminDashboard() {
     } catch {
       setError('Could not load episode');
     }
-  }
+  }, [token]);
 
-  async function startEditWatch(id: number) {
+  const startEditWatch = useCallback(async (id: number) => {
     try {
       const res = await authenticatedFetch(apiUrl(`/api/watch/${id}`), {}, token);
       const data = await res.json();
@@ -325,7 +341,7 @@ export default function AdminDashboard() {
     } catch {
       setError('Could not load video');
     }
-  }
+  }, [token]);
 
   async function handleGallerySubmit(e: FormEvent) {
     e.preventDefault();
@@ -622,7 +638,7 @@ export default function AdminDashboard() {
     }
   }
 
-  async function startEditTeam(id: number) {
+  const startEditTeam = useCallback(async (id: number) => {
     try {
       const res = await authenticatedFetch(apiUrl(`/api/team/${id}`), {}, token);
       const data = await res.json();
@@ -640,7 +656,7 @@ export default function AdminDashboard() {
     } catch {
       setError('Could not load team member');
     }
-  }
+  }, [token]);
 
   async function handleTeamSubmit(e: FormEvent) {
     e.preventDefault();
@@ -739,7 +755,9 @@ export default function AdminDashboard() {
     if (state.editCategoryId != null && state.openTab === 'gallery') startEditGalleryCategory(state.editCategoryId);
     if (state.editGalleryId != null && state.openTab === 'gallery') startEditGallery(state.editGalleryId);
     navigate(location.pathname, { replace: true, state: {} });
-  }, [location.state]);
+  }, [location.pathname, location.state, navigate, startEditArticle, startEditEvent, startEditGallery, startEditGalleryCategory, startEditPodcast, startEditTeam, startEditWatch]);
+
+  if (!isAuthenticated) return <Navigate to="/superuser" replace />;
 
   return (
     <div className="min-h-screen bg-forest px-6 py-12">
@@ -762,8 +780,20 @@ export default function AdminDashboard() {
             <Link to="/admin/newsletter-signups" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="View newsletter signups">
               Newsletter
             </Link>
-            <Link to="/admin/sponsorship" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="Manage sponsorship tiers &amp; banner">
-              Sponsorship Tiers
+            <Link
+              to="/admin/sponsorship"
+              className="relative inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap"
+              title="Manage sponsorship tiers, discovery questions &amp; banner"
+            >
+              Sponsorship
+              {discoveryNeedsFollowupCount > 0 && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-amber-400 text-forest text-xs font-bold px-1"
+                  aria-label={`${discoveryNeedsFollowupCount} discovery submissions need follow-up`}
+                >
+                  {discoveryNeedsFollowupCount > 99 ? '99+' : discoveryNeedsFollowupCount}
+                </span>
+              )}
             </Link>
             <Link to="/admin/social-links" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="Update site social links">
               Social links
@@ -804,8 +834,20 @@ export default function AdminDashboard() {
               <Link to="/admin/newsletter-signups" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
                 View newsletter signups
               </Link>
-              <Link to="/admin/sponsorship" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
-                Sponsorship Tiers
+              <Link
+                to="/admin/sponsorship"
+                className="relative inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2"
+                onClick={() => setAdminMenuOpen(false)}
+              >
+                Sponsorship
+                {discoveryNeedsFollowupCount > 0 && (
+                  <span
+                    className="ml-1 min-w-[20px] h-5 flex items-center justify-center rounded-full bg-amber-400 text-forest text-xs font-bold px-1.5"
+                    aria-label={`${discoveryNeedsFollowupCount} discovery submissions need follow-up`}
+                  >
+                    {discoveryNeedsFollowupCount > 99 ? '99+' : discoveryNeedsFollowupCount}
+                  </span>
+                )}
               </Link>
               <Link to="/admin/social-links" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
                 Social links

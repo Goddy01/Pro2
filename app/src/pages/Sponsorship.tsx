@@ -12,6 +12,12 @@ const inputClass =
   'w-full px-4 py-3 bg-forest/50 border border-offwhite/20 text-offwhite placeholder:text-offwhite/40 focus:outline-none focus:border-lime rounded transition-colors';
 const labelClass = 'text-offwhite text-sm font-medium mb-2 block';
 
+type DiscoveryQuestion = {
+  id: number;
+  question_text: string;
+  is_required: boolean;
+};
+
 export default function Sponsorship() {
   const mainRef = useRef<HTMLDivElement>(null);
   const [name, setName] = useState('');
@@ -19,6 +25,8 @@ export default function Sponsorship() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
+  const [discoveryQuestions, setDiscoveryQuestions] = useState<DiscoveryQuestion[]>([]);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [submitError, setSubmitError] = useState('');
   const [formOpen, setFormOpen] = useState(false);
@@ -46,12 +54,40 @@ export default function Sponsorship() {
     return () => ctx.revert();
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    fetch(apiUrl('/api/sponsorship-discovery-questions'))
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (cancelled) return;
+        if (Array.isArray(data)) {
+          setDiscoveryQuestions(
+            data.map((q) => ({
+              id: q.id,
+              question_text: q.question_text,
+              is_required: !!q.is_required,
+            }))
+          );
+        }
+      })
+      .catch(() => {
+        // silently ignore – page still works without questions
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSubmitError('');
     setSubmitStatus('loading');
     try {
-      const res = await fetch(apiUrl('/api/sponsorship-inquiries'), {
+      const payloadAnswers = discoveryQuestions.map((q) => ({
+        questionId: q.id,
+        answer: (answers[q.id] ?? '').trim(),
+      }));
+      const res = await fetch(apiUrl('/api/sponsorship-discovery-submissions'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -60,6 +96,7 @@ export default function Sponsorship() {
           email: email.trim().toLowerCase(),
           phone: phone.trim(),
           message: message.trim() || undefined,
+          answers: payloadAnswers,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -74,6 +111,7 @@ export default function Sponsorship() {
       setEmail('');
       setPhone('');
       setMessage('');
+      setAnswers({});
     } catch {
       setSubmitError('Could not connect. Please try again.');
       setSubmitStatus('error');
@@ -206,6 +244,38 @@ export default function Sponsorship() {
                 />
                 <p className="text-offwhite/40 text-xs mt-1">{message.length} / 2000</p>
               </label>
+              {discoveryQuestions.length > 0 && (
+                <div className="pt-2 border-t border-offwhite/10 mt-2 space-y-4">
+                  <h3 className="text-offwhite font-semibold text-lg">Discovery questions</h3>
+                  <p className="text-offwhite/60 text-sm">
+                    Help us understand your goals so we can recommend the right sponsorship opportunities.
+                  </p>
+                  {discoveryQuestions.map((q, idx) => {
+                    const value = answers[q.id] ?? '';
+                    return (
+                      <label key={q.id} className="block">
+                        <span className={labelClass}>
+                          {idx + 1}. {q.question_text} {q.is_required && <span className="text-lime">*</span>}
+                        </span>
+                        <textarea
+                          value={value}
+                          onChange={(e) =>
+                            setAnswers((prev) => ({
+                              ...prev,
+                              [q.id]: e.target.value,
+                            }))
+                          }
+                          className={`${inputClass} min-h-[80px] resize-y`}
+                          placeholder={q.is_required ? 'Required' : 'Optional'}
+                          rows={3}
+                          maxLength={4000}
+                          required={q.is_required}
+                        />
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={submitStatus === 'loading'}

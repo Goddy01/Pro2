@@ -244,18 +244,24 @@ export default function AdminSponsorship() {
             <ArrowLeft className="w-4 h-4" />
             Back to Admin
           </Link>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             <Link to="/admin/sponsorship-inquiries" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
               Sponsorship inquiries
+            </Link>
+            <Link to="/admin/sponsorship-discovery-submissions" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
+              Discovery submissions
+            </Link>
+            <Link to="/admin/sponsorship-discovery-questions" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
+              Discovery questions
             </Link>
             <Link to="/admin/sponsorship-banners" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
               Manage sponsor banners
             </Link>
           </div>
         </div>
-        <h1 className="text-offwhite font-editorial font-bold text-2xl mb-2">Sponsorship Tiers &amp; Banner</h1>
+        <h1 className="text-offwhite font-editorial font-bold text-2xl mb-2">Sponsorship</h1>
         <p className="text-offwhite/60 text-sm mb-8">
-          Manage sponsorship tiers and benefits. Sponsor banners are managed on the banner list page.
+          Manage sponsorship tiers, discovery questions, and sponsor banners.
         </p>
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
         {success && <p className="text-lime text-sm mb-4">{success}</p>}

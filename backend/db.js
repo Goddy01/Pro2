@@ -159,6 +159,30 @@ export async function initDb() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS sponsorship_discovery_questions (
+        id SERIAL PRIMARY KEY,
+        question_text TEXT NOT NULL,
+        position INT NOT NULL DEFAULT 0,
+        is_required BOOLEAN NOT NULL DEFAULT true,
+        is_active BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS sponsorship_discovery_submissions (
+        id SERIAL PRIMARY KEY,
+        sponsor_name VARCHAR(200) NOT NULL,
+        business_name VARCHAR(300) NOT NULL,
+        email VARCHAR(254) NOT NULL,
+        phone VARCHAR(30) NOT NULL,
+        message TEXT,
+        answers JSONB NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        followup_due_at TIMESTAMPTZ NOT NULL,
+        followup_completed_at TIMESTAMPTZ,
+        followup_email_sent_at TIMESTAMPTZ
+      );
+
       CREATE TABLE IF NOT EXISTS sponsorship_benefits (
         id SERIAL PRIMARY KEY,
         tier_id INT NOT NULL REFERENCES sponsorship_tiers(id) ON DELETE CASCADE,

@@ -27,28 +27,12 @@ const PORT = process.env.PORT || 4000;
 
 const app = express();
 
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://sideline-se.com';
-
-app.use(
-  cors({
-    credentials: true,
-    origin: (origin, callback) => {
-      if (!origin) {
-        // Non-browser or same-origin requests
-        return callback(null, true);
-      }
-      if (origin === FRONTEND_ORIGIN || (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production')) {
-        return callback(null, true);
-      }
-      return callback(new Error('Not allowed by CORS'));
-    },
-  })
-);
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '50kb' }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Root and /health for Railway (and other platforms) that probe for liveness.
+// Root and /health for Railway (and other platforms) that probe for liveness
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });

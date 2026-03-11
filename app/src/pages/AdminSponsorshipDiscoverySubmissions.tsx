@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Clock3, RefreshCw } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock3, RefreshCw, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl, authenticatedFetch } from '../lib/api';
 import '../App.css';
@@ -35,6 +35,7 @@ export default function AdminSponsorshipDiscoverySubmissions() {
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<'all' | 'needs-followup' | 'completed'>('all');
   const [savingId, setSavingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -124,6 +125,30 @@ export default function AdminSponsorshipDiscoverySubmissions() {
       setError('Could not connect to server');
     } finally {
       setSavingId(null);
+    }
+  }
+
+  async function deleteSubmission(id: number) {
+    if (!token) return;
+    if (!window.confirm('Delete this submission? This cannot be undone.')) return;
+    setDeletingId(id);
+    setError('');
+    try {
+      const res = await authenticatedFetch(
+        apiUrl(`/api/sponsorship-discovery-submissions/admin/${id}`),
+        { method: 'DELETE' },
+        token
+      );
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError((data as { error?: string }).error || 'Failed to delete submission');
+        return;
+      }
+      setSubmissions((prev) => prev.filter((s) => s.id !== id));
+    } catch {
+      setError('Could not connect to server');
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -285,6 +310,16 @@ export default function AdminSponsorshipDiscoverySubmissions() {
                             </>
                           )}
                         </span>
+                        <button
+                          type="button"
+                          onClick={() => deleteSubmission(s.id)}
+                          disabled={deletingId === s.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border border-offwhite/30 text-offwhite/80 hover:border-red-400 hover:text-red-400 disabled:opacity-50 transition-colors"
+                          title="Delete submission"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          {deletingId === s.id ? 'Deleting…' : 'Delete'}
+                        </button>
                       </div>
                     </div>
 

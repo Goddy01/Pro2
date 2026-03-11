@@ -30,6 +30,7 @@ function getTransporter() {
 export async function sendMail({ subject, text, html, to: toOverride }) {
   const transport = await getTransporter();
   if (!transport) {
+    console.warn('Email skipped (no SMTP transport):', subject || '(no subject)');
     return;
   }
 
@@ -37,7 +38,7 @@ export async function sendMail({ subject, text, html, to: toOverride }) {
   const to = toOverride && toOverride.trim() ? toOverride.trim() : (process.env.EMAIL_TO || from);
 
   if (!from || !to) {
-    console.warn('EMAIL_FROM or EMAIL_TO not set. Skipping email send.');
+    console.warn('Email skipped (missing from/to):', subject || '(no subject)');
     return;
   }
 
@@ -49,8 +50,10 @@ export async function sendMail({ subject, text, html, to: toOverride }) {
       text,
       html,
     });
+    console.info('Email sent:', to === toOverride ? `to submitter ${to}` : 'to site owner', subject?.slice(0, 50));
   } catch (err) {
-    console.error('Error sending email:', err);
+    console.error('Error sending email:', err.message || err);
+    throw err;
   }
 }
 

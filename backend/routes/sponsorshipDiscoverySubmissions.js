@@ -147,14 +147,18 @@ router.post('/', async (req, res) => {
       subject: `New Sponsor Discovery Submission from ${sponsor_name}`,
       text: textLines.join('\n'),
       html: undefined,
-    }).catch(() => {});
+    }).catch((err) => {
+      console.error('Internal notification email failed:', err?.message || err);
+    });
 
     sendMail({
       subject: "We've received your sponsorship inquiry – Sideline Sports & Entertainment",
       text: THANK_YOU_BODY,
       html: undefined,
       to: email,
-    }).catch(() => {});
+    }).catch((err) => {
+      console.error('Thank-you email to submitter failed:', email, err?.message || err);
+    });
 
     res.status(201).json({ ok: true });
   } catch (err) {

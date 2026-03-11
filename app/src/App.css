@@ -186,6 +186,12 @@ img {
   height: 0;
 }
 
+/* Admin dropdowns: readable option list (dark text on light background) */
+.admin-select option {
+  background: #fff;
+  color: #171717;
+}
+
 /* Print styles */
 @media print {
   .section-premium,

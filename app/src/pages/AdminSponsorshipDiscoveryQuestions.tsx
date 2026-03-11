@@ -31,6 +31,8 @@ type Question = {
 const inputClass =
   'w-full px-4 py-3 bg-offwhite/5 border border-offwhite/20 text-offwhite placeholder:text-offwhite/40 focus:outline-none focus:border-lime rounded';
 const labelClass = 'text-offwhite text-sm font-medium mb-2 block';
+/** Ensures dropdown options are readable (dark text on light bg) when list is open */
+const selectOptionContrast = ' [&_option]:bg-white [&_option]:text-gray-900 [&_option]:font-normal';
 
 export default function AdminSponsorshipDiscoveryQuestions() {
   const { token, isAuthenticated } = useAuth();
@@ -334,7 +336,7 @@ export default function AdminSponsorshipDiscoveryQuestions() {
                                     options: value === 'dropdown' ? (q.options && q.options.length ? q.options : ['Option 1']) : null,
                                   });
                                 }}
-                                className="ml-1 mt-0.5 px-2 py-1 bg-offwhite/10 border border-offwhite/20 text-offwhite text-xs rounded"
+                                className={`admin-select ml-1 mt-0.5 px-2 py-1 bg-offwhite/10 border border-offwhite/20 text-offwhite text-xs rounded${selectOptionContrast}`}
                               >
                                 <option value="short_text">Short text</option>
                                 <option value="long_text">Long text</option>
@@ -406,7 +408,7 @@ export default function AdminSponsorshipDiscoveryQuestions() {
                                   );
                                   updateQuestion(q.id, { role: value || null });
                                 }}
-                                className="ml-1 mt-0.5 px-2 py-1 bg-offwhite/10 border border-offwhite/20 text-offwhite text-xs rounded"
+                                className={`admin-select ml-1 mt-0.5 px-2 py-1 bg-offwhite/10 border border-offwhite/20 text-offwhite text-xs rounded${selectOptionContrast}`}
                                 title="Email is used to send the submitter a thank-you and is required for submissions."
                               >
                                 {ROLES.map((r) => (
@@ -493,7 +495,7 @@ export default function AdminSponsorshipDiscoveryQuestions() {
                   <select
                     value={newType}
                     onChange={(e) => setNewType(e.target.value as typeof QUESTION_TYPES[number])}
-                    className={inputClass}
+                    className={`admin-select ${inputClass}${selectOptionContrast}`}
                   >
                     <option value="short_text">Short text</option>
                     <option value="long_text">Long text</option>
@@ -541,7 +543,7 @@ export default function AdminSponsorshipDiscoveryQuestions() {
                   <select
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
-                    className={inputClass}
+                    className={`admin-select ${inputClass}${selectOptionContrast}`}
                   >
                     {ROLES.map((r) => (
                       <option key={r.value || 'none'} value={r.value}>

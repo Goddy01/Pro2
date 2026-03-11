@@ -192,6 +192,12 @@ img {
   color: #171717;
 }
 
+/* Public Sponsorship form dropdown: same for option list readability */
+.sponsorship-form-select option {
+  background: #fff;
+  color: #171717;
+}
+
 /* Print styles */
 @media print {
   .section-premium,

@@ -11,6 +11,9 @@ gsap.registerPlugin(ScrollTrigger);
 const inputClass =
   'w-full px-4 py-3 bg-forest/50 border border-offwhite/20 text-offwhite placeholder:text-offwhite/40 focus:outline-none focus:border-lime rounded transition-colors';
 const labelClass = 'text-offwhite text-sm font-medium mb-2 block';
+/** Dropdown option list: light background + dark text for readability */
+const selectOptionClass =
+  ' sponsorship-form-select [&_option]:bg-white [&_option]:text-gray-900 [&_option]:font-normal';
 
 type DiscoveryQuestion = {
   id: number;
@@ -227,7 +230,7 @@ export default function Sponsorship() {
                         onChange={(e) =>
                           setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
                         }
-                        className={inputClass}
+                        className={inputClass + selectOptionClass}
                         required={q.is_required}
                       >
                         <option value="">Select…</option>

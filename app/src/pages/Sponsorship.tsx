@@ -20,6 +20,7 @@ type DiscoveryQuestion = {
 
 export default function Sponsorship() {
   const mainRef = useRef<HTMLDivElement>(null);
+  const successMessageRef = useRef<HTMLDivElement>(null);
   const [name, setName] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('');
@@ -77,6 +78,12 @@ export default function Sponsorship() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (submitStatus === 'success' && successMessageRef.current) {
+      successMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [submitStatus]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -173,7 +180,12 @@ export default function Sponsorship() {
                   <X className="w-5 h-5" />
                 </button>
             {submitStatus === 'success' && (
-              <div className="mb-6 p-4 rounded bg-lime/20 border border-lime/40 text-lime text-center text-sm">
+              <div
+                ref={successMessageRef}
+                className="mb-6 p-4 rounded bg-green-600/25 border border-green-500/50 text-green-200 text-center text-sm font-medium"
+                role="status"
+                aria-live="polite"
+              >
                 Thanks! We’ve received your inquiry and will be in touch soon.
               </div>
             )}

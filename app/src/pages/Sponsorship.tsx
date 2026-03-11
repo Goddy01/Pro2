@@ -16,16 +16,13 @@ type DiscoveryQuestion = {
   id: number;
   question_text: string;
   is_required: boolean;
+  question_type?: string;
+  options?: string[] | null;
 };
 
 export default function Sponsorship() {
   const mainRef = useRef<HTMLDivElement>(null);
   const successMessageRef = useRef<HTMLDivElement>(null);
-  const [name, setName] = useState('');
-  const [businessName, setBusinessName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [message, setMessage] = useState('');
   const [discoveryQuestions, setDiscoveryQuestions] = useState<DiscoveryQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -67,6 +64,8 @@ export default function Sponsorship() {
               id: q.id,
               question_text: q.question_text,
               is_required: !!q.is_required,
+              question_type: q.question_type || 'short_text',
+              options: Array.isArray(q.options) ? q.options : null,
             }))
           );
         }
@@ -97,14 +96,7 @@ export default function Sponsorship() {
       const res = await fetch(apiUrl('/api/sponsorship-discovery-submissions'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          business_name: businessName.trim(),
-          email: email.trim().toLowerCase(),
-          phone: phone.trim(),
-          message: message.trim() || undefined,
-          answers: payloadAnswers,
-        }),
+        body: JSON.stringify({ answers: payloadAnswers }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -113,11 +105,6 @@ export default function Sponsorship() {
         return;
       }
       setSubmitStatus('success');
-      setName('');
-      setBusinessName('');
-      setEmail('');
-      setPhone('');
-      setMessage('');
       setAnswers({});
     } catch {
       setSubmitError('Could not connect. Please try again.');
@@ -169,6 +156,10 @@ export default function Sponsorship() {
                   Contact us for a custom proposal
                 </button>
               </div>
+            ) : discoveryQuestions.length === 0 ? (
+              <p className="text-offwhite/70 text-center py-8">
+                No questions are configured. Please check back later.
+              </p>
             ) : (
               <div className="relative">
                 <button
@@ -196,98 +187,60 @@ export default function Sponsorship() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5 p-6 lg:p-8 bg-offwhite/5 border border-offwhite/10 rounded-sm">
-              <label className="block">
-                <span className={labelClass}>Your name *</span>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className={inputClass}
-                  placeholder="Full name"
-                  required
-                  maxLength={200}
-                />
-              </label>
-              <label className="block">
-                <span className={labelClass}>Business name *</span>
-                <input
-                  type="text"
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  className={inputClass}
-                  placeholder="Company or brand name"
-                  required
-                  maxLength={300}
-                />
-              </label>
-              <label className="block">
-                <span className={labelClass}>Email *</span>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={inputClass}
-                  placeholder="you@company.com"
-                  required
-                  maxLength={254}
-                />
-              </label>
-              <label className="block">
-                <span className={labelClass}>Phone *</span>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className={inputClass}
-                  placeholder="(555) 123-4567"
-                  required
-                  maxLength={30}
-                />
-              </label>
-              <label className="block">
-                <span className={labelClass}>Message (optional)</span>
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value.slice(0, 2000))}
-                  className={`${inputClass} min-h-[100px] resize-y`}
-                  placeholder="Tell us about your goals or questions..."
-                  rows={4}
-                  maxLength={2000}
-                />
-                <p className="text-offwhite/40 text-xs mt-1">{message.length} / 2000</p>
-              </label>
-              {discoveryQuestions.length > 0 && (
-                <div className="pt-2 border-t border-offwhite/10 mt-2 space-y-4">
-                  <h3 className="text-offwhite font-semibold text-lg">Discovery questions</h3>
-                  <p className="text-offwhite/60 text-sm">
-                    Help us understand your goals so we can recommend the right sponsorship opportunities.
-                  </p>
-                  {discoveryQuestions.map((q, idx) => {
-                    const value = answers[q.id] ?? '';
-                    return (
-                      <label key={q.id} className="block">
-                        <span className={labelClass}>
-                          {idx + 1}. {q.question_text} {q.is_required && <span className="text-lime">*</span>}
-                        </span>
-                        <textarea
-                          value={value}
-                          onChange={(e) =>
-                            setAnswers((prev) => ({
-                              ...prev,
-                              [q.id]: e.target.value,
-                            }))
-                          }
-                          className={`${inputClass} min-h-[80px] resize-y`}
-                          placeholder={q.is_required ? 'Required' : 'Optional'}
-                          rows={3}
-                          maxLength={4000}
-                          required={q.is_required}
-                        />
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
+              {discoveryQuestions.map((q, idx) => {
+                const value = answers[q.id] ?? '';
+                const type = q.question_type || 'short_text';
+                return (
+                  <label key={q.id} className="block">
+                    <span className={labelClass}>
+                      {idx + 1}. {q.question_text} {q.is_required && <span className="text-lime">*</span>}
+                    </span>
+                    {type === 'short_text' && (
+                      <input
+                        type="text"
+                        value={value}
+                        onChange={(e) =>
+                          setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
+                        }
+                        className={inputClass}
+                        placeholder={q.is_required ? 'Required' : 'Optional'}
+                        maxLength={4000}
+                        required={q.is_required}
+                      />
+                    )}
+                    {type === 'long_text' && (
+                      <textarea
+                        value={value}
+                        onChange={(e) =>
+                          setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
+                        }
+                        className={`${inputClass} min-h-[80px] resize-y`}
+                        placeholder={q.is_required ? 'Required' : 'Optional'}
+                        rows={3}
+                        maxLength={4000}
+                        required={q.is_required}
+                      />
+                    )}
+                    {type === 'dropdown' && (
+                      <select
+                        value={value}
+                        onChange={(e) =>
+                          setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
+                        }
+                        className={inputClass}
+                        required={q.is_required}
+                      >
+                        <option value="">Select…</option>
+                        {(Array.isArray(q.options) ? q.options : []).map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </label>
+                );
+              })}
               <button
                 type="submit"
                 disabled={submitStatus === 'loading'}

@@ -222,9 +222,9 @@ export default function AdminSponsorshipDiscoverySubmissions() {
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                       <div className="min-w-0">
                         <h2 className="text-lg font-semibold text-lime leading-snug break-words">
-                          {s.business_name}
+                          {s.business_name || '—'}
                         </h2>
-                        <p className="text-offwhite/80 text-sm mt-1 break-words">{s.sponsor_name}</p>
+                        <p className="text-offwhite/80 text-sm mt-1 break-words">{s.sponsor_name || '—'}</p>
                         <time className="text-offwhite/50 text-xs mt-1 block">
                           Submitted {createdLabel}
                         </time>
@@ -291,25 +291,33 @@ export default function AdminSponsorshipDiscoverySubmissions() {
                     <dl className="text-sm space-y-2 mb-3">
                       <div className="flex flex-wrap gap-x-2 gap-y-1">
                         <span className="text-offwhite/50">Email</span>
-                        <a
-                          href={`mailto:${s.email}`}
-                          className="text-lime hover:underline break-all"
-                        >
-                          {s.email}
-                        </a>
+                        {s.email && s.email !== '—' ? (
+                          <a
+                            href={`mailto:${s.email}`}
+                            className="text-lime hover:underline break-all"
+                          >
+                            {s.email}
+                          </a>
+                        ) : (
+                          <span className="text-offwhite/60">—</span>
+                        )}
                       </div>
                       <div className="flex flex-wrap gap-x-2 gap-y-1">
                         <span className="text-offwhite/50">Phone</span>
-                        <a
-                          href={`tel:${s.phone}`}
-                          className="text-offwhite hover:underline break-all"
-                        >
-                          {s.phone}
-                        </a>
+                        {s.phone && s.phone !== '—' ? (
+                          <a
+                            href={`tel:${s.phone}`}
+                            className="text-offwhite hover:underline break-all"
+                          >
+                            {s.phone}
+                          </a>
+                        ) : (
+                          <span className="text-offwhite/60">—</span>
+                        )}
                       </div>
                     </dl>
 
-                    {s.message && (
+                    {(s.message && s.message !== '—') && (
                       <div className="mt-3 pt-3 border-t border-offwhite/15">
                         <span className="text-offwhite/60 text-sm block mb-1">Message</span>
                         <p className="text-offwhite whitespace-pre-wrap break-words text-sm">

@@ -5,12 +5,19 @@ import { authMiddleware } from '../middleware/auth.js';
 const router = Router();
 
 const MAX_QUESTION_LEN = 2000;
+const MAX_OPTION_LEN = 200;
+const MAX_OPTIONS = 50;
+const QUESTION_TYPES = ['short_text', 'long_text', 'dropdown'];
+const ROLES = ['email', 'name', 'business_name', 'phone', 'message'];
 
 // Public: active questions for sponsorship page
 router.get('/', async (req, res) => {
   try {
     const { rows } = await db.query(
-      'SELECT id, question_text, position, is_required FROM sponsorship_discovery_questions WHERE is_active = true ORDER BY position ASC, id ASC'
+      `SELECT id, question_text, position, is_required, question_type, options, role
+       FROM sponsorship_discovery_questions
+       WHERE is_active = true
+       ORDER BY position ASC, id ASC`
     );
     res.json(rows);
   } catch (err) {
@@ -23,7 +30,9 @@ router.get('/', async (req, res) => {
 router.get('/admin', authMiddleware, async (req, res) => {
   try {
     const { rows } = await db.query(
-      'SELECT id, question_text, position, is_required, is_active, created_at, updated_at FROM sponsorship_discovery_questions ORDER BY position ASC, id ASC'
+      `SELECT id, question_text, position, is_required, is_active, question_type, options, role, created_at, updated_at
+       FROM sponsorship_discovery_questions
+       ORDER BY position ASC, id ASC`
     );
     res.json(rows);
   } catch (err) {
@@ -31,6 +40,29 @@ router.get('/admin', authMiddleware, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+function normalizeQuestionType(v) {
+  if (typeof v !== 'string') return 'short_text';
+  const t = v.trim().toLowerCase();
+  return QUESTION_TYPES.includes(t) ? t : 'short_text';
+}
+
+function normalizeRole(v) {
+  if (v == null || v === '') return null;
+  const r = typeof v === 'string' ? v.trim().toLowerCase() : '';
+  return ROLES.includes(r) ? r : null;
+}
+
+function normalizeOptions(questionType, bodyOptions) {
+  if (questionType !== 'dropdown') return null;
+  if (!Array.isArray(bodyOptions)) return null;
+  const opts = bodyOptions
+    .filter((o) => typeof o === 'string')
+    .map((o) => o.trim().slice(0, MAX_OPTION_LEN))
+    .filter(Boolean)
+    .slice(0, MAX_OPTIONS);
+  return opts.length ? opts : null;
+}
 
 // Admin: create
 router.post('/admin', authMiddleware, async (req, res) => {
@@ -42,19 +74,25 @@ router.post('/admin', authMiddleware, async (req, res) => {
     const rawText = typeof body.question_text === 'string' ? body.question_text : '';
     const questionText = rawText.trim().slice(0, MAX_QUESTION_LEN);
     const isRequired = body.is_required !== false;
+    const questionType = normalizeQuestionType(body.question_type);
+    const role = normalizeRole(body.role);
+    const options = normalizeOptions(questionType, body.options);
 
     if (!questionText) {
       return res.status(400).json({ error: 'Question text is required' });
+    }
+    if (questionType === 'dropdown' && (!options || options.length === 0)) {
+      return res.status(400).json({ error: 'Dropdown questions must have at least one option' });
     }
 
     const position =
       typeof body.position === 'number' && Number.isFinite(body.position) ? Math.max(0, Math.floor(body.position)) : 0;
 
     const { rows } = await db.query(
-      `INSERT INTO sponsorship_discovery_questions (question_text, position, is_required, is_active)
-       VALUES ($1, $2, $3, true)
-       RETURNING id, question_text, position, is_required, is_active, created_at, updated_at`,
-      [questionText, position, isRequired]
+      `INSERT INTO sponsorship_discovery_questions (question_text, position, is_required, is_active, question_type, options, role)
+       VALUES ($1, $2, $3, true, $4, $5::jsonb, $6)
+       RETURNING id, question_text, position, is_required, is_active, question_type, options, role, created_at, updated_at`,
+      [questionText, position, isRequired, questionType, options ? JSON.stringify(options) : null, role]
     );
 
     res.status(201).json(rows[0]);
@@ -96,6 +134,21 @@ router.put('/admin/:id', authMiddleware, async (req, res) => {
       values.push(body.is_active);
     }
 
+    if (body.question_type !== undefined) {
+      fields.push('question_type');
+      values.push(normalizeQuestionType(body.question_type));
+    }
+    if (body.role !== undefined) {
+      fields.push('role');
+      values.push(normalizeRole(body.role));
+    }
+    if (body.options !== undefined) {
+      const qType = body.question_type !== undefined ? normalizeQuestionType(body.question_type) : (await db.query('SELECT question_type FROM sponsorship_discovery_questions WHERE id = $1', [id])).rows[0]?.question_type || 'short_text';
+      const opts = normalizeOptions(qType, body.options);
+      fields.push('options');
+      values.push(opts ? JSON.stringify(opts) : null);
+    }
+
     if (!fields.length) {
       return res.status(400).json({ error: 'No valid fields to update' });
     }
@@ -111,7 +164,7 @@ router.put('/admin/:id', authMiddleware, async (req, res) => {
       `UPDATE sponsorship_discovery_questions
        SET ${setFragments}
        WHERE id = $${values.length}
-       RETURNING id, question_text, position, is_required, is_active, created_at, updated_at`,
+       RETURNING id, question_text, position, is_required, is_active, question_type, options, role, created_at, updated_at`,
       values
     );
 

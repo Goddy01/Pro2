@@ -27,14 +27,14 @@ function getTransporter() {
   return transporterPromise;
 }
 
-export async function sendMail({ subject, text, html }) {
+export async function sendMail({ subject, text, html, to: toOverride }) {
   const transport = await getTransporter();
   if (!transport) {
     return;
   }
 
   const from = process.env.EMAIL_FROM || process.env.SMTP_USER;
-  const to = process.env.EMAIL_TO || from;
+  const to = toOverride && toOverride.trim() ? toOverride.trim() : (process.env.EMAIL_TO || from);
 
   if (!from || !to) {
     console.warn('EMAIL_FROM or EMAIL_TO not set. Skipping email send.');

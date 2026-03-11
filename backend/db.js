@@ -207,6 +207,11 @@ export async function initDb() {
       ALTER TABLE sponsorship_banner ADD COLUMN IF NOT EXISTS sort_order INT DEFAULT 0;
     `);
     await client.query(`
+      ALTER TABLE sponsorship_discovery_questions ADD COLUMN IF NOT EXISTS question_type VARCHAR(20) NOT NULL DEFAULT 'short_text';
+      ALTER TABLE sponsorship_discovery_questions ADD COLUMN IF NOT EXISTS options JSONB;
+      ALTER TABLE sponsorship_discovery_questions ADD COLUMN IF NOT EXISTS role VARCHAR(30);
+    `);
+    await client.query(`
       CREATE TABLE IF NOT EXISTS site_social_links (
         id SERIAL PRIMARY KEY,
         x_url TEXT,

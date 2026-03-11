@@ -26,7 +26,20 @@ function stripHtml(str) {
     .trim();
 }
 
-// Public: submit discovery responses
+const emailRegex =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+const THANK_YOU_BODY = `Thank you for your interest in partnering with Sideline Sports & Entertainment.
+
+We've received your sponsorship inquiry and a member of our team will review your submission shortly. We're excited to learn more about your organization and explore potential partnership opportunities.
+
+Someone from our team will follow up with you within the next 24–48 hours to discuss the next steps.
+
+In the meantime, feel free to learn more about our platform and coverage at sideline-se.com.
+
+We appreciate your interest in working with Sideline Sports.`;
+
+// Public: submit discovery responses (body: { answers: [{ questionId, answer }] })
 router.post('/', async (req, res) => {
   try {
     const body = req.body;
@@ -34,53 +47,47 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Invalid request body' });
     }
 
-    const name = typeof body.name === 'string' ? body.name.trim().slice(0, MAX_NAME) : '';
-    const businessName =
-      typeof body.business_name === 'string' ? body.business_name.trim().slice(0, MAX_BUSINESS) : '';
-    const email =
-      typeof body.email === 'string' ? body.email.trim().slice(0, MAX_EMAIL).toLowerCase() : '';
-    const phone = typeof body.phone === 'string' ? body.phone.trim().slice(0, MAX_PHONE) : '';
-    const rawMessage = typeof body.message === 'string' ? body.message.slice(0, MAX_MESSAGE) : '';
-    const message = rawMessage ? stripHtml(rawMessage) : null;
-
-    const emailRegex =
-      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-
-    if (!name || name.length < 2) {
-      return res.status(400).json({ error: 'Name must be at least 2 characters' });
-    }
-    if (!businessName || businessName.length < 2) {
-      return res.status(400).json({ error: 'Business name is required' });
-    }
-    if (!email || !emailRegex.test(email)) {
-      return res.status(400).json({ error: 'Valid email required' });
-    }
-    if (!phone || phone.replace(/\D/g, '').length < 10) {
-      return res.status(400).json({ error: 'Valid phone number required' });
-    }
-
     const answersPayload = Array.isArray(body.answers) ? body.answers : [];
-    const questionIdsFromClient = new Set(
-      answersPayload
-        .map((a) => (a && typeof a.questionId === 'number' ? a.questionId : null))
-        .filter((v) => v != null)
+
+    const { rows: questionRows } = await db.query(
+      `SELECT id, question_text, is_required, question_type, options, role
+       FROM sponsorship_discovery_questions
+       WHERE is_active = true
+       ORDER BY position ASC, id ASC`
     );
 
-    // Load active questions to validate required answers
-    const { rows: questionRows } = await db.query(
-      'SELECT id, question_text, is_required FROM sponsorship_discovery_questions WHERE is_active = true ORDER BY position ASC, id ASC'
-    );
+    if (!questionRows.length) {
+      return res.status(400).json({ error: 'No questions are configured. Please try again later.' });
+    }
+
+    const emailQuestion = questionRows.find((q) => q.role === 'email');
+    if (!emailQuestion) {
+      return res.status(400).json({ error: 'A valid email is required. Please complete the form and try again.' });
+    }
 
     const answers = [];
+    const byRole = { email: '', name: '', business_name: '', phone: '', message: null };
+
     for (const q of questionRows) {
       const raw = answersPayload.find((a) => a && Number(a.questionId) === q.id);
-      const val =
+      let val =
         raw && typeof raw.answer === 'string'
-          ? stripHtml(raw.answer.slice(0, MAX_ANSWER))
+          ? stripHtml(raw.answer.slice(0, MAX_ANSWER)).trim()
           : '';
 
       if (q.is_required && !val) {
         return res.status(400).json({ error: 'Please answer all required questions' });
+      }
+
+      if (q.question_type === 'dropdown' && q.options && Array.isArray(q.options)) {
+        if (val && !q.options.includes(val)) {
+          return res.status(400).json({ error: `Please select a valid option for: ${q.question_text}` });
+        }
+      }
+
+      if (q.role && byRole.hasOwnProperty(q.role)) {
+        if (q.role === 'message') byRole[q.role] = val ? val.slice(0, MAX_MESSAGE) : null;
+        else byRole[q.role] = val.slice(0, q.role === 'email' ? MAX_EMAIL : q.role === 'name' ? MAX_NAME : q.role === 'business_name' ? MAX_BUSINESS : MAX_PHONE);
       }
 
       if (val) {
@@ -91,6 +98,16 @@ router.post('/', async (req, res) => {
         });
       }
     }
+
+    const email = (byRole.email || '').toLowerCase();
+    if (!email || !emailRegex.test(email)) {
+      return res.status(400).json({ error: 'A valid email is required' });
+    }
+
+    const sponsor_name = (byRole.name || '').slice(0, MAX_NAME) || '—';
+    const business_name = (byRole.business_name || '').slice(0, MAX_BUSINESS) || '—';
+    const phone = (byRole.phone || '').slice(0, MAX_PHONE) || '—';
+    const message = byRole.message;
 
     if (!answers.length) {
       return res.status(400).json({ error: 'Please answer at least one question' });
@@ -104,17 +121,16 @@ router.post('/', async (req, res) => {
         (sponsor_name, business_name, email, phone, message, answers, created_at, followup_due_at)
        VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8)
        RETURNING id, created_at, followup_due_at`,
-      [name, businessName, email, phone, message, JSON.stringify(answers), now, followupDue]
+      [sponsor_name, business_name, email, phone, message, JSON.stringify(answers), now, followupDue]
     );
 
     const submission = insertResult.rows[0];
 
-    // Fire-and-forget email; don't block response on failure
     const textLines = [
       'New sponsor discovery submission',
       '',
-      `Name: ${name}`,
-      `Business: ${businessName}`,
+      `Name: ${sponsor_name}`,
+      `Business: ${business_name}`,
       `Email: ${email}`,
       `Phone: ${phone}`,
       '',
@@ -128,9 +144,16 @@ router.post('/', async (req, res) => {
     ].filter(Boolean);
 
     sendMail({
-      subject: `New Sponsor Discovery Submission from ${name}`,
+      subject: `New Sponsor Discovery Submission from ${sponsor_name}`,
       text: textLines.join('\n'),
       html: undefined,
+    }).catch(() => {});
+
+    sendMail({
+      subject: "We've received your sponsorship inquiry – Sideline Sports & Entertainment",
+      text: THANK_YOU_BODY,
+      html: undefined,
+      to: email,
     }).catch(() => {});
 
     res.status(201).json({ ok: true });

@@ -56,6 +56,19 @@ function parsePlatformLinks(v) {
   }
 }
 
+async function generateUniqueSlug(baseSlug) {
+  const base = normalizeSlug(baseSlug);
+  if (!base) return '';
+  let candidate = base;
+  for (let i = 0; i < 50; i++) {
+    const { rows } = await db.query('SELECT 1 FROM shows WHERE slug = $1 LIMIT 1', [candidate]);
+    if (!rows.length) return candidate;
+    candidate = `${base}-${i + 2}`.slice(0, MAX_SLUG);
+  }
+  // fallback: last attempt (will likely conflict, but avoids empty)
+  return candidate;
+}
+
 // Public: list show cards (no heavy content)
 router.get('/', async (req, res) => {
   try {
@@ -113,13 +126,14 @@ router.post('/admin', authMiddleware, upload.single('hero_image'), async (req, r
   try {
     const body = req.body || {};
     const name = normalizeName(body.name);
-    const slug = normalizeSlug(body.slug || body.name);
+    const requestedSlug = typeof body.slug === 'string' ? body.slug : '';
     const description = normalizeDescription(body.description);
     const sortOrder = normalizeSortOrder(body.sort_order);
     const platformLinks = parsePlatformLinks(body.platform_links);
 
     if (!name) return res.status(400).json({ error: 'Name is required' });
-    if (!slug) return res.status(400).json({ error: 'Slug is required' });
+    const slug = await generateUniqueSlug(requestedSlug || name);
+    if (!slug) return res.status(400).json({ error: 'Could not generate a valid slug' });
 
     let heroImageUrl = typeof body.hero_image_url === 'string' ? body.hero_image_url.trim() || null : null;
     if (req.file) {
@@ -138,9 +152,6 @@ router.post('/admin', authMiddleware, upload.single('hero_image'), async (req, r
     );
     res.status(201).json(rows[0]);
   } catch (err) {
-    if (String(err?.message || '').includes('duplicate key')) {
-      return res.status(409).json({ error: 'A show with that slug already exists' });
-    }
     console.error('shows admin create error:', err);
     res.status(500).json({ error: err.message || 'Failed to create show' });
   }
@@ -161,7 +172,8 @@ router.put('/admin/:id', authMiddleware, upload.single('hero_image'), async (req
 
     const body = req.body || {};
     const name = typeof body.name === 'string' ? normalizeName(body.name) : current.name;
-    const slug = typeof body.slug === 'string' ? normalizeSlug(body.slug) : current.slug;
+    const requestedSlug = typeof body.slug === 'string' ? normalizeSlug(body.slug) : '';
+    const slug = requestedSlug || current.slug;
     const description = typeof body.description === 'string' ? normalizeDescription(body.description) : current.description;
     const sortOrder = body.sort_order !== undefined ? normalizeSortOrder(body.sort_order) : current.sort_order;
     const platformLinks =

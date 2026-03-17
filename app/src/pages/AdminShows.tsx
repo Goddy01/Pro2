@@ -47,8 +47,6 @@ export default function AdminShows() {
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [slugTouched, setSlugTouched] = useState(false);
   const [description, setDescription] = useState('');
   const [sortOrder, setSortOrder] = useState('0');
   const [heroFile, setHeroFile] = useState<File | null>(null);
@@ -89,8 +87,6 @@ export default function AdminShows() {
   function resetForm() {
     setEditingId(null);
     setName('');
-    setSlug('');
-    setSlugTouched(false);
     setDescription('');
     setSortOrder('0');
     setHeroFile(null);
@@ -106,8 +102,6 @@ export default function AdminShows() {
     setSuccess('');
     setEditingId(s.id);
     setName(s.name || '');
-    setSlug(s.slug || '');
-    setSlugTouched(true);
     setDescription(s.description || '');
     setSortOrder(String(s.sort_order ?? 0));
     setHeroFile(null);
@@ -144,13 +138,8 @@ export default function AdminShows() {
     setError('');
     setSuccess('');
     const cleanName = name.trim();
-    const cleanSlug = slugify(slug.trim() || cleanName);
     if (!cleanName) {
       setError('Name is required');
-      return;
-    }
-    if (!cleanSlug) {
-      setError('Slug is required');
       return;
     }
 
@@ -162,7 +151,6 @@ export default function AdminShows() {
 
     const form = new FormData();
     form.append('name', cleanName);
-    form.append('slug', cleanSlug);
     form.append('description', description.trim());
     form.append('sort_order', String(parseInt(sortOrder || '0', 10) || 0));
     form.append('platform_links', JSON.stringify(links));
@@ -246,28 +234,19 @@ export default function AdminShows() {
                 onChange={(e) => {
                   const v = e.target.value;
                   setName(v);
-                  if (!slugTouched) setSlug(slugify(v));
                 }}
                 className={inputClass}
                 placeholder="e.g. Sideline Sports"
                 required
               />
             </label>
-            <label className="block">
-              <span className={labelClass}>Slug *</span>
-              <input
-                type="text"
-                value={slug}
-                onChange={(e) => {
-                  setSlug(e.target.value);
-                  setSlugTouched(true);
-                }}
-                className={inputClass}
-                placeholder="e.g. sideline-sports"
-                required
-              />
-              <p className="text-offwhite/40 text-xs mt-1">Public URL: /shows/{slugify(slug || name)}</p>
-            </label>
+            <div className="block">
+              <span className={labelClass}>Public URL</span>
+              <div className={`${inputClass} flex items-center`}>
+                <span className="text-offwhite/70">/shows/{slugify(name) || '...'}</span>
+              </div>
+              <p className="text-offwhite/40 text-xs mt-1">Generated automatically from the show name.</p>
+            </div>
           </div>
 
           <label className="block">

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Pencil } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl, authenticatedFetch } from '../lib/api';
 import '../App.css';
@@ -55,6 +55,7 @@ export default function AdminShowPagesManager() {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [episodeQuery, setEpisodeQuery] = useState('');
   const [addEpisodeOpen, setAddEpisodeOpen] = useState(false);
+  const [editingEpisodeId, setEditingEpisodeId] = useState<number | null>(null);
 
   // Add episode form
   const [episodeType, setEpisodeType] = useState<'audio' | 'video' | null>(null);
@@ -100,6 +101,7 @@ export default function AdminShowPagesManager() {
     setEpisodeGuests('');
     setEpisodeAudioUrl('');
     setEpisodeVideoUrl('');
+    setEditingEpisodeId(null);
     if (!keepShow) setEpisodeShowName('');
   }
 
@@ -244,7 +246,22 @@ export default function AdminShowPagesManager() {
     }
   }
 
-  async function handleCreateEpisode(e: FormEvent) {
+  function startEditEpisode(ep: Episode) {
+    clearMessages();
+    setAddEpisodeOpen(true);
+    setEditingEpisodeId(ep.id);
+    setEpisodeTitle(ep.title || '');
+    setEpisodeDescription(ep.description || '');
+    setEpisodeDuration(ep.duration_label || '');
+    setEpisodeGuests(ep.guests || '');
+    setEpisodeAudioUrl(ep.audio_url || '');
+    setEpisodeVideoUrl(ep.video_url || '');
+    setEpisodeShowName((ep.show_name || '').trim());
+    const t: 'audio' | 'video' | null = ep.audio_url ? 'audio' : ep.video_url ? 'video' : null;
+    setEpisodeType(t);
+  }
+
+  async function handleEpisodeSave(e: FormEvent) {
     e.preventDefault();
     clearMessages();
     if (!token) return;
@@ -279,13 +296,36 @@ export default function AdminShowPagesManager() {
       if (episodeType === 'audio') form.append('audio_url', episodeAudioUrl.trim());
       if (episodeType === 'video') form.append('video_url', episodeVideoUrl.trim());
 
-      const res = await authenticatedFetch(apiUrl('/api/podcast'), { method: 'POST', body: form }, token);
+      const isEditing = typeof editingEpisodeId === 'number';
+      const url = isEditing ? apiUrl(`/api/podcast/${editingEpisodeId}`) : apiUrl('/api/podcast');
+      const res = await authenticatedFetch(url, { method: isEditing ? 'PUT' : 'POST', body: form }, token);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as { error?: string }).error || 'Failed to add episode');
 
-      setSuccess('Episode created.');
+      setSuccess(isEditing ? 'Episode updated.' : 'Episode created.');
       resetEpisodeForm(true);
       await refreshEpisodes(episodeShowName.trim());
+    } catch (e) {
+      setError((e as { message?: string })?.message || 'Could not connect to server');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDeleteEpisode(id: number) {
+    if (!token) return;
+    if (!window.confirm('Delete this episode? This cannot be undone.')) return;
+    clearMessages();
+    setLoading(true);
+    try {
+      const res = await authenticatedFetch(apiUrl(`/api/podcast/${id}`), { method: 'DELETE' }, token);
+      if (!res.ok && res.status !== 204) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error((data as { error?: string }).error || 'Failed to delete episode');
+      }
+      setSuccess('Episode deleted.');
+      if (editingEpisodeId === id) resetEpisodeForm(true);
+      if (selectedShow?.name) await refreshEpisodes(selectedShow.name);
     } catch (e) {
       setError((e as { message?: string })?.message || 'Could not connect to server');
     } finally {
@@ -460,7 +500,7 @@ export default function AdminShowPagesManager() {
                   </div>
 
                   {addEpisodeOpen && (
-                    <form onSubmit={handleCreateEpisode} className="space-y-4 mb-6 border border-offwhite/10 rounded p-4">
+                    <form onSubmit={handleEpisodeSave} className="space-y-4 mb-6 border border-offwhite/10 rounded p-4">
                       {episodeType == null ? (
                         <div className="space-y-2">
                           <p className={labelClass}>What kind of episode?</p>
@@ -485,7 +525,7 @@ export default function AdminShowPagesManager() {
                         <>
                           <div className="flex items-center justify-between gap-3 flex-wrap">
                             <p className="text-offwhite/70 text-sm">
-                              Adding a {episodeType === 'audio' ? 'audio' : 'video'} episode.
+                              {editingEpisodeId ? 'Editing' : 'Adding'} a {episodeType === 'audio' ? 'audio' : 'video'} episode.
                             </p>
                             <button type="button" onClick={() => setEpisodeType(null)} className="text-offwhite/70 hover:text-lime text-sm">
                               Change type
@@ -534,7 +574,7 @@ export default function AdminShowPagesManager() {
                           )}
                           <div className="flex items-center gap-3 flex-wrap pt-2">
                             <button type="submit" disabled={loading} className="btn-premium py-3 px-6 disabled:opacity-50">
-                              {loading ? 'Adding…' : 'Create episode'}
+                              {loading ? (editingEpisodeId ? 'Saving…' : 'Adding…') : (editingEpisodeId ? 'Save changes' : 'Create episode')}
                             </button>
                             <button
                               type="button"
@@ -556,11 +596,32 @@ export default function AdminShowPagesManager() {
                   ) : (
                     <ul className="space-y-2">
                       {filteredEpisodes.map((ep) => (
-                        <li key={ep.id} className="py-2 border-b border-offwhite/10">
-                          <p className="text-offwhite font-medium">{ep.title}</p>
-                          <p className="text-offwhite/50 text-xs">
-                            {(ep.audio_url ? 'Audio' : ep.video_url ? 'Video' : 'Episode')} • {ep.duration_label || '—'}
-                          </p>
+                        <li key={ep.id} className="py-2 border-b border-offwhite/10 flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-offwhite font-medium truncate">{ep.title}</p>
+                            <p className="text-offwhite/50 text-xs">
+                              {(ep.audio_url ? 'Audio' : ep.video_url ? 'Video' : 'Episode')} • {ep.duration_label || '—'}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => startEditEpisode(ep)}
+                              className="p-2 text-offwhite/70 hover:text-lime transition-colors"
+                              title="Edit episode"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteEpisode(ep.id)}
+                              disabled={loading}
+                              className="p-2 text-red-300/80 hover:text-red-200 transition-colors disabled:opacity-50"
+                              title="Delete episode"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </li>
                       ))}
                     </ul>

@@ -20,12 +20,6 @@ const EVENT_PREVIEW_IMAGES = 1;
 /** Events covered but not yet published on the site (added to API count for display) */
 const EVENTS_COVERED_OFF_SITE = 50;
 
-const PODCAST_LINKS = [
-  { href: 'https://www.youtube.com/@sidelinesports3840', icon: Youtube, label: 'YouTube' },
-  { href: 'https://open.spotify.com/show/35pw2rvjZ1xEagLJS72Gpf', icon: Podcast, label: 'Spotify' },
-  { href: 'https://podcasts.apple.com/us/podcast/sideline-sports/id1565070611', icon: Podcast, label: 'Apple Podcasts' },
-];
-
 type WatchVideo = { title: string; videoId: string | null; videoUrl?: string; duration: string };
 const FALLBACK_WATCH: WatchVideo[] = [
   { title: 'Sideline Sports', videoId: '0HZWARKVflQ', duration: 'Video' },
@@ -61,7 +55,6 @@ export default function Home() {
   const [articlesFromApi, setArticlesFromApi] = useState<ArticleFromApi[]>([]);
   const [eventsFromApi, setEventsFromApi] = useState<{ id: string; title: string; description: string; images: string[] }[]>([]);
   const [newsletterCount, setNewsletterCount] = useState<number>(0);
-  const [showPodcastPlatforms, setShowPodcastPlatforms] = useState(false);
   const [testimonialForm, setTestimonialForm] = useState({
     name: '',
     company: '',
@@ -413,31 +406,11 @@ export default function Home() {
                   Explore Latest Articles
                   <ArrowRight className="w-4 h-4" />
                 </a>
-                <button
-                  type="button"
-                  onClick={() => setShowPodcastPlatforms((v) => !v)}
-                  className="btn-outline-premium inline-flex items-center gap-2"
-                >
+                <Link to="/shows" className="btn-outline-premium inline-flex items-center gap-2">
                   <Headphones className="w-4 h-4" />
                   Explore Shows
-                </button>
+                </Link>
               </div>
-              {showPodcastPlatforms && (
-                <div className="flex flex-wrap justify-center gap-3 pt-2">
-                  {PODCAST_LINKS.map((link) => (
-                    <a
-                      key={link.label}
-                      href={link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-outline-premium"
-                    >
-                      <link.icon className="w-4 h-4" />
-                      {link.label}
-                    </a>
-                  ))}
-                </div>
-              )}
             </div>
 
             <div className="hero-stats flex flex-wrap justify-center gap-8 lg:gap-16">
@@ -736,7 +709,7 @@ export default function Home() {
               </h2>
             </div>
             <a
-              href="/listen-watch"
+              href="/shows"
               className="btn-secondary group hidden lg:flex items-center gap-2 shrink-0"
             >
               View More

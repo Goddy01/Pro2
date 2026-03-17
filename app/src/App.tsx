@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './Layout';
@@ -26,10 +26,14 @@ import AdminPodcastList from './pages/AdminPodcastList';
 import AdminWatchList from './pages/AdminWatchList';
 import AdminTeamList from './pages/AdminTeamList';
 import AdminSocialLinks from './pages/AdminSocialLinks';
+import AdminShows from './pages/AdminShows';
 import WorkWithUs from './pages/WorkWithUs';
 import ListenWatch from './pages/ListenWatch';
 import Sponsorship from './pages/Sponsorship';
 import './App.css';
+
+const ShowsIndex = lazy(() => import('./pages/ShowsIndex'));
+const ShowDetail = lazy(() => import('./pages/ShowDetail'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -71,6 +75,22 @@ function App() {
             <Route path="gallery" element={<Gallery />} />
             <Route path="gallery/:categorySlug" element={<Gallery />} />
             <Route path="listen-watch" element={<ListenWatch />} />
+            <Route
+              path="shows"
+              element={
+                <Suspense fallback={<div className="min-h-screen bg-forest px-6 py-12 text-offwhite/60">Loading…</div>}>
+                  <ShowsIndex />
+                </Suspense>
+              }
+            />
+            <Route
+              path="shows/:showSlug"
+              element={
+                <Suspense fallback={<div className="min-h-screen bg-forest px-6 py-12 text-offwhite/60">Loading…</div>}>
+                  <ShowDetail />
+                </Suspense>
+              }
+            />
             <Route path="work-with-us" element={<WorkWithUs />} />
             <Route path="sponsorship" element={<Sponsorship />} />
           </Route>
@@ -90,6 +110,7 @@ function App() {
           <Route path="admin/watch" element={<AdminWatchList />} />
           <Route path="admin/team" element={<AdminTeamList />} />
           <Route path="admin/social-links" element={<AdminSocialLinks />} />
+          <Route path="admin/shows" element={<AdminShows />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

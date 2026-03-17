@@ -798,6 +798,9 @@ export default function AdminDashboard() {
             <Link to="/admin/social-links" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="Update site social links">
               Social links
             </Link>
+            <Link to="/admin/shows" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="Manage show pages">
+              Shows pages
+            </Link>
             <span className="w-px h-5 bg-offwhite/20 mx-1" aria-hidden />
             <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); }} className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap">
               <UserPlus className="w-4 h-4" />
@@ -851,6 +854,9 @@ export default function AdminDashboard() {
               </Link>
               <Link to="/admin/social-links" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
                 Social links
+              </Link>
+              <Link to="/admin/shows" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
+                Shows pages
               </Link>
               <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); setAdminMenuOpen(false); }} className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2 text-left">
                 <UserPlus className="w-4 h-4" />

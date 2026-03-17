@@ -109,6 +109,17 @@ export async function initDb() {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS shows (
+        id SERIAL PRIMARY KEY,
+        slug VARCHAR(100) UNIQUE NOT NULL,
+        name VARCHAR(200) NOT NULL,
+        description TEXT,
+        hero_image_url TEXT,
+        platform_links JSONB,
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS newsletter_signups (
         id SERIAL PRIMARY KEY,
         name VARCHAR(200) NOT NULL,
@@ -210,6 +221,22 @@ export async function initDb() {
       ALTER TABLE sponsorship_discovery_questions ADD COLUMN IF NOT EXISTS question_type VARCHAR(20) NOT NULL DEFAULT 'short_text';
       ALTER TABLE sponsorship_discovery_questions ADD COLUMN IF NOT EXISTS options JSONB;
       ALTER TABLE sponsorship_discovery_questions ADD COLUMN IF NOT EXISTS role VARCHAR(30);
+    `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS shows (
+        id SERIAL PRIMARY KEY,
+        slug VARCHAR(100) UNIQUE NOT NULL,
+        name VARCHAR(200) NOT NULL,
+        description TEXT,
+        hero_image_url TEXT,
+        platform_links JSONB,
+        sort_order INT DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      ALTER TABLE shows ADD COLUMN IF NOT EXISTS description TEXT;
+      ALTER TABLE shows ADD COLUMN IF NOT EXISTS hero_image_url TEXT;
+      ALTER TABLE shows ADD COLUMN IF NOT EXISTS platform_links JSONB;
+      ALTER TABLE shows ADD COLUMN IF NOT EXISTS sort_order INT DEFAULT 0;
     `);
     await client.query(`
       CREATE TABLE IF NOT EXISTS site_social_links (

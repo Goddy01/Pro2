@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import SEO from '../components/SEO';
 import { apiUrl } from '../lib/api';
 import { optimizeImageUrl } from '../lib/images';
-import SEO from '../components/SEO';
 import '../App.css';
 
 type ShowCard = {
@@ -14,10 +13,9 @@ type ShowCard = {
   sort_order: number;
 };
 
-export default function ListenWatch() {
+export default function ShowsIndex() {
   const [shows, setShows] = useState<ShowCard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -39,59 +37,41 @@ export default function ListenWatch() {
     };
   }, []);
 
-  const q = searchQuery.trim().toLowerCase();
-  const filtered = useMemo(() => {
+  const sorted = useMemo(() => {
     const list = [...shows];
     list.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || (a.name || '').localeCompare(b.name || ''));
-    if (!q) return list;
-    return list.filter((s) => {
-      const hay = `${s.name || ''} ${s.description || ''}`.toLowerCase();
-      return hay.includes(q);
-    });
-  }, [shows, q]);
+    return list;
+  }, [shows]);
 
   return (
     <div className="relative">
       <SEO
-        title="Listen & Watch"
+        title="Shows"
         description="Explore Sideline Sports & Entertainment shows. Click a show to learn more and browse episodes and videos."
-        canonicalPath="/listen-watch"
+        canonicalPath="/shows"
       />
       <section className="section-premium py-24">
-        <div className="w-full px-6 lg:px-12">
-          <div className="text-center mb-16">
-            <span className="label-mono text-lime mb-4 block">Listen & Watch</span>
+        <div className="w-full px-6 lg:px-12 max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="label-mono text-lime mb-4 block">Shows</span>
             <h1 className="headline-section text-offwhite text-4xl lg:text-5xl mb-4">
               Explore our shows
             </h1>
             <p className="body-large text-offwhite/60 max-w-2xl mx-auto">
-              Each show has its own page with episodes, videos, and where to listen.
+              Click a show to see its latest episodes, videos, and where to listen.
             </p>
-            <div className="mt-8 max-w-md mx-auto">
-              <label htmlFor="listen-watch-search" className="sr-only">Search shows</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-offwhite/50" aria-hidden />
-                <input
-                  id="listen-watch-search"
-                  type="search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search shows…"
-                  className="w-full pl-10 pr-4 py-3 bg-offwhite/5 border border-offwhite/20 text-offwhite placeholder:text-offwhite/50 focus:outline-none focus:border-lime"
-                />
-              </div>
-            </div>
+            <div className="h-px w-24 mx-auto bg-offwhite/20 mt-8" aria-hidden />
           </div>
 
           {loading ? (
             <p className="text-offwhite/60 text-center py-12">Loading…</p>
-          ) : filtered.length === 0 ? (
+          ) : sorted.length === 0 ? (
             <p className="text-offwhite/60 text-center py-12">
-              {q ? 'No shows match your search.' : 'No shows are configured yet. Check back soon.'}
+              No shows are configured yet. Please check back soon.
             </p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filtered.map((s) => {
+              {sorted.map((s) => {
                 const img = s.hero_image_url
                   ? optimizeImageUrl(s.hero_image_url, { width: 700, quality: 70 })
                   : '';
@@ -137,3 +117,4 @@ export default function ListenWatch() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, type FormEvent } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, type FormEvent } from 'react';
 import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl, authenticatedFetch } from '../lib/api';
@@ -80,6 +80,42 @@ export default function AdminDashboard() {
   const [watchVideoId, setWatchVideoId] = useState('');
   const [watchDuration, setWatchDuration] = useState('Video');
   const [watchShowName, setWatchShowName] = useState('');
+
+  const [showNameOptions, setShowNameOptions] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    authenticatedFetch(apiUrl('/api/shows/admin'), {}, token)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        const list = Array.isArray(data) ? data : [];
+        const names = list
+          .map((s: { name?: string }) => (s?.name || '').trim())
+          .filter(Boolean);
+        names.sort((a: string, b: string) => a.localeCompare(b));
+        setShowNameOptions(names);
+      })
+      .catch(() => {
+        if (!cancelled) setShowNameOptions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  const podcastShowSelectOptions = useMemo(() => {
+    const set = new Set<string>(showNameOptions);
+    if (podcastShowName.trim()) set.add(podcastShowName.trim());
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [showNameOptions, podcastShowName]);
+
+  const watchShowSelectOptions = useMemo(() => {
+    const set = new Set<string>(showNameOptions);
+    if (watchShowName.trim()) set.add(watchShowName.trim());
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [showNameOptions, watchShowName]);
 
   const [teamName, setTeamName] = useState('');
   const [teamRole, setTeamRole] = useState('');
@@ -1165,7 +1201,18 @@ export default function AdminDashboard() {
                 </label>
                 <label className="block">
                   <span className={labelClass}>Show (optional – for multiple shows on the network)</span>
-                  <input type="text" value={podcastShowName} onChange={(e) => setPodcastShowName(e.target.value)} className={inputClass} placeholder="e.g. Sideline Sports Weekly" />
+                  <select
+                    value={podcastShowName}
+                    onChange={(e) => setPodcastShowName(e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">None / Unassigned</option>
+                    {podcastShowSelectOptions.map((n: string) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
                 </label>
                 {podcastType === 'audio' && (
                   <label className="block">
@@ -1210,7 +1257,18 @@ export default function AdminDashboard() {
             </label>
             <label className="block">
               <span className={labelClass}>Show (optional – for multiple shows on the network)</span>
-              <input type="text" value={watchShowName} onChange={(e) => setWatchShowName(e.target.value)} className={inputClass} placeholder="e.g. Sideline Sports Weekly" />
+              <select
+                value={watchShowName}
+                onChange={(e) => setWatchShowName(e.target.value)}
+                className={inputClass}
+              >
+                <option value="">None / Unassigned</option>
+                {watchShowSelectOptions.map((n: string) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
             </label>
             <button type="submit" disabled={loading} className="btn-premium py-4 px-8 disabled:opacity-50">
               {loading ? (editingWatchId ? 'Updating...' : 'Adding...') : (editingWatchId ? 'Update Video' : 'Add Video')}

@@ -10,7 +10,6 @@ type PlatformLinks = {
   youtube?: string;
   spotify?: string;
   apple?: string;
-  website?: string;
 };
 
 type Show = {
@@ -198,16 +197,6 @@ export default function ShowDetail() {
                         className="btn-outline-premium inline-flex items-center gap-2"
                       >
                         Apple Podcasts <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
-                    {links.website && (
-                      <a
-                        href={links.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-outline-premium inline-flex items-center gap-2"
-                      >
-                        Website <ExternalLink className="w-4 h-4" />
                       </a>
                     )}
                   </div>

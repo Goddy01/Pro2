@@ -9,7 +9,6 @@ type PlatformLinks = {
   youtube?: string;
   spotify?: string;
   apple?: string;
-  website?: string;
 };
 
 type Show = {
@@ -66,7 +65,6 @@ export default function AdminShowEditor() {
   const [youtube, setYoutube] = useState('');
   const [spotify, setSpotify] = useState('');
   const [apple, setApple] = useState('');
-  const [website, setWebsite] = useState('');
 
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [episodesLoading, setEpisodesLoading] = useState(false);
@@ -104,7 +102,6 @@ export default function AdminShowEditor() {
         setYoutube(s.platform_links?.youtube || '');
         setSpotify(s.platform_links?.spotify || '');
         setApple(s.platform_links?.apple || '');
-        setWebsite(s.platform_links?.website || '');
       })
       .catch((err) => {
         if (!cancelled) setError(err?.message || 'Could not connect to server');
@@ -262,7 +259,6 @@ export default function AdminShowEditor() {
     if (youtube.trim()) links.youtube = youtube.trim();
     if (spotify.trim()) links.spotify = spotify.trim();
     if (apple.trim()) links.apple = apple.trim();
-    if (website.trim()) links.website = website.trim();
 
     const form = new FormData();
     form.append('name', cleanName);
@@ -379,6 +375,7 @@ export default function AdminShowEditor() {
                   className={inputClass}
                   min={0}
                 />
+                <p className="text-offwhite/40 text-xs mt-1">Lower numbers show first on /shows.</p>
               </label>
             </div>
 
@@ -394,10 +391,6 @@ export default function AdminShowEditor() {
               <label className="block">
                 <span className={labelClass}>Apple Podcasts</span>
                 <input type="url" value={apple} onChange={(e) => setApple(e.target.value)} className={inputClass} placeholder="https://podcasts.apple.com/..." />
-              </label>
-              <label className="block">
-                <span className={labelClass}>Website</span>
-                <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} className={inputClass} placeholder="https://..." />
               </label>
             </div>
 

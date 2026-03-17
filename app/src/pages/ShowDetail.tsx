@@ -153,7 +153,7 @@ export default function ShowDetail() {
                     <img
                       src={hero}
                       alt=""
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-top"
                       loading="lazy"
                       decoding="async"
                     />

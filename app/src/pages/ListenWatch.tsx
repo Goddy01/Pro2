@@ -7,6 +7,7 @@ import SEO from '../components/SEO';
 import '../App.css';
 
 type ShowCard = {
+  id: number;
   slug: string;
   name: string;
   description: string | null;
@@ -96,7 +97,7 @@ export default function ListenWatch() {
                   ? optimizeImageUrl(s.hero_image_url, { width: 700, quality: 70 })
                   : '';
                 return (
-                  <Link key={s.slug} to={`/shows/${s.slug}`} className="block group h-full">
+                  <Link key={String(s.id)} to={`/shows/${s.id}`} className="block group h-full">
                     <article className="card-editorial overflow-hidden bg-offwhite/5 border border-offwhite/10 hover:border-lime/30 transition-colors h-full flex flex-col">
                       {img ? (
                         <div className="aspect-video relative overflow-hidden">

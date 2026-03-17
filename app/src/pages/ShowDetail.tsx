@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Headphones, Video } from 'lucide-react';
 import SEO from '../components/SEO';
 import { apiUrl } from '../lib/api';
@@ -7,6 +7,7 @@ import { optimizeImageUrl } from '../lib/images';
 import '../App.css';
 
 type Show = {
+  id: number;
   slug: string;
   name: string;
   description: string | null;
@@ -36,7 +37,8 @@ type WatchItem = {
 };
 
 export default function ShowDetail() {
-  const { showSlug } = useParams();
+  const { showId } = useParams();
+  const navigate = useNavigate();
   const [show, setShow] = useState<Show | null>(null);
   const [loadingShow, setLoadingShow] = useState(true);
   const [episodes, setEpisodes] = useState<PodcastEpisode[]>([]);
@@ -49,18 +51,32 @@ export default function ShowDetail() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoadingShow(true);
-    setShow(null);
-    setEpisodes([]);
-    setVideos([]);
-    fetch(apiUrl(`/api/shows/${encodeURIComponent(showSlug || '')}`))
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setLoadingShow(true);
+      setShow(null);
+      setEpisodes([]);
+      setVideos([]);
+    });
+    const raw = (showId || '').trim();
+    const isNumericId = /^[0-9]+$/.test(raw);
+    const url = isNumericId ? apiUrl(`/api/shows/id/${encodeURIComponent(raw)}`) : apiUrl(`/api/shows/by-slug/${encodeURIComponent(raw)}`);
+
+    fetch(url)
       .then(async (r) => {
         const data = await r.json().catch(() => null);
         if (!r.ok) throw new Error((data as { error?: string })?.error || 'Show not found');
         return data;
       })
       .then((data) => {
-        if (!cancelled) setShow(data as Show);
+        if (cancelled) return;
+        const s = data as Show;
+        // Legacy slug URL → redirect to numeric ID URL
+        if (!isNumericId && s?.id != null) {
+          navigate(`/shows/${s.id}`, { replace: true });
+          return;
+        }
+        setShow(s);
       })
       .catch(() => {
         if (!cancelled) setShow(null);
@@ -71,14 +87,17 @@ export default function ShowDetail() {
     return () => {
       cancelled = true;
     };
-  }, [showSlug]);
+  }, [showId, navigate]);
 
   useEffect(() => {
     if (!show?.name) return;
     let cancelled = false;
-    setLoadingMedia(true);
-    setEpisodePage(1);
-    setExpandedEpisodeId(null);
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setLoadingMedia(true);
+      setEpisodePage(1);
+      setExpandedEpisodeId(null);
+    });
     const name = show.name;
     Promise.all([
       fetch(apiUrl(`/api/podcast?show=${encodeURIComponent(name)}`))
@@ -106,10 +125,7 @@ export default function ShowDetail() {
   const episodeStart = (safeEpisodePage - 1) * EPISODES_PER_PAGE;
   const pagedEpisodes = episodes.slice(episodeStart, episodeStart + EPISODES_PER_PAGE);
 
-  const hero = useMemo(() => {
-    if (!show?.hero_image_url) return '';
-    return optimizeImageUrl(show.hero_image_url, { width: 1400, quality: 70 });
-  }, [show?.hero_image_url]);
+  const hero = show?.hero_image_url ? optimizeImageUrl(show.hero_image_url, { width: 1400, quality: 70 }) : '';
 
   const title = show?.name ? `${show.name} – Shows` : 'Show';
 
@@ -118,7 +134,7 @@ export default function ShowDetail() {
       <SEO
         title={title}
         description={show?.description || 'Show details, episodes, and videos.'}
-        canonicalPath={show?.slug ? `/shows/${show.slug}` : '/shows'}
+        canonicalPath={show?.id ? `/shows/${show.id}` : '/shows'}
       />
       <section className="section-premium py-20">
         <div className="w-full px-6 lg:px-12 max-w-6xl mx-auto">

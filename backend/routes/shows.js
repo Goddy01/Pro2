@@ -73,7 +73,7 @@ async function generateUniqueSlug(baseSlug) {
 router.get('/', async (req, res) => {
   try {
     const { rows } = await db.query(
-      `SELECT slug, name, description, hero_image_url, sort_order
+      `SELECT id, slug, name, description, hero_image_url, sort_order
        FROM shows
        ORDER BY sort_order ASC, name ASC`
     );
@@ -81,6 +81,44 @@ router.get('/', async (req, res) => {
   } catch (err) {
     console.error('shows public list error:', err);
     res.status(500).json({ error: 'Failed to load shows' });
+  }
+});
+
+// Public: show detail by numeric id
+router.get('/id/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid ID' });
+    const { rows } = await db.query(
+      `SELECT id, slug, name, description, hero_image_url, platform_links, sort_order
+       FROM shows
+       WHERE id = $1`,
+      [id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Show not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('shows public detail-by-id error:', err);
+    res.status(500).json({ error: 'Failed to load show' });
+  }
+});
+
+// Public: lookup by slug (used for redirecting legacy URLs)
+router.get('/by-slug/:slug', async (req, res) => {
+  try {
+    const slug = normalizeSlug(req.params.slug);
+    if (!slug) return res.status(400).json({ error: 'Invalid slug' });
+    const { rows } = await db.query(
+      `SELECT id, slug, name, description, hero_image_url, platform_links, sort_order
+       FROM shows
+       WHERE slug = $1`,
+      [slug]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Show not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('shows public by-slug error:', err);
+    res.status(500).json({ error: 'Failed to load show' });
   }
 });
 
@@ -217,7 +255,7 @@ router.get('/:slug', async (req, res) => {
     const slug = normalizeSlug(req.params.slug);
     if (!slug) return res.status(400).json({ error: 'Invalid slug' });
     const { rows } = await db.query(
-      `SELECT slug, name, description, hero_image_url, platform_links, sort_order
+      `SELECT id, slug, name, description, hero_image_url, platform_links, sort_order
        FROM shows
        WHERE slug = $1`,
       [slug]

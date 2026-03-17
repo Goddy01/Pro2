@@ -391,7 +391,7 @@ export default function AdminShowPagesManager() {
                         }`}
                       >
                         <p className="font-medium truncate">{s.name}</p>
-                        <p className="text-xs text-offwhite/50 truncate">/shows/{s.slug}</p>
+                        <p className="text-xs text-offwhite/50 truncate">/shows/{s.id}</p>
                       </button>
                     </li>
                   );

@@ -85,7 +85,7 @@ function App() {
               }
             />
             <Route
-              path="shows/:showSlug"
+              path="shows/:showId"
               element={
                 <Suspense fallback={<div className="min-h-screen bg-forest px-6 py-12 text-offwhite/60">Loading…</div>}>
                   <ShowDetail />

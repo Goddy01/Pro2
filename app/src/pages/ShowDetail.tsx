@@ -119,7 +119,7 @@ export default function ShowDetail() {
   }, [show?.hero_image_url]);
 
   const links = show?.platform_links || {};
-  const anyLinks = !!(links.youtube || links.spotify || links.apple || links.website);
+  const anyLinks = !!(links.youtube || links.spotify || links.apple);
 
   const title = show?.name ? `${show.name} – Shows` : 'Show';
 

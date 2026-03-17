@@ -50,6 +50,9 @@ export default function ShowDetail() {
   const [episodes, setEpisodes] = useState<PodcastEpisode[]>([]);
   const [videos, setVideos] = useState<WatchItem[]>([]);
   const [loadingMedia, setLoadingMedia] = useState(false);
+  const [episodePage, setEpisodePage] = useState(1);
+
+  const EPISODES_PER_PAGE = 9;
 
   useEffect(() => {
     let cancelled = false;
@@ -81,6 +84,7 @@ export default function ShowDetail() {
     if (!show?.name) return;
     let cancelled = false;
     setLoadingMedia(true);
+    setEpisodePage(1);
     const name = show.name;
     Promise.all([
       fetch(apiUrl(`/api/podcast?show=${encodeURIComponent(name)}`))
@@ -102,6 +106,11 @@ export default function ShowDetail() {
       cancelled = true;
     };
   }, [show?.name]);
+
+  const totalEpisodePages = Math.max(1, Math.ceil(episodes.length / EPISODES_PER_PAGE));
+  const safeEpisodePage = Math.min(episodePage, totalEpisodePages);
+  const episodeStart = (safeEpisodePage - 1) * EPISODES_PER_PAGE;
+  const pagedEpisodes = episodes.slice(episodeStart, episodeStart + EPISODES_PER_PAGE);
 
   const hero = useMemo(() => {
     if (!show?.hero_image_url) return '';
@@ -135,8 +144,8 @@ export default function ShowDetail() {
             <p className="text-offwhite/60 text-center py-12">Show not found.</p>
           ) : (
             <>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start mb-14">
-                <div className="min-w-0">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mb-14">
+                <div className="min-w-0 lg:col-span-6">
                   <span className="label-mono text-lime mb-4 block">Show</span>
                   <h1 className="headline-section text-offwhite text-4xl lg:text-5xl mb-4 break-words">
                     {show.name}
@@ -175,9 +184,9 @@ export default function ShowDetail() {
                   )}
                 </div>
 
-                <div className="relative">
+                <div className="relative lg:col-span-6 lg:sticky lg:top-24">
                   {hero ? (
-                    <div className="aspect-video overflow-hidden border border-offwhite/10 bg-offwhite/5">
+                    <div className="aspect-video overflow-hidden border border-offwhite/10 bg-offwhite/5 rounded-sm">
                       <img
                         src={hero}
                         alt=""
@@ -187,7 +196,7 @@ export default function ShowDetail() {
                       />
                     </div>
                   ) : (
-                    <div className="aspect-video border border-offwhite/10 bg-offwhite/5" aria-hidden />
+                    <div className="aspect-video border border-offwhite/10 bg-offwhite/5 rounded-sm" aria-hidden />
                   )}
                 </div>
               </div>
@@ -200,17 +209,22 @@ export default function ShowDetail() {
                 <>
                   {episodes.length > 0 && (
                     <div className="mb-14">
-                      <h2 className="flex items-center gap-2 text-lime font-display font-bold text-lg uppercase tracking-wider mb-6">
-                        <Headphones className="w-4 h-4" />
-                        Episodes
-                      </h2>
+                      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+                        <h2 className="flex items-center gap-2 text-lime font-display font-bold text-lg uppercase tracking-wider">
+                          <Headphones className="w-4 h-4" />
+                          Episodes
+                        </h2>
+                        <p className="text-offwhite/50 text-sm">
+                          Showing {episodes.length === 0 ? 0 : episodeStart + 1}–{Math.min(episodeStart + EPISODES_PER_PAGE, episodes.length)} of {episodes.length}
+                        </p>
+                      </div>
                       <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {episodes.map((ep) => {
+                        {pagedEpisodes.map((ep) => {
                           const thumb = ep.thumbnail_url
                             ? optimizeImageUrl(ep.thumbnail_url, { width: 700, quality: 70 })
                             : '';
                           return (
-                            <li key={ep.id} className="card-editorial overflow-hidden group bg-offwhite/5 border border-offwhite/10">
+                            <li key={ep.id} className="card-editorial overflow-hidden group bg-offwhite/5 border border-offwhite/10 rounded-sm">
                               {thumb ? (
                                 <div className="aspect-video relative overflow-hidden">
                                   <img
@@ -266,6 +280,30 @@ export default function ShowDetail() {
                           );
                         })}
                       </ul>
+
+                      {totalEpisodePages > 1 && (
+                        <div className="mt-8 flex items-center justify-center gap-4">
+                          <button
+                            type="button"
+                            onClick={() => setEpisodePage((p) => Math.max(1, p - 1))}
+                            disabled={safeEpisodePage <= 1}
+                            className="px-4 py-2 border border-offwhite/30 text-offwhite disabled:opacity-40 disabled:cursor-not-allowed hover:border-lime hover:text-lime transition-colors"
+                          >
+                            Previous
+                          </button>
+                          <span className="text-offwhite/70 text-sm">
+                            Page {safeEpisodePage} of {totalEpisodePages}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setEpisodePage((p) => Math.min(totalEpisodePages, p + 1))}
+                            disabled={safeEpisodePage >= totalEpisodePages}
+                            className="px-4 py-2 border border-offwhite/30 text-offwhite disabled:opacity-40 disabled:cursor-not-allowed hover:border-lime hover:text-lime transition-colors"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -280,7 +318,7 @@ export default function ShowDetail() {
                           const youtubeThumb = v.videoId ? `https://img.youtube.com/vi/${v.videoId}/hqdefault.jpg` : '';
                           const thumb = youtubeThumb ? youtubeThumb : '';
                           return (
-                            <li key={(v.id ?? v.videoId ?? idx).toString()} className="card-editorial overflow-hidden group bg-offwhite/5 border border-offwhite/10">
+                            <li key={(v.id ?? v.videoId ?? idx).toString()} className="card-editorial overflow-hidden group bg-offwhite/5 border border-offwhite/10 rounded-sm">
                               {thumb ? (
                                 <div className="aspect-video relative overflow-hidden">
                                   <img

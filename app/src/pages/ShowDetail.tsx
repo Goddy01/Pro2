@@ -51,6 +51,7 @@ export default function ShowDetail() {
   const [videos, setVideos] = useState<WatchItem[]>([]);
   const [loadingMedia, setLoadingMedia] = useState(false);
   const [episodePage, setEpisodePage] = useState(1);
+  const [expandedEpisodeId, setExpandedEpisodeId] = useState<number | null>(null);
 
   const EPISODES_PER_PAGE = 9;
 
@@ -85,6 +86,7 @@ export default function ShowDetail() {
     let cancelled = false;
     setLoadingMedia(true);
     setEpisodePage(1);
+    setExpandedEpisodeId(null);
     const name = show.name;
     Promise.all([
       fetch(apiUrl(`/api/podcast?show=${encodeURIComponent(name)}`))
@@ -144,61 +146,80 @@ export default function ShowDetail() {
             <p className="text-offwhite/60 text-center py-12">Show not found.</p>
           ) : (
             <>
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mb-14">
-                <div className="min-w-0 lg:col-span-6">
-                  <span className="label-mono text-lime mb-4 block">Show</span>
-                  <h1 className="headline-section text-offwhite text-4xl lg:text-5xl mb-4 break-words">
-                    {show.name}
-                  </h1>
-                  {show.description ? (
-                    <p className="body-large text-offwhite/70 mb-6 whitespace-pre-wrap break-words">
-                      {show.description}
-                    </p>
-                  ) : (
-                    <p className="body-large text-offwhite/60 mb-6">More details coming soon.</p>
-                  )}
-
-                  {anyLinks && (
-                    <div className="flex flex-wrap gap-3">
-                      {links.youtube && (
-                        <a href={links.youtube} target="_blank" rel="noopener noreferrer" className="btn-outline-premium inline-flex items-center gap-2">
-                          YouTube <ExternalLink className="w-4 h-4" />
-                        </a>
-                      )}
-                      {links.spotify && (
-                        <a href={links.spotify} target="_blank" rel="noopener noreferrer" className="btn-outline-premium inline-flex items-center gap-2">
-                          Spotify <ExternalLink className="w-4 h-4" />
-                        </a>
-                      )}
-                      {links.apple && (
-                        <a href={links.apple} target="_blank" rel="noopener noreferrer" className="btn-outline-premium inline-flex items-center gap-2">
-                          Apple Podcasts <ExternalLink className="w-4 h-4" />
-                        </a>
-                      )}
-                      {links.website && (
-                        <a href={links.website} target="_blank" rel="noopener noreferrer" className="btn-outline-premium inline-flex items-center gap-2">
-                          Website <ExternalLink className="w-4 h-4" />
-                        </a>
-                      )}
-                    </div>
-                  )}
+              {/* Hero image first (full content width) */}
+              {hero ? (
+                <div className="mb-10">
+                  <div className="aspect-video overflow-hidden border border-offwhite/10 bg-offwhite/5 rounded-sm">
+                    <img
+                      src={hero}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
                 </div>
+              ) : null}
 
-                <div className="relative lg:col-span-6 lg:sticky lg:top-24">
-                  {hero ? (
-                    <div className="aspect-video overflow-hidden border border-offwhite/10 bg-offwhite/5 rounded-sm">
-                      <img
-                        src={hero}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </div>
-                  ) : (
-                    <div className="aspect-video border border-offwhite/10 bg-offwhite/5 rounded-sm" aria-hidden />
-                  )}
-                </div>
+              {/* Title + links + description */}
+              <div className="mb-14">
+                <span className="label-mono text-lime mb-4 block">Show</span>
+                <h1 className="headline-section text-offwhite text-4xl lg:text-5xl mb-4 break-words">
+                  {show.name}
+                </h1>
+
+                {anyLinks && (
+                  <div className="flex flex-wrap gap-3 mb-6">
+                    {links.youtube && (
+                      <a
+                        href={links.youtube}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-outline-premium inline-flex items-center gap-2"
+                      >
+                        YouTube <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                    {links.spotify && (
+                      <a
+                        href={links.spotify}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-outline-premium inline-flex items-center gap-2"
+                      >
+                        Spotify <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                    {links.apple && (
+                      <a
+                        href={links.apple}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-outline-premium inline-flex items-center gap-2"
+                      >
+                        Apple Podcasts <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                    {links.website && (
+                      <a
+                        href={links.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-outline-premium inline-flex items-center gap-2"
+                      >
+                        Website <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {show.description ? (
+                  <p className="body-large text-offwhite/70 whitespace-pre-wrap break-words">
+                    {show.description}
+                  </p>
+                ) : (
+                  <p className="body-large text-offwhite/60">More details coming soon.</p>
+                )}
               </div>
 
               <div className="h-px w-full bg-offwhite/10 mb-12" aria-hidden />
@@ -218,68 +239,91 @@ export default function ShowDetail() {
                           Showing {episodes.length === 0 ? 0 : episodeStart + 1}–{Math.min(episodeStart + EPISODES_PER_PAGE, episodes.length)} of {episodes.length}
                         </p>
                       </div>
-                      <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {pagedEpisodes.map((ep) => {
-                          const thumb = ep.thumbnail_url
-                            ? optimizeImageUrl(ep.thumbnail_url, { width: 700, quality: 70 })
-                            : '';
-                          return (
-                            <li key={ep.id} className="card-editorial overflow-hidden group bg-offwhite/5 border border-offwhite/10 rounded-sm">
-                              {thumb ? (
-                                <div className="aspect-video relative overflow-hidden">
-                                  <img
-                                    src={thumb}
-                                    alt=""
-                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                    loading="lazy"
-                                    decoding="async"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="aspect-video bg-offwhite/5 border-b border-offwhite/10" aria-hidden />
-                              )}
-                              <div className="p-5">
-                                <h3 className="text-offwhite font-display font-bold text-lg mb-2 line-clamp-2">
-                                  {ep.title}
-                                </h3>
-                                {ep.duration_label && (
-                                  <p className="text-offwhite/50 text-sm mb-2">{ep.duration_label}</p>
+                      <div className="border border-offwhite/10 bg-offwhite/5 rounded-sm overflow-hidden">
+                        <ul className="divide-y divide-offwhite/10">
+                          {pagedEpisodes.map((ep) => {
+                            const open = expandedEpisodeId === ep.id;
+                            const headerId = `ep-header-${ep.id}`;
+                            const panelId = `ep-panel-${ep.id}`;
+                            return (
+                              <li key={ep.id} className="min-w-0">
+                                <button
+                                  type="button"
+                                  id={headerId}
+                                  aria-expanded={open}
+                                  aria-controls={panelId}
+                                  onClick={() => setExpandedEpisodeId((cur) => (cur === ep.id ? null : ep.id))}
+                                  className="w-full text-left px-4 sm:px-5 py-4 hover:bg-offwhite/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-lime focus-visible:ring-offset-2 focus-visible:ring-offset-forest"
+                                >
+                                  <div className="flex items-start justify-between gap-4">
+                                    <div className="min-w-0">
+                                      <p className="text-offwhite font-display font-bold text-base sm:text-lg leading-snug break-words">
+                                        {ep.title}
+                                      </p>
+                                      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-offwhite/55">
+                                        {ep.duration_label ? <span>{ep.duration_label}</span> : null}
+                                        {ep.guests ? (
+                                          <span className="truncate">
+                                            Guests: {ep.guests.split(',').map((s) => s.trim()).filter(Boolean).join(', ')}
+                                          </span>
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                    <span className="text-offwhite/60 text-sm shrink-0">
+                                      {open ? '−' : '+'}
+                                    </span>
+                                  </div>
+                                </button>
+
+                                {open && (
+                                  <div
+                                    id={panelId}
+                                    role="region"
+                                    aria-labelledby={headerId}
+                                    className="px-4 sm:px-5 pb-5"
+                                  >
+                                    {ep.description ? (
+                                      <p className="text-offwhite/70 text-sm whitespace-pre-wrap break-words mb-4">
+                                        {ep.description}
+                                      </p>
+                                    ) : (
+                                      <p className="text-offwhite/50 text-sm mb-4">
+                                        No description provided.
+                                      </p>
+                                    )}
+
+                                    <div className="flex flex-wrap gap-2">
+                                      {ep.audio_url && (
+                                        <a
+                                          href={ep.audio_url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1.5 bg-lime text-forest px-3 py-2 text-xs font-semibold uppercase tracking-wide hover:bg-lime/90 transition-colors"
+                                        >
+                                          Listen
+                                        </a>
+                                      )}
+                                      {ep.video_url && (
+                                        <a
+                                          href={ep.video_url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1.5 bg-offwhite/10 text-offwhite border border-offwhite/20 px-3 py-2 text-xs font-semibold uppercase tracking-wide hover:bg-offwhite/20 transition-colors"
+                                        >
+                                          Watch
+                                        </a>
+                                      )}
+                                      {!ep.audio_url && !ep.video_url ? (
+                                        <span className="text-offwhite/50 text-sm">No links available.</span>
+                                      ) : null}
+                                    </div>
+                                  </div>
                                 )}
-                                {ep.guests && (
-                                  <p className="text-offwhite/60 text-sm mb-3 line-clamp-2">
-                                    Guests: {ep.guests.split(',').map((s) => s.trim()).filter(Boolean).join(', ')}
-                                  </p>
-                                )}
-                                {ep.description && (
-                                  <p className="text-offwhite/60 text-sm line-clamp-3 mb-4">{ep.description}</p>
-                                )}
-                                <div className="flex flex-wrap gap-2">
-                                  {ep.audio_url && (
-                                    <a
-                                      href={ep.audio_url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1.5 bg-lime text-forest px-3 py-1.5 text-xs font-semibold uppercase tracking-wide hover:bg-lime/90 transition-colors"
-                                    >
-                                      Listen
-                                    </a>
-                                  )}
-                                  {ep.video_url && (
-                                    <a
-                                      href={ep.video_url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1.5 bg-offwhite/10 text-offwhite border border-offwhite/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide hover:bg-offwhite/20 transition-colors"
-                                    >
-                                      Watch
-                                    </a>
-                                  )}
-                                </div>
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
 
                       {totalEpisodePages > 1 && (
                         <div className="mt-8 flex items-center justify-center gap-4">

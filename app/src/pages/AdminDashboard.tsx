@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo, type FormEvent } fro
 import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl, authenticatedFetch } from '../lib/api';
-import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X, ChevronDown } from 'lucide-react';
+import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X, ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import '../App.css';
@@ -29,6 +29,19 @@ type LocationState = {
   editCategoryId?: number;
   editGalleryId?: number;
 } | null;
+
+type ShowPage = {
+  id: number;
+  slug: string;
+  name: string;
+  description: string | null;
+  hero_image_url: string | null;
+  platform_links: { youtube?: string; spotify?: string; apple?: string } | null;
+  sort_order: number;
+  created_at?: string;
+};
+
+type AdminEpisode = { id: number; title: string; show_name: string | null; created_at: string };
 
 export default function AdminDashboard() {
   const { token, logout, isAuthenticated } = useAuth();
@@ -76,6 +89,25 @@ export default function AdminDashboard() {
   const [podcastVideoUrl, setPodcastVideoUrl] = useState('');
   const [podcastShowName, setPodcastShowName] = useState('');
 
+  const [showSubTab, setShowSubTab] = useState<'episodes' | 'show-pages'>('episodes');
+  const [showPages, setShowPages] = useState<ShowPage[]>([]);
+  const [showPagesLoading, setShowPagesLoading] = useState(false);
+  const [editingShowPageId, setEditingShowPageId] = useState<number | null>(null);
+  const [showPageName, setShowPageName] = useState('');
+  const [showPageDescription, setShowPageDescription] = useState('');
+  const [showPageSortOrder, setShowPageSortOrder] = useState('0');
+  const [showPageHeroFile, setShowPageHeroFile] = useState<File | null>(null);
+  const showPageHeroInputRef = useRef<HTMLInputElement>(null);
+  const [showPageYoutube, setShowPageYoutube] = useState('');
+  const [showPageSpotify, setShowPageSpotify] = useState('');
+  const [showPageApple, setShowPageApple] = useState('');
+
+  const [showPageEpisodes, setShowPageEpisodes] = useState<AdminEpisode[]>([]);
+  const [showPageEpisodesLoading, setShowPageEpisodesLoading] = useState(false);
+  const [showPageEpisodeQuery, setShowPageEpisodeQuery] = useState('');
+  const [showPageSelectedEpisodeIds, setShowPageSelectedEpisodeIds] = useState<Set<number>>(new Set());
+  const [showPageAssigning, setShowPageAssigning] = useState(false);
+
   const [watchTitle, setWatchTitle] = useState('');
   const [watchVideoId, setWatchVideoId] = useState('');
   const [watchDuration, setWatchDuration] = useState('Video');
@@ -90,7 +122,8 @@ export default function AdminDashboard() {
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
-        const list = Array.isArray(data) ? data : [];
+        const list = Array.isArray(data) ? (data as ShowPage[]) : [];
+        setShowPages(list);
         const names = list
           .map((s: { name?: string }) => (s?.name || '').trim())
           .filter(Boolean);
@@ -98,7 +131,10 @@ export default function AdminDashboard() {
         setShowNameOptions(names);
       })
       .catch(() => {
-        if (!cancelled) setShowNameOptions([]);
+        if (!cancelled) {
+          setShowNameOptions([]);
+          setShowPages([]);
+        }
       });
     return () => {
       cancelled = true;
@@ -603,6 +639,220 @@ export default function AdminDashboard() {
     }
   }
 
+  function resetShowPageForm() {
+    setEditingShowPageId(null);
+    setShowPageName('');
+    setShowPageDescription('');
+    setShowPageSortOrder('0');
+    setShowPageHeroFile(null);
+    if (showPageHeroInputRef.current) showPageHeroInputRef.current.value = '';
+    setShowPageYoutube('');
+    setShowPageSpotify('');
+    setShowPageApple('');
+    setShowPageEpisodes([]);
+    setShowPageEpisodeQuery('');
+    setShowPageSelectedEpisodeIds(new Set());
+  }
+
+  async function refreshShowPages() {
+    if (!token) return;
+    setShowPagesLoading(true);
+    try {
+      const res = await authenticatedFetch(apiUrl('/api/shows/admin'), {}, token);
+      const data = await res.json().catch(() => ([]));
+      if (!res.ok) {
+        setError((data as { error?: string }).error || 'Failed to load shows');
+        return;
+      }
+      const list = Array.isArray(data) ? (data as ShowPage[]) : [];
+      setShowPages(list);
+      const names = list
+        .map((s) => (s?.name || '').trim())
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b));
+      setShowNameOptions(names);
+    } catch {
+      setError('Could not connect to server');
+    } finally {
+      setShowPagesLoading(false);
+    }
+  }
+
+  function startEditShowPage(s: ShowPage) {
+    clearMessages();
+    setEditingShowPageId(s.id);
+    setShowPageName(s.name || '');
+    setShowPageDescription(s.description || '');
+    setShowPageSortOrder(String(s.sort_order ?? 0));
+    setShowPageHeroFile(null);
+    if (showPageHeroInputRef.current) showPageHeroInputRef.current.value = '';
+    setShowPageYoutube(s.platform_links?.youtube || '');
+    setShowPageSpotify(s.platform_links?.spotify || '');
+    setShowPageApple(s.platform_links?.apple || '');
+    setShowPageEpisodes([]);
+    setShowPageEpisodeQuery('');
+    setShowPageSelectedEpisodeIds(new Set());
+  }
+
+  async function handleShowPageSubmit(e: FormEvent) {
+    e.preventDefault();
+    clearMessages();
+    if (!token) return;
+    if (!showPageName.trim()) {
+      setError('Show name is required');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const form = new FormData();
+      form.append('name', showPageName.trim());
+      form.append('description', showPageDescription.trim());
+      form.append('sort_order', String(parseInt(showPageSortOrder || '0', 10) || 0));
+      if (showPageHeroFile) form.append('hero_image', showPageHeroFile);
+      form.append('platform_links', JSON.stringify({
+        youtube: showPageYoutube.trim() || undefined,
+        spotify: showPageSpotify.trim() || undefined,
+        apple: showPageApple.trim() || undefined,
+      }));
+
+      const isEditing = typeof editingShowPageId === 'number';
+      const url = isEditing ? apiUrl(`/api/shows/admin/${editingShowPageId}`) : apiUrl('/api/shows/admin');
+      const res = await authenticatedFetch(url, { method: isEditing ? 'PUT' : 'POST', body: form }, token);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError((data as { error?: string }).error || 'Failed to save show');
+        return;
+      }
+
+      setSuccess(isEditing ? 'Show page updated.' : 'Show page created.');
+      await refreshShowPages();
+      if (!isEditing) resetShowPageForm();
+    } catch {
+      setError('Could not connect to server');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleShowPageDelete(id: number) {
+    if (!token) return;
+    if (!window.confirm('Delete this show? This cannot be undone.')) return;
+    clearMessages();
+    setLoading(true);
+    try {
+      const res = await authenticatedFetch(apiUrl(`/api/shows/admin/${id}`), { method: 'DELETE' }, token);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError((data as { error?: string }).error || 'Failed to delete show');
+        return;
+      }
+      setSuccess('Show deleted.');
+      if (editingShowPageId === id) resetShowPageForm();
+      await refreshShowPages();
+    } catch {
+      setError('Could not connect to server');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!token) return;
+    if (activeTab !== 'podcast') return;
+    if (showSubTab !== 'show-pages') return;
+    setShowPagesLoading(true);
+    refreshShowPages().finally(() => setShowPagesLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, activeTab, showSubTab]);
+
+  useEffect(() => {
+    if (!token) return;
+    if (activeTab !== 'podcast') return;
+    if (showSubTab !== 'show-pages') return;
+    if (!editingShowPageId) return;
+    const showName = showPageName.trim();
+    if (!showName) return;
+
+    let cancelled = false;
+    setShowPageEpisodesLoading(true);
+    authenticatedFetch(apiUrl('/api/podcast'), {}, token)
+      .then(async (res) => {
+        const data = await res.json().catch(() => ([]));
+        if (!res.ok) throw new Error((data as { error?: string }).error || 'Failed to load episodes');
+        return data;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const list = Array.isArray(data) ? (data as AdminEpisode[]) : [];
+        setShowPageEpisodes(list);
+        const assigned = new Set<number>();
+        list.forEach((ep) => {
+          if ((ep.show_name || '').trim() === showName) assigned.add(ep.id);
+        });
+        setShowPageSelectedEpisodeIds(assigned);
+      })
+      .catch(() => {
+        if (!cancelled) setShowPageEpisodes([]);
+      })
+      .finally(() => {
+        if (!cancelled) setShowPageEpisodesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, activeTab, showSubTab, editingShowPageId, showPageName]);
+
+  const filteredShowPageEpisodes = useMemo(() => {
+    const q = showPageEpisodeQuery.trim().toLowerCase();
+    const list = [...showPageEpisodes];
+    list.sort((a, b) => {
+      try {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      } catch {
+        return (b.id ?? 0) - (a.id ?? 0);
+      }
+    });
+    if (!q) return list;
+    return list.filter((ep) => (ep.title || '').toLowerCase().includes(q));
+  }, [showPageEpisodes, showPageEpisodeQuery]);
+
+  async function applyShowPageEpisodeAssignments() {
+    if (!token) return;
+    const showName = showPageName.trim();
+    if (!editingShowPageId || !showName) return;
+    setShowPageAssigning(true);
+    clearMessages();
+    try {
+      const ids = Array.from(showPageSelectedEpisodeIds);
+      const res = await authenticatedFetch(apiUrl('/api/podcast/admin/assign-show'), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ episode_ids: ids, show_name: showName }),
+      }, token);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError((data as { error?: string }).error || 'Failed to assign episodes');
+        return;
+      }
+      setSuccess('Episodes attached.');
+      // Refresh episodes list (so checkbox defaults match server)
+      const refreshed = await authenticatedFetch(apiUrl('/api/podcast'), {}, token);
+      const epData = await refreshed.json().catch(() => ([]));
+      const list = Array.isArray(epData) ? (epData as AdminEpisode[]) : [];
+      setShowPageEpisodes(list);
+      const assigned = new Set<number>();
+      list.forEach((ep) => {
+        if ((ep.show_name || '').trim() === showName) assigned.add(ep.id);
+      });
+      setShowPageSelectedEpisodeIds(assigned);
+    } catch {
+      setError('Could not connect to server');
+    } finally {
+      setShowPageAssigning(false);
+    }
+  }
+
   async function handleWatchSubmit(e: FormEvent) {
     e.preventDefault();
     clearMessages();
@@ -834,9 +1084,14 @@ export default function AdminDashboard() {
             <Link to="/admin/social-links" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="Update site social links">
               Social links
             </Link>
-            <Link to="/admin/shows" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="Manage show pages">
-              Shows pages
-            </Link>
+            <button
+              type="button"
+              onClick={() => { setActiveTab('podcast'); setShowSubTab('show-pages'); }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap"
+              title="Manage show pages"
+            >
+              Show pages
+            </button>
             <span className="w-px h-5 bg-offwhite/20 mx-1" aria-hidden />
             <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); }} className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap">
               <UserPlus className="w-4 h-4" />
@@ -891,9 +1146,13 @@ export default function AdminDashboard() {
               <Link to="/admin/social-links" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
                 Social links
               </Link>
-              <Link to="/admin/shows" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
-                Shows pages
-              </Link>
+              <button
+                type="button"
+                onClick={() => { setAdminMenuOpen(false); setActiveTab('podcast'); setShowSubTab('show-pages'); }}
+                className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2 text-left"
+              >
+                Show pages
+              </button>
               <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); setAdminMenuOpen(false); }} className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2 text-left">
                 <UserPlus className="w-4 h-4" />
                 Add new admin
@@ -1149,87 +1408,307 @@ export default function AdminDashboard() {
 
         {activeTab === 'podcast' && (
           <div className="space-y-6">
-            <p className="mb-6">
-              <Link to="/admin/show" className="text-lime hover:underline">View &amp; manage existing episodes</Link>
-            </p>
-            {podcastType == null && !editingPodcastId ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => { setShowSubTab('episodes'); clearMessages(); }}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  showSubTab === 'episodes' ? 'bg-lime text-forest' : 'text-offwhite/70 hover:text-lime border border-offwhite/20'
+                }`}
+              >
+                Episodes
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowSubTab('show-pages'); clearMessages(); }}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  showSubTab === 'show-pages' ? 'bg-lime text-forest' : 'text-offwhite/70 hover:text-lime border border-offwhite/20'
+                }`}
+              >
+                Show pages
+              </button>
+            </div>
+
+            {showSubTab === 'episodes' && (
               <>
-                <p className={labelClass}>What are you uploading?</p>
-                <div className="flex flex-wrap gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setPodcastType('audio')}
-                    className="px-6 py-4 border-2 border-offwhite/30 text-offwhite hover:border-lime hover:text-lime transition-colors font-medium"
-                  >
-                    Audio show
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPodcastType('video')}
-                    className="px-6 py-4 border-2 border-offwhite/30 text-offwhite hover:border-lime hover:text-lime transition-colors font-medium"
-                  >
-                    Video show
-                  </button>
-                </div>
-              </>
-            ) : (
-              <form onSubmit={handlePodcastSubmit} className="space-y-6">
-                {(podcastType != null || editingPodcastId) && (
-                  <p className="text-offwhite/70 text-sm">
-                    {editingPodcastId ? (
-                      <>Editing episode. <button type="button" onClick={() => { setEditingPodcastId(null); setPodcastType(null); setPodcastTitle(''); setPodcastDescription(''); setPodcastDuration(''); setPodcastGuests(''); setPodcastAudioUrl(''); setPodcastVideoUrl(''); setPodcastShowName(''); }} className="text-lime underline">Cancel</button></>
-                    ) : (
-                      <button type="button" onClick={() => setPodcastType(null)} className="text-lime hover:underline">← Change to {podcastType === 'audio' ? 'video' : 'audio'} show</button>
+                <p className="mb-6">
+                  <Link to="/admin/show" className="text-lime hover:underline">View &amp; manage existing episodes</Link>
+                </p>
+                {podcastType == null && !editingPodcastId ? (
+                  <>
+                    <p className={labelClass}>What are you uploading?</p>
+                    <div className="flex flex-wrap gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setPodcastType('audio')}
+                        className="px-6 py-4 border-2 border-offwhite/30 text-offwhite hover:border-lime hover:text-lime transition-colors font-medium"
+                      >
+                        Audio show
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPodcastType('video')}
+                        className="px-6 py-4 border-2 border-offwhite/30 text-offwhite hover:border-lime hover:text-lime transition-colors font-medium"
+                      >
+                        Video show
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <form onSubmit={handlePodcastSubmit} className="space-y-6">
+                    {(podcastType != null || editingPodcastId) && (
+                      <p className="text-offwhite/70 text-sm">
+                        {editingPodcastId ? (
+                          <>Editing episode. <button type="button" onClick={() => { setEditingPodcastId(null); setPodcastType(null); setPodcastTitle(''); setPodcastDescription(''); setPodcastDuration(''); setPodcastGuests(''); setPodcastAudioUrl(''); setPodcastVideoUrl(''); setPodcastShowName(''); }} className="text-lime underline">Cancel</button></>
+                        ) : (
+                          <button type="button" onClick={() => setPodcastType(null)} className="text-lime hover:underline">← Change to {podcastType === 'audio' ? 'video' : 'audio'} show</button>
+                        )}
+                      </p>
                     )}
-                  </p>
+                    <label className="block">
+                      <span className={labelClass}>Episode title *</span>
+                      <input type="text" value={podcastTitle} onChange={(e) => setPodcastTitle(e.target.value)} className={inputClass} placeholder="Episode title" required />
+                    </label>
+                    <label className="block">
+                      <span className={labelClass}>Description (optional)</span>
+                      <textarea value={podcastDescription} onChange={(e) => setPodcastDescription(e.target.value)} rows={4} className={inputClass} placeholder="Description" />
+                    </label>
+                    <label className="block">
+                      <span className={labelClass}>Duration (e.g. 59:02)</span>
+                      <input type="text" value={podcastDuration} onChange={(e) => setPodcastDuration(e.target.value)} className={inputClass} placeholder="01:02:28" />
+                    </label>
+                    <label className="block">
+                      <span className={labelClass}>Guests (comma-separated)</span>
+                      <input type="text" value={podcastGuests} onChange={(e) => setPodcastGuests(e.target.value)} className={inputClass} placeholder="Name 1, Name 2" />
+                    </label>
+                    <label className="block">
+                      <span className={labelClass}>Show (optional – for multiple shows on the network)</span>
+                      <select
+                        value={podcastShowName}
+                        onChange={(e) => setPodcastShowName(e.target.value)}
+                        className={inputClass}
+                      >
+                        <option value="">None / Unassigned</option>
+                        {podcastShowSelectOptions.map((n: string) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {podcastType === 'audio' && (
+                      <label className="block">
+                        <span className={labelClass}>Audio URL *</span>
+                        <input type="url" value={podcastAudioUrl} onChange={(e) => setPodcastAudioUrl(e.target.value)} className={inputClass} placeholder="https://..." required={podcastType === 'audio'} />
+                      </label>
+                    )}
+                    {podcastType === 'video' && (
+                      <label className="block">
+                        <span className={labelClass}>Video URL or YouTube link *</span>
+                        <input type="url" value={podcastVideoUrl} onChange={(e) => setPodcastVideoUrl(e.target.value)} className={inputClass} placeholder="https://..." required={podcastType === 'video'} />
+                      </label>
+                    )}
+                    <button type="submit" disabled={loading} className="btn-premium py-4 px-8 disabled:opacity-50">
+                      {loading ? (editingPodcastId ? 'Updating...' : 'Adding...') : (editingPodcastId ? 'Update Episode' : 'Add Show Episode')}
+                    </button>
+                  </form>
                 )}
-                <label className="block">
-                  <span className={labelClass}>Episode title *</span>
-                  <input type="text" value={podcastTitle} onChange={(e) => setPodcastTitle(e.target.value)} className={inputClass} placeholder="Episode title" required />
-                </label>
-                <label className="block">
-                  <span className={labelClass}>Description (optional)</span>
-                  <textarea value={podcastDescription} onChange={(e) => setPodcastDescription(e.target.value)} rows={4} className={inputClass} placeholder="Description" />
-                </label>
-                <label className="block">
-                  <span className={labelClass}>Duration (e.g. 59:02)</span>
-                  <input type="text" value={podcastDuration} onChange={(e) => setPodcastDuration(e.target.value)} className={inputClass} placeholder="01:02:28" />
-                </label>
-                <label className="block">
-                  <span className={labelClass}>Guests (comma-separated)</span>
-                  <input type="text" value={podcastGuests} onChange={(e) => setPodcastGuests(e.target.value)} className={inputClass} placeholder="Name 1, Name 2" />
-                </label>
-                <label className="block">
-                  <span className={labelClass}>Show (optional – for multiple shows on the network)</span>
-                  <select
-                    value={podcastShowName}
-                    onChange={(e) => setPodcastShowName(e.target.value)}
-                    className={inputClass}
-                  >
-                    <option value="">None / Unassigned</option>
-                    {podcastShowSelectOptions.map((n: string) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                {podcastType === 'audio' && (
-                  <label className="block">
-                    <span className={labelClass}>Audio URL *</span>
-                    <input type="url" value={podcastAudioUrl} onChange={(e) => setPodcastAudioUrl(e.target.value)} className={inputClass} placeholder="https://..." required={podcastType === 'audio'} />
-                  </label>
+              </>
+            )}
+
+            {showSubTab === 'show-pages' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div>
+                    <h2 className="text-offwhite font-editorial font-bold text-xl">Show pages</h2>
+                    <p className="text-offwhite/60 text-sm">Create, edit, delete show pages and attach episodes.</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { resetShowPageForm(); clearMessages(); }}
+                      className="inline-flex items-center gap-2 px-4 py-2 border border-offwhite/20 text-offwhite/80 hover:text-lime hover:border-lime transition-colors text-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                      New show
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <div className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
+                    <h3 className="text-offwhite font-medium mb-4">{editingShowPageId ? 'Edit show page' : 'New show page'}</h3>
+                    <form onSubmit={handleShowPageSubmit} className="space-y-4">
+                      <label className="block">
+                        <span className={labelClass}>Name *</span>
+                        <input value={showPageName} onChange={(e) => setShowPageName(e.target.value)} className={inputClass} placeholder="Show name" required />
+                      </label>
+                      <label className="block">
+                        <span className={labelClass}>Description (optional)</span>
+                        <textarea value={showPageDescription} onChange={(e) => setShowPageDescription(e.target.value)} rows={4} className={inputClass} placeholder="Short description for the show page" />
+                      </label>
+                      <label className="block">
+                        <span className={labelClass}>Hero image (optional)</span>
+                        <input
+                          ref={showPageHeroInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => setShowPageHeroFile(e.target.files?.[0] ?? null)}
+                          className="w-full text-offwhite/80 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-lime file:text-forest file:font-medium"
+                        />
+                      </label>
+                      <label className="block">
+                        <span className={labelClass}>
+                          Sort order <span className="text-offwhite/50 font-normal text-xs ml-2">Lower numbers show first on /shows.</span>
+                        </span>
+                        <input value={showPageSortOrder} onChange={(e) => setShowPageSortOrder(e.target.value)} className={inputClass} placeholder="0" />
+                      </label>
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <label className="block">
+                          <span className="text-offwhite/70 text-xs mb-1 block">YouTube</span>
+                          <input value={showPageYoutube} onChange={(e) => setShowPageYoutube(e.target.value)} className={inputClass} placeholder="https://..." />
+                        </label>
+                        <label className="block">
+                          <span className="text-offwhite/70 text-xs mb-1 block">Spotify</span>
+                          <input value={showPageSpotify} onChange={(e) => setShowPageSpotify(e.target.value)} className={inputClass} placeholder="https://..." />
+                        </label>
+                        <label className="block">
+                          <span className="text-offwhite/70 text-xs mb-1 block">Apple Podcasts</span>
+                          <input value={showPageApple} onChange={(e) => setShowPageApple(e.target.value)} className={inputClass} placeholder="https://..." />
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2 pt-2 flex-wrap">
+                        <button type="submit" disabled={loading} className="btn-premium py-3 px-6 disabled:opacity-50">
+                          {loading ? (editingShowPageId ? 'Saving…' : 'Creating…') : (editingShowPageId ? 'Save changes' : 'Create show')}
+                        </button>
+                        {editingShowPageId && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => { resetShowPageForm(); clearMessages(); }}
+                              className="px-4 py-3 border border-offwhite/20 text-offwhite/80 hover:text-lime hover:border-lime transition-colors"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleShowPageDelete(editingShowPageId)}
+                              disabled={loading}
+                              className="inline-flex items-center gap-2 px-4 py-3 border border-red-500/40 text-red-300 hover:border-red-400 hover:text-red-200 transition-colors disabled:opacity-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </div>
+                      {showPageName.trim() && (
+                        <p className="text-offwhite/50 text-xs pt-1">
+                          URL preview: <span className="text-offwhite/70">/shows/{showPageName.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 100)}</span>
+                        </p>
+                      )}
+                    </form>
+                  </div>
+
+                  <div className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
+                    <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+                      <h3 className="text-offwhite font-medium">Existing show pages</h3>
+                      <button type="button" onClick={() => refreshShowPages()} className="text-offwhite/70 hover:text-lime text-sm">
+                        Refresh
+                      </button>
+                    </div>
+                    {showPagesLoading ? (
+                      <p className="text-offwhite/60">Loading…</p>
+                    ) : showPages.length === 0 ? (
+                      <p className="text-offwhite/60">No shows yet.</p>
+                    ) : (
+                      <ul className="space-y-2 max-h-[520px] overflow-auto pr-1">
+                        {[...showPages]
+                          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || (a.name || '').localeCompare(b.name || ''))
+                          .map((s) => (
+                            <li key={s.id} className="flex items-center justify-between gap-3 py-2 border-b border-offwhite/10">
+                              <div className="min-w-0">
+                                <p className="text-offwhite font-medium truncate">{s.name}</p>
+                                <p className="text-offwhite/50 text-xs truncate">/shows/{s.slug}</p>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => { startEditShowPage(s); }}
+                                  className="p-2 text-offwhite/70 hover:text-lime transition-colors"
+                                  title="Edit"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleShowPageDelete(s.id)}
+                                  className="p-2 text-red-300/80 hover:text-red-200 transition-colors"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </li>
+                          ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+
+                {editingShowPageId && (
+                  <div className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
+                    <h3 className="text-offwhite font-medium mb-3">Attach episodes</h3>
+                    <p className="text-offwhite/60 text-sm mb-4">
+                      Checked episodes will be assigned to <span className="text-offwhite">{showPageName.trim() || 'this show'}</span>.
+                    </p>
+                    <label className="block mb-3">
+                      <span className="text-offwhite/70 text-xs mb-1 block">Search</span>
+                      <input value={showPageEpisodeQuery} onChange={(e) => setShowPageEpisodeQuery(e.target.value)} className={inputClass} placeholder="Search episodes…" />
+                    </label>
+                    {showPageEpisodesLoading ? (
+                      <p className="text-offwhite/60">Loading episodes…</p>
+                    ) : (
+                      <div className="max-h-[360px] overflow-auto pr-1 space-y-2">
+                        {filteredShowPageEpisodes.map((ep) => (
+                          <label key={ep.id} className="flex items-start gap-3 py-2 border-b border-offwhite/10">
+                            <input
+                              type="checkbox"
+                              checked={showPageSelectedEpisodeIds.has(ep.id)}
+                              onChange={(e) => {
+                                setShowPageSelectedEpisodeIds((prev) => {
+                                  const next = new Set(prev);
+                                  if (e.target.checked) next.add(ep.id);
+                                  else next.delete(ep.id);
+                                  return next;
+                                });
+                              }}
+                              className="mt-1"
+                            />
+                            <div className="min-w-0">
+                              <p className="text-offwhite/90 text-sm truncate">{ep.title}</p>
+                              <p className="text-offwhite/50 text-xs truncate">Current show: {(ep.show_name || 'None')}</p>
+                            </div>
+                          </label>
+                        ))}
+                        {filteredShowPageEpisodes.length === 0 && (
+                          <p className="text-offwhite/60 text-sm">No episodes found.</p>
+                        )}
+                      </div>
+                    )}
+                    <div className="pt-4">
+                      <button
+                        type="button"
+                        disabled={showPageAssigning || showPageEpisodesLoading || !showPageName.trim()}
+                        onClick={applyShowPageEpisodeAssignments}
+                        className="btn-premium py-3 px-6 disabled:opacity-50"
+                      >
+                        {showPageAssigning ? 'Saving…' : 'Apply attachments'}
+                      </button>
+                    </div>
+                  </div>
                 )}
-                {podcastType === 'video' && (
-                  <label className="block">
-                    <span className={labelClass}>Video URL or YouTube link *</span>
-                    <input type="url" value={podcastVideoUrl} onChange={(e) => setPodcastVideoUrl(e.target.value)} className={inputClass} placeholder="https://..." required={podcastType === 'video'} />
-                  </label>
-                )}
-                <button type="submit" disabled={loading} className="btn-premium py-4 px-8 disabled:opacity-50">
-                  {loading ? (editingPodcastId ? 'Updating...' : 'Adding...') : (editingPodcastId ? 'Update Episode' : 'Add Show Episode')}
-                </button>
-              </form>
+              </div>
             )}
           </div>
         )}

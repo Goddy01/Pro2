@@ -62,7 +62,7 @@ export default function ShowsIndex() {
         canonicalPath="/shows"
       />
       <section className="section-premium py-24">
-        <div className="w-full px-6 lg:px-12 max-w-6xl mx-auto">
+        <div className="w-full px-6 lg:px-12 max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <span className="label-mono text-lime mb-4 block">Shows</span>
             <h1 className="headline-section text-offwhite text-4xl lg:text-5xl mb-4">
@@ -82,7 +82,7 @@ export default function ShowsIndex() {
             </p>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                 {paged.map((s) => {
                 const img = s.hero_image_url
                   ? optimizeImageUrl(s.hero_image_url, { width: 700, quality: 70 })

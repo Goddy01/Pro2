@@ -58,7 +58,7 @@ export default function ListenWatch() {
         canonicalPath="/listen-watch"
       />
       <section className="section-premium py-24">
-        <div className="w-full px-6 lg:px-12">
+        <div className="w-full px-6 lg:px-12 max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <span className="label-mono text-lime mb-4 block">Listen & Watch</span>
             <h1 className="headline-section text-offwhite text-4xl lg:text-5xl mb-4">
@@ -90,7 +90,7 @@ export default function ListenWatch() {
               {q ? 'No shows match your search.' : 'No shows are configured yet. Check back soon.'}
             </p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
               {filtered.map((s) => {
                 const img = s.hero_image_url
                   ? optimizeImageUrl(s.hero_image_url, { width: 700, quality: 70 })

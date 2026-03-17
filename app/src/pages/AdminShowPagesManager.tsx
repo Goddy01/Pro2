@@ -5,15 +5,12 @@ import { useAuth } from '../context/AuthContext';
 import { apiUrl, authenticatedFetch } from '../lib/api';
 import '../App.css';
 
-type PlatformLinks = { youtube?: string; spotify?: string; apple?: string };
-
 type ShowPage = {
   id: number;
   slug: string;
   name: string;
   description: string | null;
   hero_image_url: string | null;
-  platform_links: PlatformLinks | null;
   sort_order: number;
   created_at?: string;
 };
@@ -52,9 +49,6 @@ export default function AdminShowPagesManager() {
   const [sortOrder, setSortOrder] = useState('0');
   const [heroFile, setHeroFile] = useState<File | null>(null);
   const heroInputRef = useRef<HTMLInputElement>(null);
-  const [youtube, setYoutube] = useState('');
-  const [spotify, setSpotify] = useState('');
-  const [apple, setApple] = useState('');
 
   // Episodes under selected show
   const [episodesLoading, setEpisodesLoading] = useState(false);
@@ -84,9 +78,6 @@ export default function AdminShowPagesManager() {
     setSortOrder('0');
     setHeroFile(null);
     if (heroInputRef.current) heroInputRef.current.value = '';
-    setYoutube('');
-    setSpotify('');
-    setApple('');
     setEpisodes([]);
     setEpisodeQuery('');
     setAddEpisodeOpen(false);
@@ -191,9 +182,6 @@ export default function AdminShowPagesManager() {
     setSortOrder(String(s.sort_order ?? 0));
     setHeroFile(null);
     if (heroInputRef.current) heroInputRef.current.value = '';
-    setYoutube(s.platform_links?.youtube || '');
-    setSpotify(s.platform_links?.spotify || '');
-    setApple(s.platform_links?.apple || '');
     setEpisodeShowName(s.name || '');
     refreshEpisodes(s.name || '');
   }
@@ -213,11 +201,6 @@ export default function AdminShowPagesManager() {
       form.append('description', description.trim());
       form.append('sort_order', String(parseInt(sortOrder || '0', 10) || 0));
       if (heroFile) form.append('hero_image', heroFile);
-      form.append('platform_links', JSON.stringify({
-        youtube: youtube.trim() || undefined,
-        spotify: spotify.trim() || undefined,
-        apple: apple.trim() || undefined,
-      }));
 
       const isEditing = typeof selectedShowId === 'number';
       const url = isEditing ? apiUrl(`/api/shows/admin/${selectedShowId}`) : apiUrl('/api/shows/admin');
@@ -422,20 +405,6 @@ export default function AdminShowPagesManager() {
                   </span>
                   <input value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className={inputClass} placeholder="0" />
                 </label>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <label className="block">
-                    <span className="text-offwhite/70 text-xs mb-1 block">YouTube</span>
-                    <input value={youtube} onChange={(e) => setYoutube(e.target.value)} className={inputClass} placeholder="https://..." />
-                  </label>
-                  <label className="block">
-                    <span className="text-offwhite/70 text-xs mb-1 block">Spotify</span>
-                    <input value={spotify} onChange={(e) => setSpotify(e.target.value)} className={inputClass} placeholder="https://..." />
-                  </label>
-                  <label className="block">
-                    <span className="text-offwhite/70 text-xs mb-1 block">Apple Podcasts</span>
-                    <input value={apple} onChange={(e) => setApple(e.target.value)} className={inputClass} placeholder="https://..." />
-                  </label>
-                </div>
 
                 <div className="flex items-center gap-3 flex-wrap pt-2">
                   <button type="submit" disabled={loading} className="btn-premium py-3 px-6 disabled:opacity-50">

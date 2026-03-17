@@ -1,23 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Headphones, Video, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Headphones, Video } from 'lucide-react';
 import SEO from '../components/SEO';
 import { apiUrl } from '../lib/api';
 import { optimizeImageUrl } from '../lib/images';
 import '../App.css';
-
-type PlatformLinks = {
-  youtube?: string;
-  spotify?: string;
-  apple?: string;
-};
 
 type Show = {
   slug: string;
   name: string;
   description: string | null;
   hero_image_url: string | null;
-  platform_links: PlatformLinks | null;
 };
 
 type PodcastEpisode = {
@@ -118,9 +111,6 @@ export default function ShowDetail() {
     return optimizeImageUrl(show.hero_image_url, { width: 1400, quality: 70 });
   }, [show?.hero_image_url]);
 
-  const links = show?.platform_links || {};
-  const anyLinks = !!(links.youtube || links.spotify || links.apple);
-
   const title = show?.name ? `${show.name} – Shows` : 'Show';
 
   return (
@@ -166,41 +156,6 @@ export default function ShowDetail() {
                 <h1 className="headline-section text-offwhite text-4xl lg:text-5xl mb-4 break-words">
                   {show.name}
                 </h1>
-
-                {anyLinks && (
-                  <div className="flex flex-wrap gap-3 mb-6">
-                    {links.youtube && (
-                      <a
-                        href={links.youtube}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-outline-premium inline-flex items-center gap-2"
-                      >
-                        YouTube <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
-                    {links.spotify && (
-                      <a
-                        href={links.spotify}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-outline-premium inline-flex items-center gap-2"
-                      >
-                        Spotify <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
-                    {links.apple && (
-                      <a
-                        href={links.apple}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-outline-premium inline-flex items-center gap-2"
-                      >
-                        Apple Podcasts <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
-                  </div>
-                )}
 
                 {show.description ? (
                   <p className="body-large text-offwhite/70 whitespace-pre-wrap break-words">

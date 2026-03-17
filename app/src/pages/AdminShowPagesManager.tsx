@@ -542,7 +542,7 @@ export default function AdminShowPagesManager() {
                           </div>
                           <label className="block">
                             <span className={labelClass}>Show *</span>
-                            <select value={episodeShowName} onChange={(e) => setEpisodeShowName(e.target.value)} className={inputClass}>
+                            <select value={episodeShowName} onChange={(e) => setEpisodeShowName(e.target.value)} className={`${inputClass} admin-select`}>
                               <option value="">Select a show…</option>
                               {showNameOptions.map((n) => (
                                 <option key={n} value={n}>

@@ -86,6 +86,33 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Admin: bulk assign/unassign episodes to a show by show_name
+router.patch('/admin/assign-show', authMiddleware, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const showName = typeof body.show_name === 'string' ? body.show_name.trim().slice(0, 200) : '';
+    const mode = typeof body.mode === 'string' ? body.mode : 'set';
+    const idsRaw = Array.isArray(body.episode_ids) ? body.episode_ids : [];
+    const ids = idsRaw.map((x) => parseInt(String(x), 10)).filter((n) => Number.isFinite(n) && n > 0);
+
+    if (!showName) return res.status(400).json({ error: 'show_name is required' });
+    if (!ids.length) return res.status(400).json({ error: 'episode_ids is required' });
+    if (mode !== 'set' && mode !== 'clear') return res.status(400).json({ error: 'mode must be set or clear' });
+
+    const { rowCount } = await db.query(
+      mode === 'set'
+        ? 'UPDATE podcast_episodes SET show_name = $1 WHERE id = ANY($2::int[])'
+        : 'UPDATE podcast_episodes SET show_name = NULL WHERE id = ANY($1::int[])',
+      mode === 'set' ? [showName, ids] : [ids]
+    );
+
+    res.json({ updated: rowCount });
+  } catch (err) {
+    console.error('podcast assign-show error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Stored columns: podcast_episodes.title, description, duration_label, guests, audio_url, video_url, thumbnail_url, show_name
 router.post('/', authMiddleware, upload.fields([{ name: 'audio', maxCount: 1 }, { name: 'video', maxCount: 1 }, { name: 'thumbnail', maxCount: 1 }]), async (req, res) => {
   try {

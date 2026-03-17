@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Navigate, Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -20,6 +20,13 @@ type Show = {
   hero_image_url: string | null;
   platform_links: PlatformLinks | null;
   sort_order: number;
+  created_at: string;
+};
+
+type Episode = {
+  id: number;
+  title: string;
+  show_name: string | null;
   created_at: string;
 };
 
@@ -60,6 +67,13 @@ export default function AdminShowEditor() {
   const [spotify, setSpotify] = useState('');
   const [apple, setApple] = useState('');
   const [website, setWebsite] = useState('');
+
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [episodesLoading, setEpisodesLoading] = useState(false);
+  const [episodesError, setEpisodesError] = useState('');
+  const [episodeQuery, setEpisodeQuery] = useState('');
+  const [selectedEpisodeIds, setSelectedEpisodeIds] = useState<Set<number>>(new Set());
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -103,7 +117,135 @@ export default function AdminShowEditor() {
     };
   }, [token, isNew, showId]);
 
+  // Load episodes list (for attaching) when editing an existing show
+  useEffect(() => {
+    if (!token) return;
+    if (isNew) return;
+    const showName = name.trim();
+    if (!showName) return;
+
+    let cancelled = false;
+    setEpisodesLoading(true);
+    setEpisodesError('');
+    authenticatedFetch(apiUrl('/api/podcast'), {}, token)
+      .then(async (res) => {
+        const data = await res.json().catch(() => ([]));
+        if (!res.ok) throw new Error((data as { error?: string }).error || 'Failed to load episodes');
+        return data;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const list = Array.isArray(data) ? (data as Episode[]) : [];
+        setEpisodes(list);
+        // Preselect episodes currently assigned to this show by show_name
+        const assigned = new Set<number>();
+        list.forEach((ep) => {
+          if ((ep.show_name || '').trim() === showName) assigned.add(ep.id);
+        });
+        setSelectedEpisodeIds(assigned);
+      })
+      .catch((err) => {
+        if (!cancelled) setEpisodesError(err?.message || 'Could not connect to server');
+      })
+      .finally(() => {
+        if (!cancelled) setEpisodesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, isNew, name]);
+
   if (!isAuthenticated) return <Navigate to="/superuser" replace />;
+
+  const filteredEpisodes = useMemo(() => {
+    const q = episodeQuery.trim().toLowerCase();
+    const list = [...episodes];
+    list.sort((a, b) => {
+      try {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      } catch {
+        return (b.id ?? 0) - (a.id ?? 0);
+      }
+    });
+    if (!q) return list;
+    return list.filter((ep) => (ep.title || '').toLowerCase().includes(q));
+  }, [episodes, episodeQuery]);
+
+  const assignedIds = useMemo(() => {
+    const showName = name.trim();
+    const set = new Set<number>();
+    episodes.forEach((ep) => {
+      if ((ep.show_name || '').trim() === showName) set.add(ep.id);
+    });
+    return set;
+  }, [episodes, name]);
+
+  async function applyEpisodeAssignments() {
+    if (!token) return;
+    const showName = name.trim();
+    if (!showName) return;
+
+    const toAttach: number[] = [];
+    const toDetach: number[] = [];
+    selectedEpisodeIds.forEach((id) => {
+      if (!assignedIds.has(id)) toAttach.push(id);
+    });
+    assignedIds.forEach((id) => {
+      if (!selectedEpisodeIds.has(id)) toDetach.push(id);
+    });
+
+    if (toAttach.length === 0 && toDetach.length === 0) {
+      setSuccess('No episode changes to apply.');
+      return;
+    }
+
+    setAssigning(true);
+    setEpisodesError('');
+    try {
+      if (toAttach.length) {
+        const res = await authenticatedFetch(
+          apiUrl('/api/podcast/admin/assign-show'),
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ show_name: showName, mode: 'set', episode_ids: toAttach }),
+          },
+          token
+        );
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setEpisodesError((data as { error?: string }).error || 'Failed to attach episodes');
+          return;
+        }
+      }
+      if (toDetach.length) {
+        const res = await authenticatedFetch(
+          apiUrl('/api/podcast/admin/assign-show'),
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ show_name: showName, mode: 'clear', episode_ids: toDetach }),
+          },
+          token
+        );
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setEpisodesError((data as { error?: string }).error || 'Failed to detach episodes');
+          return;
+        }
+      }
+
+      // Refresh episodes list to reflect assignments
+      const res = await authenticatedFetch(apiUrl('/api/podcast'), {}, token);
+      const data = await res.json().catch(() => ([]));
+      if (res.ok) setEpisodes(Array.isArray(data) ? (data as Episode[]) : []);
+      setSuccess('Episode assignments updated.');
+    } catch (err) {
+      setEpisodesError(err instanceof Error ? err.message : 'Could not connect to server');
+    } finally {
+      setAssigning(false);
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -143,8 +285,13 @@ export default function AdminShowEditor() {
         return;
       }
       setSuccess(isNew ? 'Show created.' : 'Show updated.');
-      // After save, go back to list (clean UX) unless you prefer staying here
-      navigate('/admin/shows', { replace: true });
+      const saved = data as Show;
+      if (isNew && saved?.id) {
+        // Go to edit page so episodes can be attached
+        navigate(`/admin/shows/${saved.id}`, { replace: true });
+      } else {
+        navigate('/admin/shows', { replace: true });
+      }
     } catch {
       setError('Could not connect to server');
     } finally {
@@ -258,6 +405,72 @@ export default function AdminShowEditor() {
               {saving ? 'Saving…' : isNew ? 'Create show' : 'Update show'}
             </button>
           </form>
+        )}
+
+        {!isNew && !loading && (
+          <div className="mt-10 p-6 bg-offwhite/5 border border-offwhite/10">
+            <h2 className="text-offwhite font-semibold mb-2">Attach episodes</h2>
+            <p className="text-offwhite/60 text-sm mb-4">
+              Select which podcast episodes belong to <span className="text-offwhite/80">{name.trim() || 'this show'}</span>.
+            </p>
+
+            {episodesError && <p className="text-red-400 text-sm mb-3">{episodesError}</p>}
+
+            <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
+              <input
+                type="search"
+                value={episodeQuery}
+                onChange={(e) => setEpisodeQuery(e.target.value)}
+                placeholder="Search episodes…"
+                className={`${inputClass} md:max-w-md`}
+              />
+              <button
+                type="button"
+                onClick={applyEpisodeAssignments}
+                disabled={assigning || episodesLoading}
+                className="btn-premium inline-flex items-center justify-center px-5 py-3 disabled:opacity-50"
+              >
+                {assigning ? 'Saving…' : 'Save episode attachments'}
+              </button>
+            </div>
+
+            {episodesLoading ? (
+              <p className="text-offwhite/60">Loading episodes…</p>
+            ) : episodes.length === 0 ? (
+              <p className="text-offwhite/60">No episodes found. Add episodes in the Admin dashboard first.</p>
+            ) : (
+              <div className="max-h-[420px] overflow-y-auto border border-offwhite/10">
+                <ul className="divide-y divide-offwhite/10">
+                  {filteredEpisodes.map((ep) => {
+                    const checked = selectedEpisodeIds.has(ep.id);
+                    return (
+                      <li key={ep.id} className="flex items-start gap-3 p-3">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            setSelectedEpisodeIds((prev) => {
+                              const next = new Set(prev);
+                              if (e.target.checked) next.add(ep.id);
+                              else next.delete(ep.id);
+                              return next;
+                            });
+                          }}
+                          className="mt-1 w-4 h-4 accent-lime"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-offwhite text-sm font-medium break-words">{ep.title}</p>
+                          <p className="text-offwhite/50 text-xs">
+                            {ep.show_name ? `Assigned: ${ep.show_name}` : 'Unassigned'}
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

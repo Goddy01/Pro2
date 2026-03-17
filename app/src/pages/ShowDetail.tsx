@@ -280,7 +280,7 @@ export default function ShowDetail() {
                                     id={panelId}
                                     role="region"
                                     aria-labelledby={headerId}
-                                    className="px-4 sm:px-5 pb-5"
+                                    className="px-4 sm:px-5 pb-5 pt-2"
                                   >
                                     {ep.description ? (
                                       <p className="text-offwhite/70 text-sm whitespace-pre-wrap break-words mb-4">

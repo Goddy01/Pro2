@@ -16,6 +16,8 @@ type ShowCard = {
 export default function ShowsIndex() {
   const [shows, setShows] = useState<ShowCard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const SHOWS_PER_PAGE = 9;
 
   useEffect(() => {
     let cancelled = false;
@@ -42,6 +44,15 @@ export default function ShowsIndex() {
     list.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || (a.name || '').localeCompare(b.name || ''));
     return list;
   }, [shows]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / SHOWS_PER_PAGE));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * SHOWS_PER_PAGE;
+  const paged = sorted.slice(start, start + SHOWS_PER_PAGE);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(1);
+  }, [page, totalPages]);
 
   return (
     <div className="relative">
@@ -70,8 +81,9 @@ export default function ShowsIndex() {
               No shows are configured yet. Please check back soon.
             </p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {sorted.map((s) => {
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {paged.map((s) => {
                 const img = s.hero_image_url
                   ? optimizeImageUrl(s.hero_image_url, { width: 700, quality: 70 })
                   : '';
@@ -109,8 +121,33 @@ export default function ShowsIndex() {
                     </article>
                   </Link>
                 );
-              })}
-            </div>
+                })}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="mt-10 flex items-center justify-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={safePage <= 1}
+                    className="px-4 py-2 border border-offwhite/30 text-offwhite disabled:opacity-40 disabled:cursor-not-allowed hover:border-lime hover:text-lime transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-offwhite/70 text-sm">
+                    Page {safePage} of {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={safePage >= totalPages}
+                    className="px-4 py-2 border border-offwhite/30 text-offwhite disabled:opacity-40 disabled:cursor-not-allowed hover:border-lime hover:text-lime transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

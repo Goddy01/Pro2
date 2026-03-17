@@ -84,28 +84,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Public: show detail
-router.get('/:slug', async (req, res) => {
-  try {
-    // Avoid conflicts with /admin routes
-    if (req.params.slug === 'admin') return res.status(404).json({ error: 'Not found' });
-
-    const slug = normalizeSlug(req.params.slug);
-    if (!slug) return res.status(400).json({ error: 'Invalid slug' });
-    const { rows } = await db.query(
-      `SELECT slug, name, description, hero_image_url, platform_links, sort_order
-       FROM shows
-       WHERE slug = $1`,
-      [slug]
-    );
-    if (!rows.length) return res.status(404).json({ error: 'Show not found' });
-    res.json(rows[0]);
-  } catch (err) {
-    console.error('shows public detail error:', err);
-    res.status(500).json({ error: 'Failed to load show' });
-  }
-});
-
 // Admin: list
 router.get('/admin', authMiddleware, async (req, res) => {
   try {
@@ -230,6 +208,25 @@ router.delete('/admin/:id', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('shows admin delete error:', err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Public: show detail (keep AFTER /admin routes so /admin doesn't get treated as a slug)
+router.get('/:slug', async (req, res) => {
+  try {
+    const slug = normalizeSlug(req.params.slug);
+    if (!slug) return res.status(400).json({ error: 'Invalid slug' });
+    const { rows } = await db.query(
+      `SELECT slug, name, description, hero_image_url, platform_links, sort_order
+       FROM shows
+       WHERE slug = $1`,
+      [slug]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Show not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('shows public detail error:', err);
+    res.status(500).json({ error: 'Failed to load show' });
   }
 });
 

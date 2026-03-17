@@ -88,8 +88,8 @@ export default function ShowsIndex() {
                   ? optimizeImageUrl(s.hero_image_url, { width: 700, quality: 70 })
                   : '';
                 return (
-                  <Link key={s.slug} to={`/shows/${s.slug}`} className="block group">
-                    <article className="card-editorial overflow-hidden bg-offwhite/5 border border-offwhite/10 hover:border-lime/30 transition-colors">
+                  <Link key={s.slug} to={`/shows/${s.slug}`} className="block group h-full">
+                    <article className="card-editorial overflow-hidden bg-offwhite/5 border border-offwhite/10 hover:border-lime/30 transition-colors h-full flex flex-col">
                       {img ? (
                         <div className="aspect-video relative overflow-hidden">
                           <img
@@ -103,7 +103,7 @@ export default function ShowsIndex() {
                       ) : (
                         <div className="aspect-video bg-offwhite/5 border-b border-offwhite/10" aria-hidden />
                       )}
-                      <div className="p-6">
+                      <div className="p-6 flex flex-col flex-1">
                         <h2 className="text-offwhite font-display font-bold text-xl mb-2 group-hover:text-lime transition-colors">
                           {s.name}
                         </h2>
@@ -112,7 +112,7 @@ export default function ShowsIndex() {
                         ) : (
                           <p className="text-offwhite/50 text-sm">Learn more about this show.</p>
                         )}
-                        <div className="mt-5">
+                        <div className="mt-auto pt-5">
                           <span className="btn-outline-premium inline-flex items-center gap-2">
                             View show
                           </span>

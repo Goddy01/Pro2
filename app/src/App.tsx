@@ -26,6 +26,7 @@ import AdminPodcastList from './pages/AdminPodcastList';
 import AdminWatchList from './pages/AdminWatchList';
 import AdminTeamList from './pages/AdminTeamList';
 import AdminSocialLinks from './pages/AdminSocialLinks';
+import AdminInsights from './pages/AdminInsights';
 import { Navigate } from 'react-router-dom';
 import AdminShowPagesManager from './pages/AdminShowPagesManager.tsx';
 import WorkWithUs from './pages/WorkWithUs';
@@ -111,6 +112,7 @@ function App() {
           <Route path="admin/watch" element={<AdminWatchList />} />
           <Route path="admin/team" element={<AdminTeamList />} />
           <Route path="admin/social-links" element={<AdminSocialLinks />} />
+          <Route path="admin/insights" element={<AdminInsights />} />
           <Route path="admin/show-pages" element={<AdminShowPagesManager />} />
           <Route path="admin/shows" element={<Navigate to="/admin" replace />} />
           <Route path="admin/shows/new" element={<Navigate to="/admin" replace />} />

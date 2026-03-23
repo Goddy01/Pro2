@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo, type FormEvent } fro
 import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl, authenticatedFetch } from '../lib/api';
-import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X, ChevronDown } from 'lucide-react';
+import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X, ChevronDown, BarChart3 } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import '../App.css';
@@ -837,6 +837,10 @@ export default function AdminDashboard() {
             <Link to="/admin/social-links" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="Update site social links">
               Social links
             </Link>
+            <Link to="/admin/insights" className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap" title="View client traffic insights">
+              <BarChart3 className="w-4 h-4" />
+              Insights
+            </Link>
             <span className="w-px h-5 bg-offwhite/20 mx-1" aria-hidden />
             <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); }} className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap">
               <UserPlus className="w-4 h-4" />
@@ -890,6 +894,10 @@ export default function AdminDashboard() {
               </Link>
               <Link to="/admin/social-links" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
                 Social links
+              </Link>
+              <Link to="/admin/insights" className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2" onClick={() => setAdminMenuOpen(false)}>
+                <BarChart3 className="w-4 h-4" />
+                Client insights
               </Link>
               <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); setAdminMenuOpen(false); }} className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2 text-left">
                 <UserPlus className="w-4 h-4" />

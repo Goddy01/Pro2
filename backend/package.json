@@ -8,6 +8,7 @@
     "build": "node -e \"console.log('Backend: no build step')\""
   },
   "dependencies": {
+    "@google-analytics/data": "^5.2.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.9.0",
     "cors": "^2.8.5",

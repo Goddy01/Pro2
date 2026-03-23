@@ -24,6 +24,9 @@ Express API for admin authentication and article publishing.
      - **Local:** use `postgresql://postgres:postgres@localhost:5432/sideline` (PostgreSQL must be running locally).
      - **Railway:** when deployed, Railway injects a URL with `postgres.railway.internal`; that hostname only works on Railway, not on your machine. To use Railway’s DB from your laptop, use the **public** connection URL from the Railway PostgreSQL service (Dashboard → your Postgres service → Connect → “Public network”).
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` – for article image uploads ([Cloudinary Console](https://console.cloudinary.com))
+   - `GA4_PROPERTY_ID` – Google Analytics 4 property id (example: `123456789` or `properties/123456789`)
+   - `GOOGLE_SERVICE_ACCOUNT_EMAIL` – service account email for GA Data API (optional if using `GOOGLE_APPLICATION_CREDENTIALS`)
+   - `GOOGLE_PRIVATE_KEY` – private key for service account (use `\n` escaped newlines in env)
 
 4. Run the server:
 
@@ -64,6 +67,10 @@ Express API for admin authentication and article publishing.
 
 - `GET /api/newsletter-signups` – **Protected.** List all signups. `?format=csv` returns CSV download.
 - `POST /api/newsletter-signups` – Public. Body: `{ name, email, cell }`. Rate limited by IP.
+
+### Insights (Google Analytics)
+
+- `GET /api/insights/overview?days=7|30|90` – **Protected.** Returns client-friendly GA4 metrics summary, top channels, and top pages.
 
 ## Data
 

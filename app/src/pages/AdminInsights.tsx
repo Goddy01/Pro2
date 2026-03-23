@@ -35,10 +35,12 @@ function formatPercent(value: number): string {
 
 export default function AdminInsights() {
   const { token, isAuthenticated } = useAuth();
+  const debug = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('debug') === '1';
   const [days, setDays] = useState<DateRangeDays>(30);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<InsightsResponse | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   function handleSelectDays(nextDays: DateRangeDays) {
     if (nextDays === days) return;
@@ -51,13 +53,17 @@ export default function AdminInsights() {
     if (!token) return;
     let cancelled = false;
 
-    authenticatedFetch(apiUrl(`/api/insights/overview?days=${days}`), {}, token)
+    const url = apiUrl(`/api/insights/overview?days=${days}${debug ? '&debug=1' : ''}`);
+    authenticatedFetch(url, {}, token)
       .then(async (res) => {
         const payload = await res.json().catch(() => ({}));
         if (!res.ok) {
           throw new Error((payload as { error?: string }).error || 'Failed to load insights');
         }
-        if (!cancelled) setData(payload as InsightsResponse);
+        if (!cancelled) {
+          if (debug && (payload as any).debug) setDebugInfo((payload as any).debug);
+          setData(payload as InsightsResponse);
+        }
       })
       .catch((err) => {
         if (!cancelled) {
@@ -175,6 +181,15 @@ export default function AdminInsights() {
             <p className="text-offwhite/50 text-xs mt-6">
               Last updated: {new Date(data.fetchedAt).toLocaleString()}
             </p>
+
+            {debug && debugInfo && (
+              <details className="mt-6 border border-offwhite/20 bg-offwhite/5 rounded p-4">
+                <summary className="cursor-pointer text-offwhite/70 text-sm mb-2">Debug (raw GA4 response)</summary>
+                <pre className="text-offwhite/80 text-xs whitespace-pre-wrap overflow-auto">
+                  {JSON.stringify(debugInfo, null, 2)}
+                </pre>
+              </details>
+            )}
           </>
         )}
       </div>

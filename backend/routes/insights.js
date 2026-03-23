@@ -64,7 +64,8 @@ function createClient() {
 }
 
 function metricValueByName(row, metricHeaders, metricName) {
-  const idx = metricHeaders.findIndex((h) => h.name === metricName);
+  const headers = Array.isArray(metricHeaders) ? metricHeaders : [];
+  const idx = headers.findIndex((h) => (h.name === metricName || h.metricName === metricName));
   if (idx < 0) return 0;
   const raw = row?.metricValues?.[idx]?.value ?? '0';
   const parsed = Number(raw);
@@ -84,6 +85,8 @@ router.get('/overview', authMiddleware, async (req, res) => {
     return res.status(500).json({ error: 'GA4_PROPERTY_ID is not configured' });
   }
 
+  const debug = String(req.query.debug || '').toLowerCase() === '1';
+
   const requestedDays = Number(req.query.days);
   const days = ALLOWED_DAYS.has(requestedDays) ? requestedDays : 30;
   const dateRanges = [{ startDate: `${days}daysAgo`, endDate: 'today' }];
@@ -91,7 +94,7 @@ router.get('/overview', authMiddleware, async (req, res) => {
   try {
     const client = createClient();
 
-    const [summaryReport] = await client.runReport({
+    const summaryRequest = {
       property,
       dateRanges,
       metrics: [
@@ -104,25 +107,29 @@ router.get('/overview', authMiddleware, async (req, res) => {
         { name: 'bounceRate' },
         { name: 'keyEvents' },
       ],
-    });
+    };
 
-    const [channelsReport] = await client.runReport({
+    const [summaryReport] = await client.runReport(summaryRequest);
+
+    const channelsRequest = {
       property,
       dateRanges,
       dimensions: [{ name: 'sessionDefaultChannelGroup' }],
       metrics: [{ name: 'sessions' }],
       orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
       limit: 5,
-    });
+    };
+    const [channelsReport] = await client.runReport(channelsRequest);
 
-    const [pagesReport] = await client.runReport({
+    const pagesRequest = {
       property,
       dateRanges,
       dimensions: [{ name: 'pagePath' }],
       metrics: [{ name: 'screenPageViews' }],
       orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
       limit: 5,
-    });
+    };
+    const [pagesReport] = await client.runReport(pagesRequest);
 
     const summaryRow = summaryReport.rows?.[0] || null;
     const metricHeaders = summaryReport.metricHeaders || [];
@@ -149,13 +156,37 @@ router.get('/overview', authMiddleware, async (req, res) => {
       views: Number(row.metricValues?.[0]?.value || '0'),
     }));
 
-    return res.json({
+    const payload = {
       days,
+      property,
+      dateRanges,
       summary,
       topChannels,
       topPages,
       fetchedAt: new Date().toISOString(),
-    });
+    };
+
+    if (debug) {
+      payload.debug = {
+        summaryRequest,
+        summaryMetricHeaders: summaryReport.metricHeaders || [],
+        summaryMetricValues: (summaryReport.rows || []).map((r) => r.metricValues || []),
+        channelsRequest,
+        channelsMetricHeaders: channelsReport.metricHeaders || [],
+        channelsRows: (channelsReport.rows || []).slice(0, 5).map((r) => ({
+          dimension: r.dimensionValues?.[0]?.value || null,
+          metric: r.metricValues?.[0]?.value || null,
+        })),
+        pagesRequest,
+        pagesMetricHeaders: pagesReport.metricHeaders || [],
+        pagesRows: (pagesReport.rows || []).slice(0, 5).map((r) => ({
+          pagePath: r.dimensionValues?.[0]?.value || null,
+          views: r.metricValues?.[0]?.value || null,
+        })),
+      };
+    }
+
+    return res.json(payload);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to load Google Analytics data';
     if (

@@ -149,6 +149,8 @@ router.get('/overview', authMiddleware, async (req, res) => {
     let countriesRequest;
     let trendRequest;
     let summaryReportForDebug = null;
+    let summaryDebug = undefined;
+    let thirtyMinuteDebugPages = undefined;
 
     if (isThirtyMinutes) {
       // Approximate 30m using GA4 `dateHour` buckets and filtering to the last ~30 minutes.

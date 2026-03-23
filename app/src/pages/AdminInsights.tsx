@@ -220,7 +220,7 @@ export default function AdminInsights() {
               </section>
 
               <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
-                <h2 className="text-offwhite font-semibold mb-3">Pages visitors viewed</h2>
+                <h2 className="text-offwhite font-semibold mb-3">Pages visitors viewed (top)</h2>
                 {data.topPages.length === 0 ? (
                   <p className="text-offwhite/60 text-sm">No page data.</p>
                 ) : (

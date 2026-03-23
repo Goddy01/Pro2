@@ -5,6 +5,7 @@ import { authMiddleware } from '../middleware/auth.js';
 const router = Router();
 const ALLOWED_DAYS = new Set([7, 30, 90]);
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
+const TOP_PAGES_LIMIT = 25;
 
 function pad2(n) {
   return String(n).padStart(2, '0');
@@ -289,7 +290,7 @@ router.get('/overview', authMiddleware, async (req, res) => {
           return { title, path, views };
         })
         .sort((a, b) => b.views - a.views)
-        .slice(0, 5);
+        .slice(0, TOP_PAGES_LIMIT);
     } else {
       // Daily/weekly view (exact for the chosen range).
       const requestedSummaryRequest = {
@@ -347,7 +348,7 @@ router.get('/overview', authMiddleware, async (req, res) => {
         dimensions: [{ name: 'pageTitle' }, { name: 'pagePath' }],
         metrics: [{ name: 'screenPageViews' }],
         orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
-        limit: 5,
+        limit: TOP_PAGES_LIMIT,
       };
       const [pagesReport] = await client.runReport(pagesRequest);
       topPages = (pagesReport.rows || []).map((row) => ({

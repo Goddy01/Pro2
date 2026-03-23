@@ -6,8 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import { apiUrl, authenticatedFetch } from '../lib/api';
 import '../App.css';
 
-type DateRangeDays = 7 | 30 | 90;
-type InsightsRange = DateRangeDays | '30m';
+type DateRangeDays = 1 | 7 | 30 | 90;
+type InsightsRange = DateRangeDays;
 
 type InsightsResponse = {
   range: InsightsRange;
@@ -48,16 +48,6 @@ function formatGA4Date(yyyymmdd: string): string {
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 
-  // GA4 returns YYYYMMDDHH for the `dateHour` dimension.
-  if (/^\d{10}$/.test(yyyymmdd)) {
-    const year = Number(yyyymmdd.slice(0, 4));
-    const month = Number(yyyymmdd.slice(4, 6)) - 1;
-    const day = Number(yyyymmdd.slice(6, 8));
-    const hour = Number(yyyymmdd.slice(8, 10));
-    const d = new Date(Date.UTC(year, month, day, hour));
-    return `${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} ${String(hour).padStart(2, '0')}:00`;
-  }
-
   return yyyymmdd;
 }
 
@@ -81,10 +71,7 @@ export default function AdminInsights() {
     if (!token) return;
     let cancelled = false;
 
-    const url =
-      range === '30m'
-        ? apiUrl(`/api/insights/overview?range=30m${debug ? '&debug=1' : ''}`)
-        : apiUrl(`/api/insights/overview?days=${range}${debug ? '&debug=1' : ''}`);
+    const url = apiUrl(`/api/insights/overview?days=${range}${debug ? '&debug=1' : ''}`);
     authenticatedFetch(url, {}, token)
       .then(async (res) => {
         const payload: { error?: string; debug?: unknown } = await res.json().catch(() => ({}));
@@ -135,18 +122,18 @@ export default function AdminInsights() {
             Back to Admin
           </Link>
           <div className="flex items-center gap-2">
-            {(['30m', 7, 30, 90] as InsightsRange[]).map((value) => (
+            {[1, 7, 30, 90].map((value) => (
               <button
                 key={value}
                 type="button"
-                onClick={() => handleSelectRange(value)}
+                onClick={() => handleSelectRange(value as InsightsRange)}
                 className={`px-3 py-2 text-sm border transition-colors ${
                   range === value
                     ? 'bg-lime text-forest border-lime'
                     : 'border-offwhite/25 text-offwhite/80 hover:text-lime hover:border-lime'
                 }`}
               >
-                {value === '30m' ? 'Last 30m' : `Last ${value}d`}
+                {value === 30 ? 'Last 1m' : value === 90 ? 'Last 3m' : `Last ${value}d`}
               </button>
             ))}
           </div>

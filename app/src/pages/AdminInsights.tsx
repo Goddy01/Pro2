@@ -15,15 +15,17 @@ type InsightsResponse = {
   summary: {
     totalUsers: number;
     newUsers: number;
+    returningUsers: number;
     sessions: number;
     pageViews: number;
-    avgSessionDurationSeconds: number;
-    avgSessionDurationLabel: string;
-    engagementRate: number;
-    bounceRate: number;
-    keyEvents: number;
+    averageEngagementTimeSeconds: number;
+    averageEngagementTimeLabel: string;
+    viewsPerUser: number;
   };
   topChannels: Array<{ channel: string; sessions: number }>;
+  topReferrers: Array<{ source: string; sessions: number }>;
+  newVsReturning: Array<{ segment: string; users: number }>;
+  deviceBreakdown: Array<{ device: string; users: number }>;
   topCountries: Array<{ country: string; users: number }>;
   topPages: Array<{ title?: string; path: string; views: number }>;
   trend: Array<{ date: string; sessions: number; totalUsers: number }>;
@@ -104,12 +106,18 @@ export default function AdminInsights() {
     ? [
         { label: 'Users', value: formatNumber(data.summary.totalUsers) },
         { label: 'New users', value: formatNumber(data.summary.newUsers) },
+        { label: 'Returning users', value: formatNumber(data.summary.returningUsers) },
         { label: 'Sessions', value: formatNumber(data.summary.sessions) },
         { label: 'Page views', value: formatNumber(data.summary.pageViews) },
-        { label: 'Avg session', value: data.summary.avgSessionDurationLabel },
-        { label: 'Engagement rate', value: formatPercent(data.summary.engagementRate) },
-        { label: 'Bounce rate', value: formatPercent(data.summary.bounceRate) },
-        { label: 'Key events', value: formatNumber(data.summary.keyEvents) },
+        { label: 'Avg engagement time', value: data.summary.averageEngagementTimeLabel },
+        { label: 'Views per user', value: data.summary.viewsPerUser.toFixed(2) },
+        {
+          label: 'New user share',
+          value:
+            data.summary.totalUsers > 0
+              ? formatPercent(data.summary.newUsers / data.summary.totalUsers)
+              : '0.0%',
+        },
       ]
     : [];
 
@@ -187,6 +195,38 @@ export default function AdminInsights() {
 
             <div className="grid gap-6 lg:grid-cols-2">
               <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
+                <h2 className="text-offwhite font-semibold mb-3">Top referrers</h2>
+                {data.topReferrers?.length ? (
+                  <ul className="space-y-2">
+                    {data.topReferrers.map((item) => (
+                      <li key={item.source} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="text-offwhite/80 truncate">{item.source}</span>
+                        <span className="text-lime font-semibold shrink-0">{formatNumber(item.sessions)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-offwhite/60 text-sm">No referrer data.</p>
+                )}
+              </section>
+
+              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
+                <h2 className="text-offwhite font-semibold mb-3">Top traffic channels</h2>
+                {data.topChannels?.length ? (
+                  <ul className="space-y-2">
+                    {data.topChannels.map((item) => (
+                      <li key={item.channel} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="text-offwhite/80">{item.channel}</span>
+                        <span className="text-lime font-semibold shrink-0">{formatNumber(item.sessions)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-offwhite/60 text-sm">No channel data.</p>
+                )}
+              </section>
+
+              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
                 <h2 className="text-offwhite font-semibold mb-3">Where visitors are viewing from</h2>
                 {data.topCountries.length === 0 ? (
                   <p className="text-offwhite/60 text-sm">No country data.</p>
@@ -203,6 +243,38 @@ export default function AdminInsights() {
                       <li className="text-offwhite/60 text-sm">No country data.</li>
                     )}
                   </ul>
+                )}
+              </section>
+
+              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
+                <h2 className="text-offwhite font-semibold mb-3">New vs Returning</h2>
+                {data.newVsReturning?.length ? (
+                  <ul className="space-y-2">
+                    {data.newVsReturning.map((item) => (
+                      <li key={item.segment} className="flex items-center justify-between text-sm">
+                        <span className="text-offwhite/80">{item.segment}</span>
+                        <span className="text-lime font-semibold">{formatNumber(item.users)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-offwhite/60 text-sm">No new vs returning data.</p>
+                )}
+              </section>
+
+              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
+                <h2 className="text-offwhite font-semibold mb-3">Device breakdown</h2>
+                {data.deviceBreakdown?.length ? (
+                  <ul className="space-y-2">
+                    {data.deviceBreakdown.map((item) => (
+                      <li key={item.device} className="flex items-center justify-between text-sm">
+                        <span className="text-offwhite/80 capitalize">{item.device}</span>
+                        <span className="text-lime font-semibold">{formatNumber(item.users)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-offwhite/60 text-sm">No device data.</p>
                 )}
               </section>
 

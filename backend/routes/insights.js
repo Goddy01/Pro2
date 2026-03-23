@@ -6,6 +6,7 @@ const router = Router();
 const ALLOWED_DAYS = new Set([1, 7, 30, 90]);
 const TOP_PAGES_LIMIT = 25;
 const TOP_COUNTRIES_LIMIT = 5;
+const TOP_REFERRERS_LIMIT = 8;
 
 function getPropertyName() {
   const raw = (process.env.GA4_PROPERTY_ID || '').trim();
@@ -70,8 +71,8 @@ function metricValueByIndex(metricValues, idx) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function formatDuration(seconds) {
-  const total = Math.max(0, Math.round(seconds));
+function formatDuration(totalSeconds) {
+  const total = Math.max(0, Math.round(totalSeconds));
   const mins = Math.floor(total / 60);
   const secs = total % 60;
   return `${mins}m ${String(secs).padStart(2, '0')}s`;
@@ -122,10 +123,7 @@ router.get('/overview', authMiddleware, async (req, res) => {
         { name: 'newUsers' },
         { name: 'sessions' },
         { name: 'screenPageViews' },
-        { name: 'averageSessionDuration' },
-        { name: 'engagementRate' },
-        { name: 'bounceRate' },
-        { name: 'keyEvents' },
+        { name: 'userEngagementDuration' },
       ],
     };
 
@@ -133,16 +131,23 @@ router.get('/overview', authMiddleware, async (req, res) => {
     const summaryRow = summaryReport.rows?.[0] || null;
     const summaryMetricValues = summaryRow?.metricValues || [];
 
+    const totalUsers = metricValueByIndex(summaryMetricValues, 0);
+    const newUsers = metricValueByIndex(summaryMetricValues, 1);
+    const sessions = metricValueByIndex(summaryMetricValues, 2);
+    const pageViews = metricValueByIndex(summaryMetricValues, 3);
+    const userEngagementDuration = metricValueByIndex(summaryMetricValues, 4);
+    const returningUsers = Math.max(0, totalUsers - newUsers);
+    const avgEngagementPerUserSeconds = totalUsers > 0 ? userEngagementDuration / totalUsers : 0;
+
     const summary = {
-      totalUsers: metricValueByIndex(summaryMetricValues, 0),
-      newUsers: metricValueByIndex(summaryMetricValues, 1),
-      sessions: metricValueByIndex(summaryMetricValues, 2),
-      pageViews: metricValueByIndex(summaryMetricValues, 3),
-      avgSessionDurationSeconds: metricValueByIndex(summaryMetricValues, 4),
-      avgSessionDurationLabel: formatDuration(metricValueByIndex(summaryMetricValues, 4)),
-      engagementRate: metricValueByIndex(summaryMetricValues, 5),
-      bounceRate: metricValueByIndex(summaryMetricValues, 6),
-      keyEvents: metricValueByIndex(summaryMetricValues, 7),
+      totalUsers,
+      newUsers,
+      returningUsers,
+      sessions,
+      pageViews,
+      averageEngagementTimeSeconds: avgEngagementPerUserSeconds,
+      averageEngagementTimeLabel: formatDuration(avgEngagementPerUserSeconds),
+      viewsPerUser: totalUsers > 0 ? pageViews / totalUsers : 0,
     };
 
     const channelsRequest = {
@@ -158,6 +163,50 @@ router.get('/overview', authMiddleware, async (req, res) => {
       channel: row.dimensionValues?.[0]?.value || 'Unassigned',
       sessions: Number(row.metricValues?.[0]?.value || '0'),
     }));
+
+    const newVsReturningRequest = {
+      property,
+      dateRanges,
+      dimensions: [{ name: 'newVsReturning' }],
+      metrics: [{ name: 'totalUsers' }],
+      orderBys: [{ metric: { metricName: 'totalUsers' }, desc: true }],
+      limit: 10,
+    };
+    const [newVsReturningReport] = await client.runReport(newVsReturningRequest);
+    const newVsReturning = (newVsReturningReport.rows || []).map((row) => ({
+      segment: row.dimensionValues?.[0]?.value || 'Unknown',
+      users: Number(row.metricValues?.[0]?.value || '0'),
+    }));
+
+    const deviceBreakdownRequest = {
+      property,
+      dateRanges,
+      dimensions: [{ name: 'deviceCategory' }],
+      metrics: [{ name: 'totalUsers' }],
+      orderBys: [{ metric: { metricName: 'totalUsers' }, desc: true }],
+      limit: 10,
+    };
+    const [deviceBreakdownReport] = await client.runReport(deviceBreakdownRequest);
+    const deviceBreakdown = (deviceBreakdownReport.rows || []).map((row) => ({
+      device: row.dimensionValues?.[0]?.value || 'Unknown',
+      users: Number(row.metricValues?.[0]?.value || '0'),
+    }));
+
+    const topReferrersRequest = {
+      property,
+      dateRanges,
+      dimensions: [{ name: 'sessionSourceMedium' }],
+      metrics: [{ name: 'sessions' }],
+      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+      limit: TOP_REFERRERS_LIMIT,
+    };
+    const [topReferrersReport] = await client.runReport(topReferrersRequest);
+    const topReferrers = (topReferrersReport.rows || [])
+      .map((row) => ({
+        source: row.dimensionValues?.[0]?.value || '(direct) / (none)',
+        sessions: Number(row.metricValues?.[0]?.value || '0'),
+      }))
+      .filter((r) => r.sessions > 0);
 
     const pagesRequest = {
       property,
@@ -216,6 +265,9 @@ router.get('/overview', authMiddleware, async (req, res) => {
       dateRanges,
       summary,
       topChannels,
+      topReferrers,
+      newVsReturning,
+      deviceBreakdown,
       topPages,
       topCountries,
       trend,
@@ -231,6 +283,9 @@ router.get('/overview', authMiddleware, async (req, res) => {
         pagesRequest,
         countriesRequest,
         trendRequest,
+        newVsReturningRequest,
+        deviceBreakdownRequest,
+        topReferrersRequest,
       };
     }
 

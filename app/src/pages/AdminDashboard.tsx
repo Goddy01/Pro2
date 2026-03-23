@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo, type FormEvent } fro
 import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl, authenticatedFetch } from '../lib/api';
-import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X, ChevronDown, BarChart3 } from 'lucide-react';
+import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X, ChevronDown, BarChart3, ImagePlus } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import '../App.css';
@@ -14,6 +14,7 @@ const TABS = [
   { id: 'podcast', label: 'Show', icon: Headphones },
   { id: 'watch', label: 'Watch', icon: Video },
   { id: 'team', label: 'Team', icon: Users },
+  { id: 'home-hero', label: 'Home Hero', icon: ImagePlus },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -130,6 +131,10 @@ export default function AdminDashboard() {
   const [teamSocialInstagram, setTeamSocialInstagram] = useState('');
   const teamImageInputRef = useRef<HTMLInputElement>(null);
   const [editingTeamId, setEditingTeamId] = useState<number | null>(null);
+  const [homeHeroBackgroundUrl, setHomeHeroBackgroundUrl] = useState('');
+  const [homeHeroUploadFile, setHomeHeroUploadFile] = useState<File | null>(null);
+  const [homeHeroLocalPreviewUrl, setHomeHeroLocalPreviewUrl] = useState('');
+  const homeHeroInputRef = useRef<HTMLInputElement>(null);
 
   const [addAdminModalOpen, setAddAdminModalOpen] = useState(false);
   const [newAdminUsername, setNewAdminUsername] = useState('');
@@ -205,6 +210,34 @@ export default function AdminDashboard() {
     if (!token) return;
     refetchLists();
   }, [token, refetchLists]);
+
+  const fetchHomeHeroSetting = useCallback(async () => {
+    try {
+      const res = await fetch(apiUrl('/api/site-settings/public'));
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return;
+      const nextUrl = typeof data?.homeHeroBackgroundUrl === 'string' ? data.homeHeroBackgroundUrl : '';
+      setHomeHeroBackgroundUrl(nextUrl || '');
+    } catch {
+      // ignore so admin dashboard still loads
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchHomeHeroSetting();
+  }, [fetchHomeHeroSetting]);
+
+  useEffect(() => {
+    if (!homeHeroUploadFile) {
+      setHomeHeroLocalPreviewUrl('');
+      return;
+    }
+    const objectUrl = URL.createObjectURL(homeHeroUploadFile);
+    setHomeHeroLocalPreviewUrl(objectUrl);
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [homeHeroUploadFile]);
 
   function clearMessages() {
     setError('');
@@ -776,6 +809,41 @@ export default function AdminDashboard() {
       setAddAdminError('Could not connect to server');
     } finally {
       setAddAdminLoading(false);
+    }
+  }
+
+  async function handleHomeHeroSubmit(e: FormEvent) {
+    e.preventDefault();
+    clearMessages();
+    if (!homeHeroUploadFile) {
+      setError('Please select an image first');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const form = new FormData();
+      form.append('image', homeHeroUploadFile);
+      const res = await authenticatedFetch(
+        apiUrl('/api/site-settings/admin/home-hero-background'),
+        { method: 'PUT', body: form },
+        token
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(typeof data?.error === 'string' ? data.error : 'Failed to update Home hero background');
+        return;
+      }
+
+      const nextUrl = typeof data?.homeHeroBackgroundUrl === 'string' ? data.homeHeroBackgroundUrl : '';
+      setHomeHeroBackgroundUrl(nextUrl || '');
+      setHomeHeroUploadFile(null);
+      if (homeHeroInputRef.current) homeHeroInputRef.current.value = '';
+      setSuccess('Home hero background updated.');
+    } catch {
+      setError('Could not connect to server');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -1397,6 +1465,44 @@ export default function AdminDashboard() {
               </button>
             </form>
           </>
+        )}
+
+        {activeTab === 'home-hero' && (
+          <section className="space-y-6">
+            <div className="border border-offwhite/10 bg-offwhite/5 p-5 rounded">
+              <h3 className="text-offwhite font-semibold mb-2">Home Hero Background</h3>
+              <p className="text-offwhite/60 text-sm mb-4">
+                Upload one image to replace the Home page hero background. This image is stored in Cloudinary.
+              </p>
+              {(homeHeroBackgroundUrl || homeHeroUploadFile) && (
+                <div className="mb-4">
+                  <p className="text-offwhite/70 text-xs uppercase tracking-wide mb-2">Preview</p>
+                  <div className="w-full max-w-2xl h-52 overflow-hidden border border-offwhite/20">
+                    <img
+                      src={homeHeroLocalPreviewUrl || homeHeroBackgroundUrl}
+                      alt="Home hero preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+              <form onSubmit={handleHomeHeroSubmit} className="space-y-4">
+                <label className="block">
+                  <span className={labelClass}>Select image *</span>
+                  <input
+                    ref={homeHeroInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setHomeHeroUploadFile(e.target.files?.[0] ?? null)}
+                    className={`${inputClass} file:mr-4 file:py-2 file:px-4 file:bg-lime file:text-forest file:border-0`}
+                  />
+                </label>
+                <button type="submit" disabled={loading || !homeHeroUploadFile} className="btn-premium py-4 px-8 disabled:opacity-50">
+                  {loading ? 'Saving...' : 'Save Home Hero Background'}
+                </button>
+              </form>
+            </div>
+          </section>
         )}
 
         <Dialog open={addAdminModalOpen} onOpenChange={(open) => { setAddAdminModalOpen(open); if (!open) { setAddAdminError(''); setAddAdminSuccess(''); } }}>

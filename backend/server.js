@@ -23,6 +23,7 @@ import sponsorshipDiscoverySubmissionsRoutes from './routes/sponsorshipDiscovery
 import socialLinksRoutes from './routes/socialLinks.js';
 import showsRoutes from './routes/shows.js';
 import insightsRoutes from './routes/insights.js';
+import siteSettingsRoutes from './routes/siteSettings.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 4000;
@@ -58,6 +59,7 @@ app.use('/api/sponsorship-discovery-questions', sponsorshipDiscoveryQuestionsRou
 app.use('/api/sponsorship-discovery-submissions', sponsorshipDiscoverySubmissionsRoutes);
 app.use('/api/shows', showsRoutes);
 app.use('/api/insights', insightsRoutes);
+app.use('/api/site-settings', siteSettingsRoutes);
 
 async function start() {
   if (!process.env.DATABASE_URL) {

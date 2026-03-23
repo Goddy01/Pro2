@@ -48,6 +48,9 @@ function formatArticleDate(iso: string) {
 }
 
 export default function Home() {
+  const fallbackHeroBackgroundUrl =
+    "https://images.unsplash.com/photo-1537882111161-c3379a777c8b?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+  const [heroBackgroundUrl, setHeroBackgroundUrl] = useState<string>(fallbackHeroBackgroundUrl);
   const [watchVideos, setWatchVideos] = useState<WatchVideo[]>([]);
   const [podcastEpisodesFromApi, setPodcastEpisodesFromApi] = useState<{ title: string; description: string; duration: string; guests?: string[]; audioUrl?: string }[]>([]);
   const [activePodcastIndex, setActivePodcastIndex] = useState<number | null>(null);
@@ -68,6 +71,16 @@ export default function Home() {
   const mainRef = useRef<HTMLDivElement>(null);
   const watchCarouselRef = useRef<HTMLDivElement>(null);
   const testimonialsCarouselRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetch(apiUrl('/api/site-settings/public'))
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const fromApi = typeof data?.homeHeroBackgroundUrl === 'string' ? data.homeHeroBackgroundUrl.trim() : '';
+        if (fromApi) setHeroBackgroundUrl(fromApi);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch(apiUrl('/api/podcast'))
@@ -381,8 +394,7 @@ export default function Home() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1537882111161-c3379a777c8b?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+            backgroundImage: `url('${heroBackgroundUrl || fallbackHeroBackgroundUrl}')`,
           }}
         />
         <div className="absolute inset-0 bg-forest/80" />

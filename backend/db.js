@@ -247,6 +247,12 @@ export async function initDb() {
         youtube_url TEXT,
         updated_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS site_settings (
+        id SERIAL PRIMARY KEY,
+        home_hero_background_url TEXT,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
     `);
     const { rows: socialCount } = await client.query('SELECT COUNT(*) AS c FROM site_social_links');
     if (Number(socialCount[0]?.c) === 0) {
@@ -259,6 +265,10 @@ export async function initDb() {
           'https://www.youtube.com/@sidelinesports3840?si=E5TmSrVYn-l-qBWh'
         )
       `);
+    }
+    const { rows: settingsCount } = await client.query('SELECT COUNT(*) AS c FROM site_settings');
+    if (Number(settingsCount[0]?.c) === 0) {
+      await client.query('INSERT INTO site_settings (home_hero_background_url) VALUES (NULL)');
     }
     await client.query(`
       ALTER TABLE podcast_episodes ADD COLUMN IF NOT EXISTS show_name VARCHAR(200);

@@ -7,9 +7,11 @@ import { apiUrl, authenticatedFetch } from '../lib/api';
 import '../App.css';
 
 type DateRangeDays = 7 | 30 | 90;
+type InsightsRange = DateRangeDays | '30m';
 
 type InsightsResponse = {
-  days: number;
+  range: InsightsRange;
+  rangeLabel: string;
   summary: {
     totalUsers: number;
     newUsers: number;
@@ -38,35 +40,51 @@ function formatPercent(value: number): string {
 
 function formatGA4Date(yyyymmdd: string): string {
   // GA4 returns YYYYMMDD for the `date` dimension.
-  if (!/^\d{8}$/.test(yyyymmdd)) return yyyymmdd;
-  const year = Number(yyyymmdd.slice(0, 4));
-  const month = Number(yyyymmdd.slice(4, 6)) - 1;
-  const day = Number(yyyymmdd.slice(6, 8));
-  const d = new Date(Date.UTC(year, month, day));
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  if (/^\d{8}$/.test(yyyymmdd)) {
+    const year = Number(yyyymmdd.slice(0, 4));
+    const month = Number(yyyymmdd.slice(4, 6)) - 1;
+    const day = Number(yyyymmdd.slice(6, 8));
+    const d = new Date(Date.UTC(year, month, day));
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  // GA4 returns YYYYMMDDHH for the `dateHour` dimension.
+  if (/^\d{10}$/.test(yyyymmdd)) {
+    const year = Number(yyyymmdd.slice(0, 4));
+    const month = Number(yyyymmdd.slice(4, 6)) - 1;
+    const day = Number(yyyymmdd.slice(6, 8));
+    const hour = Number(yyyymmdd.slice(8, 10));
+    const d = new Date(Date.UTC(year, month, day, hour));
+    return `${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} ${String(hour).padStart(2, '0')}:00`;
+  }
+
+  return yyyymmdd;
 }
 
 export default function AdminInsights() {
   const { token, isAuthenticated } = useAuth();
   const debug = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('debug') === '1';
-  const [days, setDays] = useState<DateRangeDays>(30);
+  const [range, setRange] = useState<InsightsRange>(30);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<InsightsResponse | null>(null);
   const [debugInfo, setDebugInfo] = useState<unknown>(null);
 
-  function handleSelectDays(nextDays: DateRangeDays) {
-    if (nextDays === days) return;
+  function handleSelectRange(nextRange: InsightsRange) {
+    if (nextRange === range) return;
     setLoading(true);
     setError('');
-    setDays(nextDays);
+    setRange(nextRange);
   }
 
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
 
-    const url = apiUrl(`/api/insights/overview?days=${days}${debug ? '&debug=1' : ''}`);
+    const url =
+      range === '30m'
+        ? apiUrl(`/api/insights/overview?range=30m${debug ? '&debug=1' : ''}`)
+        : apiUrl(`/api/insights/overview?days=${range}${debug ? '&debug=1' : ''}`);
     authenticatedFetch(url, {}, token)
       .then(async (res) => {
         const payload: { error?: string; debug?: unknown } = await res.json().catch(() => ({}));
@@ -91,7 +109,7 @@ export default function AdminInsights() {
     return () => {
       cancelled = true;
     };
-  }, [token, days, debug]);
+  }, [token, range, debug]);
 
   if (!isAuthenticated) return <Navigate to="/superuser" replace />;
 
@@ -117,18 +135,18 @@ export default function AdminInsights() {
             Back to Admin
           </Link>
           <div className="flex items-center gap-2">
-            {[7, 30, 90].map((value) => (
+            {(['30m', 7, 30, 90] as InsightsRange[]).map((value) => (
               <button
                 key={value}
                 type="button"
-                onClick={() => handleSelectDays(value as DateRangeDays)}
+                onClick={() => handleSelectRange(value)}
                 className={`px-3 py-2 text-sm border transition-colors ${
-                  days === value
+                  range === value
                     ? 'bg-lime text-forest border-lime'
                     : 'border-offwhite/25 text-offwhite/80 hover:text-lime hover:border-lime'
                 }`}
               >
-                Last {value}d
+                {value === '30m' ? 'Last 30m' : `Last ${value}d`}
               </button>
             ))}
           </div>
@@ -158,7 +176,7 @@ export default function AdminInsights() {
             </div>
 
             <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5 mb-6">
-              <h2 className="text-offwhite font-semibold mb-3">Sessions trend (last {data.days} days)</h2>
+              <h2 className="text-offwhite font-semibold mb-3">Sessions trend ({data.rangeLabel})</h2>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart

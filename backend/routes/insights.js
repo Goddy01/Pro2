@@ -23,8 +23,9 @@ function parseDateHourMs(dateHourValue) {
   const month = Number(s.slice(4, 6)) - 1;
   const day = Number(s.slice(6, 8));
   const hour = Number(s.slice(8, 10));
-  // Use UTC to match how GA typically formats dateHour values.
-  return Date.UTC(year, month, day, hour);
+  // `dateHour` is emitted in the property's timezone.
+  // Use local-time parsing so the overlap filter matches that timeframe more closely than UTC.
+  return new Date(year, month, day, hour, 0, 0, 0).getTime();
 }
 
 function getPropertyName() {
@@ -152,6 +153,28 @@ router.get('/overview', authMiddleware, async (req, res) => {
     if (isThirtyMinutes) {
       // Approximate 30m using GA4 `dateHour` buckets and filtering to the last ~30 minutes.
       // Data API does not provide true minute-level realtime.
+      // We include full dateHour buckets to avoid overly-sensitive minute-overlap mismatches.
+      const startBucket = new Date(startMs);
+      const endBucket = new Date(endMs);
+      const startBucketMs = new Date(
+        startBucket.getFullYear(),
+        startBucket.getMonth(),
+        startBucket.getDate(),
+        startBucket.getHours(),
+        0,
+        0,
+        0
+      ).getTime();
+      const endBucketMs = new Date(
+        endBucket.getFullYear(),
+        endBucket.getMonth(),
+        endBucket.getDate(),
+        endBucket.getHours(),
+        0,
+        0,
+        0
+      ).getTime();
+
       summaryRequest = {
         property,
         dateRanges,
@@ -176,8 +199,8 @@ router.get('/overview', authMiddleware, async (req, res) => {
         const dateHour = r.dimensionValues?.[0]?.value;
         const hourMs = parseDateHourMs(dateHour);
         if (hourMs == null) return false;
-        // Include the hour bucket if it overlaps the requested 30m window.
-        return hourMs < endMs && hourMs + 60 * 60 * 1000 > startMs;
+        // Include the whole hour bucket if it falls within the last ~30 minutes at hour granularity.
+        return hourMs >= startBucketMs && hourMs <= endBucketMs;
       });
 
       let totalActiveUsers = 0;
@@ -254,7 +277,7 @@ router.get('/overview', authMiddleware, async (req, res) => {
         const dateHour = r.dimensionValues?.[1]?.value || '';
         const hourMs = parseDateHourMs(dateHour);
         if (hourMs == null) continue;
-        if (!(hourMs < endMs && hourMs + 60 * 60 * 1000 > startMs)) continue;
+        if (!(hourMs >= startBucketMs && hourMs <= endBucketMs)) continue;
         const users = metricValueByIndex(r.metricValues || [], 0);
         countryMap.set(country, (countryMap.get(country) || 0) + users);
       }
@@ -279,7 +302,7 @@ router.get('/overview', authMiddleware, async (req, res) => {
         const dateHour = r.dimensionValues?.[2]?.value || '';
         const hourMs = parseDateHourMs(dateHour);
         if (hourMs == null) continue;
-        if (!(hourMs < endMs && hourMs + 60 * 60 * 1000 > startMs)) continue;
+        if (!(hourMs >= startBucketMs && hourMs <= endBucketMs)) continue;
         const views = metricValueByIndex(r.metricValues || [], 0);
         const key = `${title}|||${path}`;
         pageMap.set(key, (pageMap.get(key) || 0) + views);

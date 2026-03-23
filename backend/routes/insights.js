@@ -63,11 +63,8 @@ function createClient() {
   return new BetaAnalyticsDataClient();
 }
 
-function metricValueByName(row, metricHeaders, metricName) {
-  const headers = Array.isArray(metricHeaders) ? metricHeaders : [];
-  const idx = headers.findIndex((h) => (h.name === metricName || h.metricName === metricName));
-  if (idx < 0) return 0;
-  const raw = row?.metricValues?.[idx]?.value ?? '0';
+function metricValueByIndex(metricValues, idx) {
+  const raw = metricValues?.[idx]?.value ?? '0';
   const parsed = Number(raw);
   return Number.isFinite(parsed) ? parsed : 0;
 }
@@ -124,7 +121,7 @@ router.get('/overview', authMiddleware, async (req, res) => {
     const pagesRequest = {
       property,
       dateRanges,
-      dimensions: [{ name: 'pagePath' }],
+      dimensions: [{ name: 'pageTitle' }, { name: 'pagePath' }],
       metrics: [{ name: 'screenPageViews' }],
       orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
       limit: 5,
@@ -132,18 +129,19 @@ router.get('/overview', authMiddleware, async (req, res) => {
     const [pagesReport] = await client.runReport(pagesRequest);
 
     const summaryRow = summaryReport.rows?.[0] || null;
-    const metricHeaders = summaryReport.metricHeaders || [];
+    const summaryMetricValues = summaryRow?.metricValues || [];
 
     const summary = {
-      totalUsers: metricValueByName(summaryRow, metricHeaders, 'totalUsers'),
-      newUsers: metricValueByName(summaryRow, metricHeaders, 'newUsers'),
-      sessions: metricValueByName(summaryRow, metricHeaders, 'sessions'),
-      pageViews: metricValueByName(summaryRow, metricHeaders, 'screenPageViews'),
-      avgSessionDurationSeconds: metricValueByName(summaryRow, metricHeaders, 'averageSessionDuration'),
-      avgSessionDurationLabel: formatDuration(metricValueByName(summaryRow, metricHeaders, 'averageSessionDuration')),
-      engagementRate: metricValueByName(summaryRow, metricHeaders, 'engagementRate'),
-      bounceRate: metricValueByName(summaryRow, metricHeaders, 'bounceRate'),
-      keyEvents: metricValueByName(summaryRow, metricHeaders, 'keyEvents'),
+      // Metrics are requested in a fixed order above; map by index to avoid header-name mismatches.
+      totalUsers: metricValueByIndex(summaryMetricValues, 0),
+      newUsers: metricValueByIndex(summaryMetricValues, 1),
+      sessions: metricValueByIndex(summaryMetricValues, 2),
+      pageViews: metricValueByIndex(summaryMetricValues, 3),
+      avgSessionDurationSeconds: metricValueByIndex(summaryMetricValues, 4),
+      avgSessionDurationLabel: formatDuration(metricValueByIndex(summaryMetricValues, 4)),
+      engagementRate: metricValueByIndex(summaryMetricValues, 5),
+      bounceRate: metricValueByIndex(summaryMetricValues, 6),
+      keyEvents: metricValueByIndex(summaryMetricValues, 7),
     };
 
     const topChannels = (channelsReport.rows || []).map((row) => ({
@@ -152,8 +150,47 @@ router.get('/overview', authMiddleware, async (req, res) => {
     }));
 
     const topPages = (pagesReport.rows || []).map((row) => ({
-      path: row.dimensionValues?.[0]?.value || '/',
+      title: row.dimensionValues?.[0]?.value || '',
+      path: row.dimensionValues?.[1]?.value || '/',
       views: Number(row.metricValues?.[0]?.value || '0'),
+    }));
+
+    // Trend (date + sessions/users) for chart.
+    const trendRequest = {
+      property,
+      dateRanges,
+      dimensions: [{ name: 'date' }],
+      metrics: [{ name: 'sessions' }, { name: 'totalUsers' }],
+      limit: 1000,
+    };
+    const [trendReport] = await client.runReport(trendRequest);
+
+    const trend = (trendReport.rows || [])
+      .map((row) => {
+        const date = row.dimensionValues?.[0]?.value || '';
+        const metricValues = row.metricValues || [];
+        return {
+          date,
+          sessions: metricValueByIndex(metricValues, 0),
+          totalUsers: metricValueByIndex(metricValues, 1),
+        };
+      })
+      .filter((r) => r.date);
+
+    // Visitor locations (top countries)
+    const countriesRequest = {
+      property,
+      dateRanges,
+      dimensions: [{ name: 'country' }],
+      metrics: [{ name: 'totalUsers' }],
+      orderBys: [{ metric: { metricName: 'totalUsers' }, desc: true }],
+      limit: 5,
+    };
+    const [countriesReport] = await client.runReport(countriesRequest);
+
+    const topCountries = (countriesReport.rows || []).map((row) => ({
+      country: row.dimensionValues?.[0]?.value || 'Unassigned',
+      users: Number(row.metricValues?.[0]?.value || '0'),
     }));
 
     const payload = {
@@ -163,6 +200,8 @@ router.get('/overview', authMiddleware, async (req, res) => {
       summary,
       topChannels,
       topPages,
+      topCountries,
+      trend,
       fetchedAt: new Date().toISOString(),
     };
 
@@ -180,7 +219,8 @@ router.get('/overview', authMiddleware, async (req, res) => {
         pagesRequest,
         pagesMetricHeaders: pagesReport.metricHeaders || [],
         pagesRows: (pagesReport.rows || []).slice(0, 5).map((r) => ({
-          pagePath: r.dimensionValues?.[0]?.value || null,
+          pageTitle: r.dimensionValues?.[0]?.value || null,
+          pagePath: r.dimensionValues?.[1]?.value || null,
           views: r.metricValues?.[0]?.value || null,
         })),
       };

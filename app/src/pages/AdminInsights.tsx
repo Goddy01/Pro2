@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl, authenticatedFetch } from '../lib/api';
 import '../App.css';
@@ -21,7 +22,9 @@ type InsightsResponse = {
     keyEvents: number;
   };
   topChannels: Array<{ channel: string; sessions: number }>;
-  topPages: Array<{ path: string; views: number }>;
+  topCountries: Array<{ country: string; users: number }>;
+  topPages: Array<{ title?: string; path: string; views: number }>;
+  trend: Array<{ date: string; sessions: number; totalUsers: number }>;
   fetchedAt: string;
 };
 
@@ -33,6 +36,16 @@ function formatPercent(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
 }
 
+function formatGA4Date(yyyymmdd: string): string {
+  // GA4 returns YYYYMMDD for the `date` dimension.
+  if (!/^\d{8}$/.test(yyyymmdd)) return yyyymmdd;
+  const year = Number(yyyymmdd.slice(0, 4));
+  const month = Number(yyyymmdd.slice(4, 6)) - 1;
+  const day = Number(yyyymmdd.slice(6, 8));
+  const d = new Date(Date.UTC(year, month, day));
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 export default function AdminInsights() {
   const { token, isAuthenticated } = useAuth();
   const debug = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').get('debug') === '1';
@@ -40,7 +53,7 @@ export default function AdminInsights() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<InsightsResponse | null>(null);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [debugInfo, setDebugInfo] = useState<unknown>(null);
 
   function handleSelectDays(nextDays: DateRangeDays) {
     if (nextDays === days) return;
@@ -56,12 +69,12 @@ export default function AdminInsights() {
     const url = apiUrl(`/api/insights/overview?days=${days}${debug ? '&debug=1' : ''}`);
     authenticatedFetch(url, {}, token)
       .then(async (res) => {
-        const payload = await res.json().catch(() => ({}));
+        const payload: { error?: string; debug?: unknown } = await res.json().catch(() => ({}));
         if (!res.ok) {
-          throw new Error((payload as { error?: string }).error || 'Failed to load insights');
+          throw new Error(payload.error || 'Failed to load insights');
         }
         if (!cancelled) {
-          if (debug && (payload as any).debug) setDebugInfo((payload as any).debug);
+          if (debug && payload.debug) setDebugInfo(payload.debug);
           setData(payload as InsightsResponse);
         }
       })
@@ -78,7 +91,7 @@ export default function AdminInsights() {
     return () => {
       cancelled = true;
     };
-  }, [token, days]);
+  }, [token, days, debug]);
 
   if (!isAuthenticated) return <Navigate to="/superuser" replace />;
 
@@ -144,35 +157,65 @@ export default function AdminInsights() {
               ))}
             </div>
 
+            <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5 mb-6">
+              <h2 className="text-offwhite font-semibold mb-3">Sessions trend (last {data.days} days)</h2>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={[...(data.trend || [])]
+                      .sort((a, b) => a.date.localeCompare(b.date))
+                      .map((p) => ({ ...p, dateLabel: formatGA4Date(p.date) }))}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                    <XAxis dataKey="dateLabel" tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 12 }} />
+                    <YAxis tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 12 }} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'rgba(15,23,42,0.9)', border: '1px solid rgba(255,255,255,0.12)' }}
+                      labelStyle={{ color: 'white' }}
+                      formatter={(v: unknown) => new Intl.NumberFormat().format(Number(v))}
+                    />
+                    <Line type="monotone" dataKey="sessions" stroke="#A3E635" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+
             <div className="grid gap-6 lg:grid-cols-2">
               <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
-                <h2 className="text-offwhite font-semibold mb-3">Top traffic channels</h2>
-                {data.topChannels.length === 0 ? (
-                  <p className="text-offwhite/60 text-sm">No channel data.</p>
+                <h2 className="text-offwhite font-semibold mb-3">Where visitors are viewing from</h2>
+                {data.topCountries.length === 0 ? (
+                  <p className="text-offwhite/60 text-sm">No country data.</p>
                 ) : (
                   <ul className="space-y-2">
-                    {data.topChannels.map((item) => (
-                      <li key={item.channel} className="flex items-center justify-between text-sm">
-                        <span className="text-offwhite/80">{item.channel}</span>
-                        <span className="text-lime font-semibold">{formatNumber(item.sessions)}</span>
-                      </li>
-                    ))}
+                    {data.topCountries?.length ? (
+                      data.topCountries.map((item) => (
+                        <li key={item.country} className="flex items-center justify-between text-sm">
+                          <span className="text-offwhite/80">{item.country}</span>
+                          <span className="text-lime font-semibold">{formatNumber(item.users)}</span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-offwhite/60 text-sm">No country data.</li>
+                    )}
                   </ul>
                 )}
               </section>
 
               <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
-                <h2 className="text-offwhite font-semibold mb-3">Top pages</h2>
+                <h2 className="text-offwhite font-semibold mb-3">Pages visitors viewed</h2>
                 {data.topPages.length === 0 ? (
                   <p className="text-offwhite/60 text-sm">No page data.</p>
                 ) : (
                   <ul className="space-y-2">
-                    {data.topPages.map((item) => (
-                      <li key={item.path} className="flex items-center justify-between gap-3 text-sm">
-                        <span className="text-offwhite/80 truncate">{item.path}</span>
-                        <span className="text-lime font-semibold shrink-0">{formatNumber(item.views)}</span>
-                      </li>
-                    ))}
+                    {data.topPages.map((item) => {
+                      const label = item.title?.trim() ? item.title : item.path;
+                      return (
+                        <li key={`${item.path}-${item.title || 'page'}`} className="flex items-center justify-between gap-3 text-sm">
+                          <span className="text-offwhite/80 truncate">{label}</span>
+                          <span className="text-lime font-semibold shrink-0">{formatNumber(item.views)}</span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </section>

@@ -203,6 +203,21 @@ router.get('/overview', authMiddleware, async (req, res) => {
         return hourMs >= startBucketMs && hourMs <= endBucketMs;
       });
 
+      const summaryDebug = {
+        summaryRequest,
+        dateRanges,
+        range,
+        rangeLabel,
+        returnedRows: rows.length,
+        includedRows: rowsInRange.length,
+        startBucketMs,
+        endBucketMs,
+        dateHourSamples: rows.slice(0, 10).map((r) => {
+          const dateHour = r.dimensionValues?.[0]?.value;
+          return { dateHour, parsedMs: parseDateHourMs(dateHour) };
+        }),
+      };
+
       let totalActiveUsers = 0;
       let totalNewUsers = 0;
       let totalSessions = 0;
@@ -314,6 +329,11 @@ router.get('/overview', authMiddleware, async (req, res) => {
         })
         .sort((a, b) => b.views - a.views)
         .slice(0, TOP_PAGES_LIMIT);
+
+      const thirtyMinuteDebugPages = {
+        countriesTopCount: topCountries.length,
+        pagesTopCount: topPages.length,
+      };
     } else {
       // Daily/weekly view (exact for the chosen range).
       const requestedSummaryRequest = {
@@ -438,6 +458,7 @@ router.get('/overview', authMiddleware, async (req, res) => {
         pagesRequest: pagesRequest,
         countriesRequest: countriesRequest,
         trendRequest: trendRequest,
+        ...(isThirtyMinutes ? { thirtyMinuteDebug: summaryDebug, thirtyMinuteDebugPages } : {}),
       };
     }
 

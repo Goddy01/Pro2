@@ -148,7 +148,7 @@ export default function AdminInsights() {
         </div>
 
         <h1 className="text-offwhite font-editorial font-bold text-2xl mb-2">Client Insights</h1>
-        <p className="text-offwhite/60 text-sm mb-6">Simple traffic overview powered by Google Analytics.</p>
+        {/* <p className="text-offwhite/60 text-sm mb-6">Simple traffic overview powered by Google Analytics.</p> */}
 
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 

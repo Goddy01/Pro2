@@ -122,20 +122,20 @@ export default function AdminInsights() {
     : [];
 
   return (
-    <div className="min-h-screen bg-forest px-6 py-12">
+    <div className="min-h-screen bg-forest px-4 sm:px-6 py-8 sm:py-12">
       <div className="max-w-5xl mx-auto">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 sm:mb-8">
           <Link to="/admin" className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm">
             <ArrowLeft className="w-4 h-4" />
             Back to Admin
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 w-full sm:w-auto">
             {[1, 7, 30, 90].map((value) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => handleSelectRange(value as InsightsRange)}
-                className={`px-3 py-2 text-sm border transition-colors ${
+                className={`px-3 py-2 text-sm border transition-colors whitespace-nowrap shrink-0 ${
                   range === value
                     ? 'bg-lime text-forest border-lime'
                     : 'border-offwhite/25 text-offwhite/80 hover:text-lime hover:border-lime'
@@ -147,7 +147,7 @@ export default function AdminInsights() {
           </div>
         </div>
 
-        <h1 className="text-offwhite font-editorial font-bold text-2xl mb-2">Client Insights</h1>
+        <h1 className="text-offwhite font-editorial font-bold text-xl sm:text-2xl mb-2">Client Insights</h1>
         {/* <p className="text-offwhite/60 text-sm mb-6">Simple traffic overview powered by Google Analytics.</p> */}
 
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
@@ -161,18 +161,18 @@ export default function AdminInsights() {
           <p className="text-offwhite/70">No analytics data yet.</p>
         ) : (
           <>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+            <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 mb-8">
               {cards.map((card) => (
                 <article key={card.label} className="border border-offwhite/20 bg-offwhite/5 rounded p-4">
                   <p className="text-offwhite/60 text-xs uppercase tracking-wide mb-1">{card.label}</p>
-                  <p className="text-offwhite text-2xl font-semibold">{card.value}</p>
+                  <p className="text-offwhite text-lg sm:text-2xl font-semibold break-words">{card.value}</p>
                 </article>
               ))}
             </div>
 
-            <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5 mb-6">
-              <h2 className="text-offwhite font-semibold mb-3">Sessions trend ({data.rangeLabel})</h2>
-              <div className="h-64">
+            <section className="border border-offwhite/20 bg-offwhite/5 rounded p-4 sm:p-5 mb-6">
+              <h2 className="text-offwhite font-semibold text-sm sm:text-base mb-3">Sessions trend ({data.rangeLabel})</h2>
+              <div className="h-56 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={[...(data.trend || [])]
@@ -193,14 +193,14 @@ export default function AdminInsights() {
               </div>
             </section>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
-                <h2 className="text-offwhite font-semibold mb-3">Top referrers</h2>
+            <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-4 sm:p-5">
+                <h2 className="text-offwhite font-semibold text-sm sm:text-base mb-3">Top referrers</h2>
                 {data.topReferrers?.length ? (
                   <ul className="space-y-2">
                     {data.topReferrers.map((item) => (
                       <li key={item.source} className="flex items-center justify-between gap-3 text-sm">
-                        <span className="text-offwhite/80 truncate">{item.source}</span>
+                        <span className="text-offwhite/80 min-w-0 break-all">{item.source}</span>
                         <span className="text-lime font-semibold shrink-0">{formatNumber(item.sessions)}</span>
                       </li>
                     ))}
@@ -210,8 +210,8 @@ export default function AdminInsights() {
                 )}
               </section>
 
-              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
-                <h2 className="text-offwhite font-semibold mb-3">Top traffic channels</h2>
+              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-4 sm:p-5">
+                <h2 className="text-offwhite font-semibold text-sm sm:text-base mb-3">Top traffic channels</h2>
                 {data.topChannels?.length ? (
                   <ul className="space-y-2">
                     {data.topChannels.map((item) => (
@@ -226,8 +226,8 @@ export default function AdminInsights() {
                 )}
               </section>
 
-              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
-                <h2 className="text-offwhite font-semibold mb-3">Where visitors are viewing from</h2>
+              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-4 sm:p-5">
+                <h2 className="text-offwhite font-semibold text-sm sm:text-base mb-3">Where visitors are viewing from</h2>
                 {data.topCountries.length === 0 ? (
                   <p className="text-offwhite/60 text-sm">No country data.</p>
                 ) : (
@@ -246,8 +246,8 @@ export default function AdminInsights() {
                 )}
               </section>
 
-              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
-                <h2 className="text-offwhite font-semibold mb-3">New vs Returning</h2>
+              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-4 sm:p-5">
+                <h2 className="text-offwhite font-semibold text-sm sm:text-base mb-3">New vs Returning</h2>
                 {data.newVsReturning?.length ? (
                   <ul className="space-y-2">
                     {data.newVsReturning.map((item) => (
@@ -262,8 +262,8 @@ export default function AdminInsights() {
                 )}
               </section>
 
-              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
-                <h2 className="text-offwhite font-semibold mb-3">Device breakdown</h2>
+              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-4 sm:p-5">
+                <h2 className="text-offwhite font-semibold text-sm sm:text-base mb-3">Device breakdown</h2>
                 {data.deviceBreakdown?.length ? (
                   <ul className="space-y-2">
                     {data.deviceBreakdown.map((item) => (
@@ -278,8 +278,8 @@ export default function AdminInsights() {
                 )}
               </section>
 
-              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-5">
-                <h2 className="text-offwhite font-semibold mb-3">Pages visitors viewed (top)</h2>
+              <section className="border border-offwhite/20 bg-offwhite/5 rounded p-4 sm:p-5">
+                <h2 className="text-offwhite font-semibold text-sm sm:text-base mb-3">Pages visitors viewed (top)</h2>
                 {data.topPages.length === 0 ? (
                   <p className="text-offwhite/60 text-sm">No page data.</p>
                 ) : (
@@ -288,7 +288,7 @@ export default function AdminInsights() {
                       const label = item.title?.trim() ? item.title : item.path;
                       return (
                         <li key={`${item.path}-${item.title || 'page'}`} className="flex items-center justify-between gap-3 text-sm">
-                          <span className="text-offwhite/80 truncate">{label}</span>
+                          <span className="text-offwhite/80 min-w-0 truncate">{label}</span>
                           <span className="text-lime font-semibold shrink-0">{formatNumber(item.views)}</span>
                         </li>
                       );

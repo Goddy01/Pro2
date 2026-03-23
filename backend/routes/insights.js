@@ -14,12 +14,48 @@ function getPropertyName() {
 function createClient() {
   const clientEmail = (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '').trim();
   const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY || '';
+  const privateKeyB64 = (process.env.GOOGLE_PRIVATE_KEY_BASE64 || '').trim();
 
-  if (clientEmail && privateKeyRaw) {
+  let privateKey = '';
+  if (privateKeyB64) {
+    try {
+      privateKey = Buffer.from(privateKeyB64, 'base64').toString('utf8');
+    } catch {
+      privateKey = '';
+    }
+  } else {
+    privateKey = privateKeyRaw.trim();
+    if (
+      (privateKey.startsWith('"') && privateKey.endsWith('"')) ||
+      (privateKey.startsWith("'") && privateKey.endsWith("'"))
+    ) {
+      privateKey = privateKey.slice(1, -1);
+    }
+    privateKey = privateKey.replace(/\\n/g, '\n').replace(/\r\n/g, '\n');
+  }
+
+  // Normalize both PEM inputs (base64 or raw .env) to match expected PEM formatting.
+  privateKey = privateKey.trim();
+  if (
+    (privateKey.startsWith('"') && privateKey.endsWith('"')) ||
+    (privateKey.startsWith("'") && privateKey.endsWith("'"))
+  ) {
+    privateKey = privateKey.slice(1, -1);
+  }
+  privateKey = privateKey.replace(/\\n/g, '\n').replace(/\r\n/g, '\n');
+
+  if (!privateKey || !privateKey.includes('BEGIN PRIVATE KEY') || !privateKey.includes('END PRIVATE KEY')) {
+    return res.status(500).json({
+      error:
+        'Google private key does not look like a valid PEM. Ensure you copied the full private_key from the service account JSON (no redaction) and that GOOGLE_PRIVATE_KEY_BASE64 / GOOGLE_PRIVATE_KEY is not truncated.',
+    });
+  }
+
+  if (clientEmail && privateKey) {
     return new BetaAnalyticsDataClient({
       credentials: {
         client_email: clientEmail,
-        private_key: privateKeyRaw.replace(/\\n/g, '\n'),
+        private_key: privateKey,
       },
     });
   }
@@ -122,6 +158,14 @@ router.get('/overview', authMiddleware, async (req, res) => {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to load Google Analytics data';
+    if (
+      /DECODER routines|PEM routines|private key|key format/i.test(message)
+    ) {
+      return res.status(500).json({
+        error:
+          'Google service-account private key is invalid or improperly formatted. Check GOOGLE_PRIVATE_KEY and escaped newline formatting.',
+      });
+    }
     return res.status(500).json({ error: message });
   }
 });

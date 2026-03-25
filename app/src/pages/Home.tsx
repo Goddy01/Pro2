@@ -19,6 +19,8 @@ gsap.registerPlugin(ScrollTrigger);
 const EVENT_PREVIEW_IMAGES = 1;
 /** Events covered but not yet published on the site (added to API count for display) */
 const EVENTS_COVERED_OFF_SITE = 50;
+/** Episodes shown on Home Listen section; full list lives on Listen & Watch */
+const LISTEN_SECTION_EPISODE_LIMIT = 4;
 
 type WatchVideo = { title: string; videoId: string | null; videoUrl?: string; duration: string };
 const FALLBACK_WATCH: WatchVideo[] = [
@@ -195,6 +197,8 @@ export default function Home() {
     ...ep,
     audioUrl: (ep as { audioUrl?: string }).audioUrl ?? (i < 3 ? `/audio-podcasts/audio-podcast-${i + 1}.m4a` : undefined),
   }));
+
+  const podcastEpisodesHomeListen = podcastEpisodesWithAudio.slice(0, LISTEN_SECTION_EPISODE_LIMIT);
 
   const handlePodcastPlay = (index: number) => {
     const episode = podcastEpisodesWithAudio[index];
@@ -616,12 +620,12 @@ export default function Home() {
                 onEnded={() => setActivePodcastIndex(null)}
                 aria-hidden
               />
-              <div className="space-y-4 mb-8">
-                {podcastEpisodesWithAudio.map((episode, i) => {
+              <div className="space-y-4 mb-6">
+                {podcastEpisodesHomeListen.map((episode, i) => {
                   const hasAudio = !!episode.audioUrl;
                   const isPlaying = activePodcastIndex === i;
                   return (
-                    <div key={i} className="card-editorial p-5 group hover:border-lime/30">
+                    <div key={`${episode.title}-${i}`} className="card-editorial p-5 group hover:border-lime/30">
                       <div className="flex items-start gap-4">
                         {hasAudio ? (
                           <button
@@ -657,6 +661,16 @@ export default function Home() {
                     </div>
                   );
                 })}
+              </div>
+
+              <div className="mb-8">
+                <Link
+                  to="/listen-watch"
+                  className="btn-outline-premium inline-flex items-center gap-2"
+                >
+                  View more
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
 
               <p className="text-offwhite/60 text-sm mb-3">Listen to our shows on </p>

@@ -396,7 +396,7 @@ export default function Home() {
       {/* Section 1: Hero. */}
       <section className="section-premium min-h-screen flex items-center relative overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center lg:bg-top"
+          className="absolute inset-0 bg-cover bg-center lg:bg-top opacity-30"
           style={{
             backgroundImage: `url('${heroBackgroundUrl || fallbackHeroBackgroundUrl}')`,
           }}

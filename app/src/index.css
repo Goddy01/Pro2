@@ -43,11 +43,20 @@
   }
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    max-width: 100%;
   }
   body {
     @apply bg-forest text-offwhite antialiased;
     font-family: 'Inter', sans-serif;
     overflow-x: hidden;
+    max-width: 100%;
+    overscroll-behavior-x: none;
+  }
+  #root {
+    overflow-x: hidden;
+    max-width: 100%;
+    min-height: 100%;
   }
 }
 

@@ -121,14 +121,14 @@ export default function Stories() {
   }, [activeFilter, currentPage]);
 
   return (
-    <div ref={mainRef} className="relative">
+    <div ref={mainRef} className="relative w-full max-w-full min-w-0 overflow-x-hidden">
       <SEO
         title="Articles"
         description="Read the latest sports and entertainment articles, analysis, and features from Sideline Sports & Entertainment."
         canonicalPath="/stories"
       />
-      <section className="section-light-premium py-24">
-        <div className="w-full px-6 lg:px-12">
+      <section className="section-light-premium w-full max-w-full min-w-0 py-24">
+        <div className="w-full max-w-full min-w-0 px-4 sm:px-6 lg:px-12">
           <div className="reveal-section mb-12">
             <span className="label-mono text-forest/60 mb-4 block">Latest</span>
             <h2 className="headline-section text-forest text-4xl mb-6">
@@ -138,7 +138,7 @@ export default function Stories() {
             {/* Search */}
             <div className="mb-6">
               <label htmlFor="stories-search" className="sr-only">Search articles</label>
-              <div className="relative max-w-md">
+              <div className="relative w-full max-w-md min-w-0">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-forest/50" aria-hidden />
                 <input
                   id="stories-search"
@@ -152,7 +152,7 @@ export default function Stories() {
             </div>
 
             {/* Filter Chips */}
-            <div className="flex flex-wrap gap-3">
+            <div className="flex max-w-full min-w-0 flex-wrap gap-3">
               {filters.map((filter) => (
                 <button
                   key={filter}
@@ -177,7 +177,7 @@ export default function Stories() {
               {searchQuery.trim() ? 'No articles match your search.' : 'No articles yet.'}
             </p>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div className="grid w-full max-w-full min-w-0 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
               {paginatedArticles.map((card) => (
                 <Link key={card.id} to={`/stories/${encodeArticleId(card.id)}`} className="stagger-card group block">
                   <article className="cursor-pointer h-full">
@@ -219,7 +219,7 @@ export default function Stories() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="reveal-section flex items-center justify-center gap-2 mt-8">
+            <div className="reveal-section mt-8 flex w-full max-w-full min-w-0 flex-wrap items-center justify-center gap-2">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
@@ -229,7 +229,7 @@ export default function Stories() {
                 <ChevronLeft className="w-5 h-5" />
               </button>
               
-              <div className="flex items-center gap-1">
+              <div className="flex max-w-full min-w-0 flex-wrap items-center justify-center gap-1">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}

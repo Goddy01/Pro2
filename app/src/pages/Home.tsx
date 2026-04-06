@@ -387,7 +387,7 @@ export default function Home() {
   };
 
   return (
-    <div ref={mainRef} className="relative">
+    <div ref={mainRef} className="relative w-full max-w-full min-w-0 overflow-x-hidden">
       <SEO
         title="Home"
         description="Sideline Sports & Entertainment — original reporting, in-depth analysis, and compelling storytelling. Sports and entertainment journalism reimagined."

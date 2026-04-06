@@ -201,12 +201,14 @@ export default function Layout() {
   }, []);
 
   return (
-    <div className="relative">
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-forest/95 backdrop-blur-md border-b border-offwhite/5">
-        <div className="px-6 lg:px-12 py-4 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-3">
-            <img src="/logo-180.png" alt="Sideline Sports & Entertainment logo" className="w-10 h-10 object-contain" decoding="async" width={40} height={40} />
-            <span className="text-lime font-editorial font-black text-2xl italic">Sideline Sports & Entertainment</span>
+    <div className="relative min-h-screen w-full max-w-full min-w-0 overflow-x-hidden">
+      <nav className="fixed top-0 left-0 right-0 z-50 max-w-full bg-forest/95 backdrop-blur-md border-b border-offwhite/5">
+        <div className="px-4 sm:px-6 lg:px-12 py-4 flex justify-between items-center gap-3 min-w-0">
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <img src="/logo-180.png" alt="Sideline Sports & Entertainment logo" className="w-10 h-10 shrink-0 object-contain" decoding="async" width={40} height={40} />
+            <span className="text-lime font-editorial font-black text-base leading-tight sm:text-xl lg:text-2xl italic min-w-0 [overflow-wrap:anywhere]">
+              Sideline Sports & Entertainment
+            </span>
           </Link>
           <div className="hidden lg:flex items-center gap-10">
             {navItems.map((item) =>
@@ -229,11 +231,11 @@ export default function Layout() {
               )
             )}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex shrink-0 items-center gap-4">
             <a href="#signup" className="hidden sm:inline-flex btn-premium text-xs py-3 px-6">
               Subscribe
             </a>
-            <button className="lg:hidden text-offwhite" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            <button type="button" className="lg:hidden text-offwhite p-1 -mr-1" aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
@@ -260,8 +262,8 @@ export default function Layout() {
         )}
       </nav>
 
-      <div className="fixed top-[73px] left-0 right-0 z-40 bg-lime py-2 overflow-hidden">
-        <div className="flex whitespace-nowrap">
+      <div className="fixed top-[73px] left-0 right-0 z-40 w-full max-w-full bg-lime py-2 overflow-x-hidden overflow-y-hidden">
+        <div className="flex w-full max-w-full min-w-0 whitespace-nowrap">
           <div className={`ticker-item flex gap-12 text-forest text-xs font-semibold uppercase tracking-wide ${marqueeReady ? 'ticker-animate' : 'ticker-pending'}`}>
             {marqueeLoopItems.map((item, index) => (
               <span key={`${item.title}-${index}`} className="flex items-center gap-2">
@@ -273,7 +275,7 @@ export default function Layout() {
         </div>
       </div>
 
-      <main className="pt-[110px]">
+      <main className="w-full max-w-full min-w-0 pt-[110px]">
         <SponsorshipBanner />
         <Outlet />
       </main>

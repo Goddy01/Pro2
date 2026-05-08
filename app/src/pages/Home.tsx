@@ -294,24 +294,30 @@ export default function Home() {
         );
       });
 
-      // Stats counter animation
-      ScrollTrigger.create({
-        trigger: '.stats-section',
-        start: 'top 75%',
-        onEnter: () => {
-          gsap.to('.stat-number', {
-            innerText: (i: number) => [120, 48, 2][i],
-            duration: 2.5,
-            snap: { innerText: 1 },
-            ease: 'power2.out',
-          });
-        },
-        once: true,
-      });
+      // Stats counter (only when stats section exists in DOM)
+      const statsSection = mainRef.current?.querySelector('.stats-section');
+      if (statsSection) {
+        ScrollTrigger.create({
+          trigger: statsSection,
+          start: 'top 75%',
+          onEnter: () => {
+            gsap.to('.stat-number', {
+              innerText: (i: number) => [120, 48, 2][i],
+              duration: 2.5,
+              snap: { innerText: 1 },
+              ease: 'power2.out',
+            });
+          },
+          once: true,
+        });
+      }
 
     }, mainRef);
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      ScrollTrigger.refresh();
+    };
   }, []);
 
   // Infinite watch carousel: start at middle set, jump at boundaries
@@ -329,13 +335,23 @@ export default function Home() {
     const onResize = () => run();
     window.addEventListener('resize', onResize);
 
+    let adjusting = false;
     const onScroll = () => {
+      if (adjusting) return;
       const setWidth = el.scrollWidth / 3;
       if (setWidth <= 0) return;
       if (el.scrollLeft <= 0) {
+        adjusting = true;
         el.scrollLeft += setWidth;
+        requestAnimationFrame(() => {
+          adjusting = false;
+        });
       } else if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 2) {
+        adjusting = true;
         el.scrollLeft -= setWidth;
+        requestAnimationFrame(() => {
+          adjusting = false;
+        });
       }
     };
 
@@ -359,11 +375,24 @@ export default function Home() {
     const t = setTimeout(run, 50);
     const onResize = () => run();
     window.addEventListener('resize', onResize);
+    let adjusting = false;
     const onScroll = () => {
+      if (adjusting) return;
       const setWidth = el.scrollWidth / 3;
       if (setWidth <= 0) return;
-      if (el.scrollLeft <= 0) el.scrollLeft += setWidth;
-      else if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 2) el.scrollLeft -= setWidth;
+      if (el.scrollLeft <= 0) {
+        adjusting = true;
+        el.scrollLeft += setWidth;
+        requestAnimationFrame(() => {
+          adjusting = false;
+        });
+      } else if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 2) {
+        adjusting = true;
+        el.scrollLeft -= setWidth;
+        requestAnimationFrame(() => {
+          adjusting = false;
+        });
+      }
     };
     el.addEventListener('scroll', onScroll, { passive: true });
     return () => {
@@ -393,15 +422,15 @@ export default function Home() {
         description="Sideline Sports & Entertainment — original reporting, in-depth analysis, and compelling storytelling. Sports and entertainment journalism reimagined."
         canonicalPath="/"
       />
-      {/* Section 1: Hero. */}
-      <section className="section-premium min-h-screen flex items-center relative overflow-hidden">
+      {/* Section 1: Hero. Avoid overflow-hidden here — paired with overflow-x on body it can make this a nested scroll trap. */}
+      <section className="section-premium min-h-screen flex items-center relative isolate">
         <div
-          className="absolute inset-0 bg-cover bg-center lg:bg-top opacity-50"
+          className="absolute inset-0 bg-cover bg-center lg:bg-top opacity-50 pointer-events-none"
           style={{
             backgroundImage: `url('${heroBackgroundUrl || fallbackHeroBackgroundUrl}')`,
           }}
         />
-        <div className="absolute inset-0 bg-forest/80" />
+        <div className="absolute inset-0 bg-forest/80 pointer-events-none" />
         <div className="w-full px-6 lg:px-12 pt-20 lg:pt-28 relative z-10">
           <div className="max-w-5xl mx-auto text-center">
             <span className="label-mono text-lime text-lg mb-6 block">Sports & Entertainment Journalism Reimagined</span>

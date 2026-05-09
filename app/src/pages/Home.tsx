@@ -257,7 +257,7 @@ export default function Home() {
         '-=0.3'
       );
 
-      // Section reveal animations
+      // Section reveal animations (once: avoids play/reverse thrash at viewport edges that traps or glitches scroll)
       gsap.utils.toArray<HTMLElement>('.reveal-section').forEach((section) => {
         gsap.fromTo(section,
           { y: 80, opacity: 0 },
@@ -268,8 +268,8 @@ export default function Home() {
             ease: 'power3.out',
             scrollTrigger: {
               trigger: section,
-              start: 'top 85%',
-              toggleActions: 'play none none reverse',
+              start: 'top 88%',
+              once: true,
             }
           }
         );
@@ -283,12 +283,12 @@ export default function Home() {
             y: 0,
             opacity: 1,
             duration: 0.7,
-            delay: i * 0.1,
+            delay: Math.min(i * 0.05, 0.6),
             ease: 'power3.out',
             scrollTrigger: {
               trigger: card,
-              start: 'top 90%',
-              toggleActions: 'play none none reverse',
+              start: 'top 92%',
+              once: true,
             }
           }
         );
@@ -316,7 +316,6 @@ export default function Home() {
 
     return () => {
       ctx.revert();
-      ScrollTrigger.refresh();
     };
   }, []);
 
@@ -416,14 +415,14 @@ export default function Home() {
   };
 
   return (
-    <div ref={mainRef} className="relative w-full max-w-full min-w-0 overflow-x-hidden">
+    <div ref={mainRef} className="relative w-full max-w-full min-w-0">
       <SEO
         title="Home"
         description="Sideline Sports & Entertainment — original reporting, in-depth analysis, and compelling storytelling. Sports and entertainment journalism reimagined."
         canonicalPath="/"
       />
       {/* Section 1: Hero. Avoid overflow-hidden here — paired with overflow-x on body it can make this a nested scroll trap. */}
-      <section className="section-premium min-h-screen flex items-center relative isolate">
+      <section className="section-premium min-h-[100dvh] flex items-center relative isolate">
         <div
           className="absolute inset-0 bg-cover bg-center lg:bg-top opacity-50 pointer-events-none"
           style={{

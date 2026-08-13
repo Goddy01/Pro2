@@ -5,6 +5,7 @@ import { apiUrl, authenticatedFetch } from '../lib/api';
 import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X, ChevronDown, BarChart3, ImagePlus, KeyRound } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
+import PasswordField from '../components/PasswordField';
 import '../App.css';
 
 const TABS = [
@@ -1589,15 +1590,15 @@ export default function AdminDashboard() {
             <form onSubmit={handleChangePassword} className="space-y-4">
               <label className="block">
                 <span className={labelClass}>Current password</span>
-                <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className={inputClass} autoComplete="current-password" required />
+                <PasswordField value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className={inputClass} autoComplete="current-password" required />
               </label>
               <label className="block">
                 <span className={labelClass}>New password</span>
-                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputClass} autoComplete="new-password" minLength={6} required />
+                <PasswordField value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputClass} autoComplete="new-password" minLength={6} required />
               </label>
               <label className="block">
                 <span className={labelClass}>Confirm new password</span>
-                <input type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} className={inputClass} autoComplete="new-password" minLength={6} required />
+                <PasswordField value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} className={inputClass} autoComplete="new-password" minLength={6} required />
               </label>
               <div className="flex justify-end pt-2">
                 <button type="submit" disabled={changePasswordLoading} className="btn-premium py-3 px-6 disabled:opacity-50">
@@ -1625,7 +1626,7 @@ export default function AdminDashboard() {
               </label>
               <label className="block">
                 <span className={labelClass}>Password</span>
-                <input type="password" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} className={inputClass} placeholder="min 6 characters" autoComplete="new-password" minLength={6} />
+                <PasswordField value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} className={inputClass} placeholder="min 6 characters" autoComplete="new-password" minLength={6} />
               </label>
               <div className="flex justify-end pt-2">
                 <button type="submit" disabled={addAdminLoading} className="btn-premium py-3 px-6 disabled:opacity-50">

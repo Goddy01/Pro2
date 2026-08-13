@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl } from '../lib/api';
+import PasswordField from '../components/PasswordField';
 import '../App.css';
 
 export default function AdminLogin() {
@@ -65,8 +66,7 @@ export default function AdminLogin() {
           </label>
           <label className="block mb-6">
             <span className="text-offwhite text-sm font-medium mb-2 block">Password</span>
-            <input
-              type="password"
+            <PasswordField
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 bg-forest/50 border border-offwhite/20 text-offwhite placeholder:text-offwhite/40 focus:outline-none focus:border-lime"

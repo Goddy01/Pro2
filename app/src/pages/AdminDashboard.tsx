@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo, type FormEvent } fro
 import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl, authenticatedFetch } from '../lib/api';
-import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X, ChevronDown, BarChart3, ImagePlus } from 'lucide-react';
+import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X, ChevronDown, BarChart3, ImagePlus, KeyRound } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import '../App.css';
@@ -142,6 +142,14 @@ export default function AdminDashboard() {
   const [addAdminError, setAddAdminError] = useState('');
   const [addAdminSuccess, setAddAdminSuccess] = useState('');
   const [addAdminLoading, setAddAdminLoading] = useState(false);
+
+  const [changePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [changePasswordError, setChangePasswordError] = useState('');
+  const [changePasswordSuccess, setChangePasswordSuccess] = useState('');
+  const [changePasswordLoading, setChangePasswordLoading] = useState(false);
 
   const [galleryList, setGalleryList] = useState<{ id: number; src: string; caption: string | null; category_id: number | null }[]>([]);
   const [editingArticleId, setEditingArticleId] = useState<number | null>(null);
@@ -812,6 +820,49 @@ export default function AdminDashboard() {
     }
   }
 
+  async function handleChangePassword(e: FormEvent) {
+    e.preventDefault();
+    setChangePasswordError('');
+    setChangePasswordSuccess('');
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      setChangePasswordError('Fill in all password fields');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setChangePasswordError('New password must be at least 6 characters');
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setChangePasswordError('New passwords do not match');
+      return;
+    }
+    if (currentPassword === newPassword) {
+      setChangePasswordError('New password must be different from current password');
+      return;
+    }
+    setChangePasswordLoading(true);
+    try {
+      const res = await authenticatedFetch(apiUrl('/api/auth/change-password'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      }, token);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setChangePasswordError(data.error || 'Failed to change password');
+        return;
+      }
+      setChangePasswordSuccess('Password updated.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch {
+      setChangePasswordError('Could not connect to server');
+    } finally {
+      setChangePasswordLoading(false);
+    }
+  }
+
   async function handleHomeHeroSubmit(e: FormEvent) {
     e.preventDefault();
     clearMessages();
@@ -910,6 +961,10 @@ export default function AdminDashboard() {
               Insights
             </Link>
             <span className="w-px h-5 bg-offwhite/20 mx-1" aria-hidden />
+            <button type="button" onClick={() => { setChangePasswordModalOpen(true); setChangePasswordError(''); setChangePasswordSuccess(''); }} className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap">
+              <KeyRound className="w-4 h-4" />
+              Change password
+            </button>
             <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); }} className="inline-flex items-center gap-1.5 px-3 py-2 text-offwhite/80 hover:text-lime hover:bg-offwhite/10 rounded transition-colors text-sm whitespace-nowrap">
               <UserPlus className="w-4 h-4" />
               Add admin
@@ -967,6 +1022,10 @@ export default function AdminDashboard() {
                 <BarChart3 className="w-4 h-4" />
                 Client insights
               </Link>
+              <button type="button" onClick={() => { setChangePasswordModalOpen(true); setChangePasswordError(''); setChangePasswordSuccess(''); setAdminMenuOpen(false); }} className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2 text-left">
+                <KeyRound className="w-4 h-4" />
+                Change password
+              </button>
               <button type="button" onClick={() => { setAddAdminModalOpen(true); setAddAdminError(''); setAddAdminSuccess(''); setAdminMenuOpen(false); }} className="inline-flex items-center gap-2 text-offwhite hover:text-lime transition-colors text-sm py-2 text-left">
                 <UserPlus className="w-4 h-4" />
                 Add new admin
@@ -1504,6 +1563,50 @@ export default function AdminDashboard() {
             </div>
           </section>
         )}
+
+        <Dialog
+          open={changePasswordModalOpen}
+          onOpenChange={(open) => {
+            setChangePasswordModalOpen(open);
+            if (!open) {
+              setChangePasswordError('');
+              setChangePasswordSuccess('');
+              setCurrentPassword('');
+              setNewPassword('');
+              setConfirmNewPassword('');
+            }
+          }}
+        >
+          <DialogContent className="bg-forest border-offwhite/20 text-offwhite">
+            <DialogHeader>
+              <DialogTitle className="text-offwhite">Change password</DialogTitle>
+              <DialogDescription className="text-offwhite/60">
+                Enter your current password, then choose a new one (at least 6 characters).
+              </DialogDescription>
+            </DialogHeader>
+            {changePasswordError && <p className="text-red-400 text-sm">{changePasswordError}</p>}
+            {changePasswordSuccess && <p className="text-lime text-sm">{changePasswordSuccess}</p>}
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <label className="block">
+                <span className={labelClass}>Current password</span>
+                <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className={inputClass} autoComplete="current-password" required />
+              </label>
+              <label className="block">
+                <span className={labelClass}>New password</span>
+                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputClass} autoComplete="new-password" minLength={6} required />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Confirm new password</span>
+                <input type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} className={inputClass} autoComplete="new-password" minLength={6} required />
+              </label>
+              <div className="flex justify-end pt-2">
+                <button type="submit" disabled={changePasswordLoading} className="btn-premium py-3 px-6 disabled:opacity-50">
+                  {changePasswordLoading ? 'Saving...' : 'Update password'}
+                </button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={addAdminModalOpen} onOpenChange={(open) => { setAddAdminModalOpen(open); if (!open) { setAddAdminError(''); setAddAdminSuccess(''); } }}>
           <DialogContent className="bg-forest border-offwhite/20 text-offwhite">

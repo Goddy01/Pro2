@@ -119,4 +119,41 @@ router.post('/admins', authMiddleware, async (req, res) => {
   }
 });
 
+router.post('/change-password', authMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+    if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
+      return res.status(400).json({ error: 'Current password and new password are required' });
+    }
+    if (newPassword.length < MIN_PASSWORD_LEN) {
+      return res.status(400).json({ error: `New password must be at least ${MIN_PASSWORD_LEN} characters` });
+    }
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ error: 'New password must be different from current password' });
+    }
+
+    const adminId = req.user?.id;
+    if (!adminId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { rows } = await db.query('SELECT id, password_hash FROM admin WHERE id = $1', [adminId]);
+    const admin = rows[0];
+    if (!admin) {
+      return res.status(401).json({ error: 'Admin not found' });
+    }
+
+    const valid = bcrypt.compareSync(currentPassword, admin.password_hash);
+    if (!valid) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    const hash = bcrypt.hashSync(newPassword, 10);
+    await db.query('UPDATE admin SET password_hash = $1 WHERE id = $2', [hash, admin.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

@@ -44,6 +44,7 @@ Express API for admin authentication and article publishing.
 
 - `POST /api/auth/login` – Admin login. Body: `{ username, password }`. Returns `{ token, username }`. Rate-limited.
 - `POST /api/auth/admins` – **Protected.** Create another admin. Body: `{ username, password }`.
+- `POST /api/auth/change-password` – **Protected.** Change the logged-in admin’s password. Body: `{ currentPassword, newPassword }`.
 
 ### Articles
 
@@ -79,5 +80,6 @@ Express API for admin authentication and article publishing.
 - **Cloudinary** – Article images are uploaded to Cloudinary. Set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` in `.env` (from [Cloudinary Console](https://console.cloudinary.com)). New articles get a Cloudinary URL in `articles.image`; existing `/uploads/...` URLs still work if you serve the `uploads` folder.
 - An admin user is created on **first run only** using `ADMIN_USERNAME` and `ADMIN_PASSWORD`. After that, the stored credentials are fixed. If you get "Invalid credentials" on Railway, the admin was likely created with different env vars (or defaults) when the app first started.
 - **Reset admin password:** set `ADMIN_RESET_PASSWORD` to the new password in your env, redeploy/restart, then **remove** `ADMIN_RESET_PASSWORD` from env. The next startup will set the existing admin’s password to that value (for the admin matching `ADMIN_USERNAME`, or the first admin).
+- **Change password:** Logged-in admins can use **Change password** on the dashboard (`POST /api/auth/change-password` with `{ currentPassword, newPassword }`).
 - **Multiple admins:** Any logged-in admin can create more admins from the dashboard (“Add another admin”). Multiple admins can be logged in at the same time (different browsers/devices). `POST /api/auth/admins` (auth required) creates a new admin with body `{ username, password }`.
 - **work_with_us** – Table stores name, phone, email, introduction, created_at, read_at (nullable; null = unread) for “Work with us” form submissions.

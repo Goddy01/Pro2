@@ -181,8 +181,12 @@ router.post('/', authMiddleware, upload.single('image'), async (req, res) => {
     res.status(201).json(rows[0]);
   } catch (err) {
     console.error('Gallery upload error:', err);
-    const message = err.message || (err.code === 'LIMIT_FILE_SIZE' ? 'Image is too large (max 100MB).' : 'Upload failed');
-    res.status(500).json({ error: message });
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'Image is too large (max 100MB).' });
+    }
+    const status = typeof err.status === 'number' ? err.status : 500;
+    const message = err.message || 'Upload failed';
+    res.status(status >= 400 && status < 600 ? status : 500).json({ error: message });
   }
 });
 
@@ -216,7 +220,11 @@ router.put('/:id', authMiddleware, upload.single('image'), async (req, res) => {
     res.json(rows[0]);
   } catch (err) {
     console.error('Gallery update error:', err);
-    res.status(500).json({ error: err.message || 'Update failed' });
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'Image is too large (max 100MB).' });
+    }
+    const status = typeof err.status === 'number' ? err.status : 500;
+    res.status(status >= 400 && status < 600 ? status : 500).json({ error: err.message || 'Update failed' });
   }
 });
 

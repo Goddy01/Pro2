@@ -40,6 +40,8 @@ export async function authenticatedFetch(
     if (res.status === 401) notifySessionExpired();
     return res;
   } catch (err) {
+    // Preserve abort so callers can show a timeout message
+    if (err instanceof Error && err.name === 'AbortError') throw err;
     const url =
       typeof input === 'string'
         ? input

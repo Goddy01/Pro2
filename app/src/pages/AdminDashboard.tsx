@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo, type FormEvent } fro
 import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiUrl, authenticatedFetch } from '../lib/api';
+import { compressImageForUpload } from '../lib/images';
 import { ArrowLeft, LogOut, FileText, Image, Calendar, Headphones, Video, UserPlus, Users, Menu, X, ChevronDown, BarChart3, ImagePlus, KeyRound } from 'lucide-react';
 import RichTextEditor from '../components/RichTextEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
@@ -433,11 +434,18 @@ export default function AdminDashboard() {
         const form = new FormData();
         form.append('caption', galleryCaption.trim());
         if (galleryCategoryId) form.append('category_id', galleryCategoryId);
-        if (galleryImages.length) form.append('image', galleryImages[0]);
+        if (galleryImages.length) {
+          const compressed = await compressImageForUpload(galleryImages[0]);
+          form.append('image', compressed);
+        }
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 180_000);
         const res = await authenticatedFetch(apiUrl(`/api/gallery/${editingGalleryId}`), {
           method: 'PUT',
           body: form,
+          signal: controller.signal,
         }, token);
+        clearTimeout(timeoutId);
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
           setError(typeof (data as { error?: string }).error === 'string' ? (data as { error: string }).error : 'Failed to update');
@@ -450,8 +458,15 @@ export default function AdminDashboard() {
         setEditingGalleryId(null);
         if (galleryInputRef.current) galleryInputRef.current.value = '';
         refetchLists();
-      } catch {
-        setError('Could not reach the server. Check that the backend is running and your connection.');
+      } catch (err) {
+        const isAbort = err instanceof Error && err.name === 'AbortError';
+        setError(
+          isAbort
+            ? 'Upload timed out. Try a smaller image or a stronger connection.'
+            : err instanceof Error && err.message.startsWith('Network error')
+              ? err.message
+              : 'Could not reach the server. Check that the backend is running and your connection.'
+        );
       } finally {
         setLoading(false);
       }
@@ -465,13 +480,13 @@ export default function AdminDashboard() {
     const total = galleryImages.length;
     let uploaded = 0;
     setGalleryUploadProgress({ uploaded: 0, total });
-    const UPLOAD_TIMEOUT_MS = 90_000;
+    const UPLOAD_TIMEOUT_MS = 180_000;
     const DELAY_BETWEEN_UPLOADS_MS = 300;
     const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
     try {
       for (let i = 0; i < galleryImages.length; i++) {
         if (i > 0) await delay(DELAY_BETWEEN_UPLOADS_MS);
-        const file = galleryImages[i];
+        const file = await compressImageForUpload(galleryImages[i]);
         const form = new FormData();
         form.append('image', file);
         if (galleryCaption.trim()) form.append('caption', galleryCaption.trim());
@@ -507,8 +522,10 @@ export default function AdminDashboard() {
       const partial = uploaded > 0 ? ` ${uploaded} of ${total} image(s) were saved.` : '';
       setError(
         isAbort
-          ? `Upload timed out.${partial} Try fewer images or smaller file sizes.`
-          : `Could not reach the server.${partial} Check that the backend is running and your connection.`
+          ? `Upload timed out.${partial} Try fewer images or a smaller file.`
+          : err instanceof Error && err.message.startsWith('Network error')
+            ? `${err.message}${partial}`
+            : `Could not reach the server.${partial} Check that the backend is running and your connection.`
       );
     } finally {
       setLoading(false);
@@ -1236,7 +1253,7 @@ export default function AdminDashboard() {
             {galleryUploadProgress && (
               <p className="text-lime text-sm">{galleryUploadProgress.total > 1 ? `Uploading ${galleryUploadProgress.uploaded} of ${galleryUploadProgress.total}...` : 'Uploading...'}</p>
             )}
-            <p className="text-offwhite/40 text-xs">Max 100MB per image. If uploads fail, ensure the backend is running and Cloudinary is configured on the server.</p>
+            <p className="text-offwhite/40 text-xs">Large images are compressed before upload (target under ~8MB) so they fit Cloudinary plan limits. Max original file: 100MB.</p>
             <button type="submit" disabled={loading || (!editingGalleryId && !galleryImages.length)} className="btn-premium py-4 px-8 disabled:opacity-50">
               {loading ? (galleryUploadProgress ? `Uploading ${galleryUploadProgress.uploaded}/${galleryUploadProgress.total}...` : (editingGalleryId ? 'Updating...' : 'Uploading...')) : editingGalleryId ? 'Update image' : galleryImages.length > 1 ? `Add ${galleryImages.length} to Gallery` : 'Add to Gallery'}
             </button>

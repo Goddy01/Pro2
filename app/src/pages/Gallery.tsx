@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiUrl } from '../lib/api';
+import { galleryDisplayUrl } from '../lib/images';
 import SEO from '../components/SEO';
 import '../App.css';
 
@@ -186,10 +187,11 @@ export default function Gallery() {
                     >
                       <div className="relative aspect-[3/4] min-h-[240px] overflow-hidden">
                         <img
-                          src={cat.coverImageUrl || '/team.jpg'}
+                          src={galleryDisplayUrl(cat.coverImageUrl || '/team.jpg', { width: 800 })}
                           alt=""
                           className="block w-full h-full object-cover object-center img-editorial transition-transform duration-700 group-hover:scale-105"
                           loading="lazy"
+                          decoding="async"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-forest/85 via-forest/20 to-transparent pointer-events-none" />
                       </div>
@@ -279,7 +281,7 @@ export default function Gallery() {
                   <figure key={`${image.src}-${i}`} className="overflow-hidden card-editorial group">
                     <div className="relative aspect-[3/4] min-h-[320px]">
                       <img
-                        src={image.src}
+                        src={galleryDisplayUrl(image.src, { width: 900 })}
                         alt={image.alt}
                         loading={i < LCP_IMAGE_COUNT ? 'eager' : 'lazy'}
                         decoding="async"

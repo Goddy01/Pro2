@@ -96,20 +96,35 @@ export async function compressImageForUpload(
  */
 export function optimizeImageUrl(
   url: string | null | undefined,
-  opts: { width?: number; height?: number; quality?: number } = {}
+  opts: { width?: number; height?: number; quality?: number; format?: 'auto' | 'webp' | 'jpg' | 'png' } = {}
 ): string {
   if (!url) return '';
   const src = String(url);
   if (!isCloudinaryUrl(src)) return src;
 
-  const { width, height, quality } = opts;
+  const { width, height, quality, format = 'auto' } = opts;
   const q = typeof quality === 'number' ? Math.max(1, Math.min(100, quality)) : 'auto';
+  const f = format === 'auto' ? 'f_auto' : `f_${format}`;
 
-  const transforms: string[] = ['f_auto', `q_${q}`];
+  const transforms: string[] = [f, `q_${q}`];
   if (typeof width === 'number' && width > 0) transforms.push(`w_${Math.round(width)}`);
   if (typeof height === 'number' && height > 0) transforms.push(`h_${Math.round(height)}`, 'c_fill');
 
-  // Insert transforms after '/upload/'
+  // Avoid stacking transforms if this URL was already optimized
+  if (/\/upload\/[^/]*\bf_(?:auto|webp|jpg|png)\b/.test(src)) return src;
+
   return src.replace('/upload/', `/upload/${transforms.join(',')}/`);
+}
+
+/** Gallery grid / cover display: WebP + sized for card layouts (faster than full originals). */
+export function galleryDisplayUrl(
+  url: string | null | undefined,
+  opts: { width?: number; quality?: number } = {}
+): string {
+  return optimizeImageUrl(url, {
+    width: opts.width ?? 900,
+    quality: opts.quality ?? 75,
+    format: 'webp',
+  });
 }
 

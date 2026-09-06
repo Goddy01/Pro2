@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Clock, User, Share2 } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import { decodeArticleId } from '../lib/articleId';
-import { encodeArticleId } from '../lib/articleId';
 import { SITE_URL } from '../lib/site';
 import SEO from '../components/SEO';
 import '../App.css';
 
 type Article = {
   id: number;
+  slug: string;
   title: string;
   image: string;
   content: string;
@@ -53,16 +53,21 @@ function articleExcerpt(html: string, maxLen = 160) {
 }
 
 export default function StoryDetail() {
-  const { id: idHash } = useParams<{ id: string }>();
+  const { slug: slugParam } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [shareCopied, setShareCopied] = useState(false);
 
-  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}` : '';
+  const shareUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/articles/${article?.slug || slugParam || ''}`
+      : '';
 
   async function handleShare() {
-    const url = shareUrl || (idHash ? `${window.location.origin}/stories/${idHash}` : '');
+    const url = shareUrl || (slugParam ? `${window.location.origin}/articles/${slugParam}` : '');
     const title = article?.title ?? 'Article';
     try {
       if (typeof navigator !== 'undefined' && navigator.share) {
@@ -85,11 +90,14 @@ export default function StoryDetail() {
     }
   }
 
-  const numericId = idHash ? decodeArticleId(idHash) : null;
-  const invalidLink = !idHash || numericId == null || numericId < 1;
-
   useEffect(() => {
-    if (invalidLink) return;
+    const key = (slugParam || '').trim();
+    if (!key) {
+      setLoading(false);
+      setError('Invalid article link');
+      return;
+    }
+
     let cancelled = false;
     queueMicrotask(() => {
       if (!cancelled) {
@@ -97,29 +105,43 @@ export default function StoryDetail() {
         setError('');
       }
     });
-    fetch(apiUrl(`/api/articles/${numericId!}`))
-      .then((r) => {
-        if (!r.ok) throw new Error(r.status === 404 ? 'Article not found' : 'Failed to load');
-        return r.json();
-      })
-      .then((data) => {
-        if (!cancelled) setArticle(data);
-      })
-      .catch(() => {
-        if (!cancelled) setError('Could not load article');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [idHash, invalidLink, numericId]);
 
-  if (invalidLink) {
+    async function load() {
+      try {
+        let res = await fetch(apiUrl(`/api/articles/${encodeURIComponent(key)}`));
+        if (!res.ok) {
+          const legacyId = decodeArticleId(key);
+          if (legacyId != null && legacyId >= 1) {
+            res = await fetch(apiUrl(`/api/articles/${legacyId}`));
+          }
+        }
+        if (!res.ok) throw new Error(res.status === 404 ? 'Article not found' : 'Failed to load');
+        const data = (await res.json()) as Article;
+        if (cancelled) return;
+        setArticle(data);
+
+        if (data.slug && (location.pathname.startsWith('/stories') || key !== data.slug)) {
+          navigate(`/articles/${data.slug}`, { replace: true });
+        }
+      } catch {
+        if (!cancelled) setError('Could not load article');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [slugParam, navigate, location.pathname]);
+
+  if (!slugParam?.trim()) {
     return (
       <div className="min-h-screen bg-forest px-6 py-12">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-red-400 mb-4">{!idHash ? 'Invalid link' : 'Article not found'}</p>
-          <Link to="/stories" className="text-lime hover:underline inline-flex items-center gap-2">
+          <p className="text-red-400 mb-4">Invalid link</p>
+          <Link to="/articles" className="text-lime hover:underline inline-flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />
             Back to Articles
           </Link>
@@ -141,7 +163,7 @@ export default function StoryDetail() {
       <div className="min-h-screen bg-forest px-6 py-12">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-red-400 mb-4">{error || 'Article not found'}</p>
-          <Link to="/stories" className="text-lime hover:underline inline-flex items-center gap-2">
+          <Link to="/articles" className="text-lime hover:underline inline-flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />
             Back to Articles
           </Link>
@@ -151,9 +173,9 @@ export default function StoryDetail() {
   }
 
   const readMins = readingTimeMinutes(article.content);
-  const slug = idHash || (article.id != null ? encodeArticleId(article.id) : '');
-  const canonicalPath = slug ? `/stories/${slug}` : '/stories';
-  const articleUrl = slug ? `${SITE_URL}/stories/${slug}` : SITE_URL + '/stories';
+  const slug = article.slug || slugParam;
+  const canonicalPath = slug ? `/articles/${slug}` : '/articles';
+  const articleUrl = slug ? `${SITE_URL}/articles/${slug}` : SITE_URL + '/articles';
   const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -183,7 +205,7 @@ export default function StoryDetail() {
       />
       <article className="max-w-5xl lg:max-w-6xl mx-auto px-6 py-8 lg:py-10">
         <Link
-          to="/stories"
+          to="/articles"
           className="inline-flex items-center gap-2 text-offwhite/70 hover:text-lime transition-colors text-sm mb-6"
         >
           <ArrowLeft className="w-4 h-4" />

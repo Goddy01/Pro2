@@ -15,7 +15,7 @@ export type SEOProps = {
   title?: string;
   /** Meta description; keep under ~160 chars for search snippets */
   description?: string;
-  /** Canonical path (e.g. "/stories/123"); full URL is SITE_URL + path */
+  /** Canonical path (e.g. "/articles/maryland-football-breakout"); full URL is SITE_URL + path */
   canonicalPath?: string;
   /** OG/Twitter image URL (absolute) or path (relative to origin). If not set, uses default. */
   image?: string;

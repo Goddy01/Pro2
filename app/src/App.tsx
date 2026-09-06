@@ -68,8 +68,10 @@ function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<Home />} />
-            <Route path="stories" element={<Stories />} />
-            <Route path="stories/:id" element={<StoryDetail />} />
+            <Route path="articles" element={<Stories />} />
+            <Route path="articles/:slug" element={<StoryDetail />} />
+            <Route path="stories" element={<Navigate to="/articles" replace />} />
+            <Route path="stories/:slug" element={<StoryDetail />} />
             <Route path="coverage" element={<Coverage />} />
             <Route path="coverage/event/:eventId" element={<EventGallery />} />
             <Route path="events" element={<Events />} />

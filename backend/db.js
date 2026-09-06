@@ -9,7 +9,7 @@ const pool = new Pool({
 /**
  * Schema reference – submitted data must map only to these columns:
  *
- * articles: title, image, content, category, author
+ * articles: title, slug, image, content, category, author
  * gallery_images: image_url, caption, sort_order
  * events: slug, title, description
  * event_images: event_id, image_url, sort_order
@@ -34,6 +34,7 @@ export async function initDb() {
         author TEXT DEFAULT 'Sideline Sports & Entertainment Team',
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+      ALTER TABLE articles ADD COLUMN IF NOT EXISTS slug VARCHAR(200);
 
       CREATE TABLE IF NOT EXISTS admin (
         id SERIAL PRIMARY KEY,
@@ -275,6 +276,40 @@ export async function initDb() {
       ALTER TABLE watch_videos ADD COLUMN IF NOT EXISTS show_name VARCHAR(200);
       ALTER TABLE gallery_images ADD COLUMN IF NOT EXISTS category_id INT REFERENCES gallery_categories(id) ON DELETE SET NULL;
     `);
+
+    // Backfill article slugs from titles (unique, URL-safe)
+    {
+      const slugify = (title) =>
+        String(title || '')
+          .toLowerCase()
+          .normalize('NFKD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '')
+          .slice(0, 180) || 'article';
+
+      const { rows: missing } = await client.query(
+        `SELECT id, title FROM articles WHERE slug IS NULL OR TRIM(slug) = ''`
+      );
+      for (const row of missing) {
+        const base = slugify(row.title);
+        let candidate = base;
+        for (let i = 0; i < 100; i++) {
+          const { rows: clash } = await client.query(
+            'SELECT 1 FROM articles WHERE slug = $1 AND id <> $2 LIMIT 1',
+            [candidate, row.id]
+          );
+          if (!clash.length) break;
+          candidate = `${base}-${i + 2}`.slice(0, 200);
+        }
+        await client.query('UPDATE articles SET slug = $1 WHERE id = $2', [candidate, row.id]);
+      }
+      await client.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS articles_slug_unique ON articles (slug);
+      `);
+    }
+
     // Seed 3 test submissions when table is empty (for testing)
     const { rows: countRows } = await client.query('SELECT COUNT(*) AS c FROM work_with_us');
     if (Number(countRows[0]?.c) === 0) {

@@ -49,7 +49,7 @@ const fallbackMarqueeFeeds = [
 ];
 
 const navItems = [
-  { label: 'Articles', to: '/stories' },
+  { label: 'Articles', to: '/articles' },
   { label: 'Listen & Watch', to: '/listen-watch' },
   { label: 'About', href: '/#about' },
   { label: 'Sponsorship', to: '/sponsorship' },

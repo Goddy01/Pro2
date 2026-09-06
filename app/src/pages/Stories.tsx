@@ -4,13 +4,21 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Clock, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { apiUrl } from '../lib/api';
-import { encodeArticleId } from '../lib/articleId';
 import SEO from '../components/SEO';
 import '../App.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
-type ArticleFromApi = { id: number; title: string; image: string; content: string; category: string; author: string; created_at: string };
+type ArticleFromApi = {
+  id: number;
+  slug: string;
+  title: string;
+  image: string;
+  content: string;
+  category: string;
+  author: string;
+  created_at: string;
+};
 
 function articleExcerpt(html: string, maxLen = 200) {
   const text = (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -50,6 +58,7 @@ export default function Stories() {
 
   const articleCards = articlesFromApi.map((a) => ({
     id: a.id,
+    slug: a.slug,
     title: a.title,
     category: a.category || 'Features',
     excerpt: articleExcerpt(a.content),
@@ -125,7 +134,7 @@ export default function Stories() {
       <SEO
         title="Articles"
         description="Read the latest sports and entertainment articles, analysis, and features from Sideline Sports & Entertainment."
-        canonicalPath="/stories"
+          canonicalPath="/articles"
       />
       <section className="section-light-premium w-full max-w-full min-w-0 py-24">
         <div className="w-full max-w-full min-w-0 px-4 sm:px-6 lg:px-12">
@@ -179,7 +188,7 @@ export default function Stories() {
           ) : (
             <div className="grid w-full max-w-full min-w-0 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
               {paginatedArticles.map((card) => (
-                <Link key={card.id} to={`/stories/${encodeArticleId(card.id)}`} className="stagger-card group block">
+                <Link key={card.id} to={`/articles/${card.slug || card.id}`} className="stagger-card group block">
                   <article className="cursor-pointer h-full">
                     <div className="bg-offwhite border border-forest/10 overflow-hidden hover:shadow-2xl transition-shadow duration-500 h-full">
                       <div className="relative overflow-hidden h-[220px]">

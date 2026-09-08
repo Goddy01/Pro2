@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, User, Share2 } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import { decodeArticleId } from '../lib/articleId';
 import { SITE_URL } from '../lib/site';
+import { ogShareImageUrl } from '../lib/images';
 import SEO from '../components/SEO';
 import '../App.css';
 
@@ -176,12 +177,13 @@ export default function StoryDetail() {
   const slug = article.slug || slugParam;
   const canonicalPath = slug ? `/articles/${slug}` : '/articles';
   const articleUrl = slug ? `${SITE_URL}/articles/${slug}` : SITE_URL + '/articles';
+  const shareImage = ogShareImageUrl(article.image) || article.image || undefined;
   const articleJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: article.title,
     description: articleExcerpt(article.content, 160),
-    image: article.image || undefined,
+    image: shareImage || undefined,
     datePublished: article.created_at,
     dateModified: article.created_at,
     author: { '@type': 'Person', name: article.author },
@@ -195,7 +197,7 @@ export default function StoryDetail() {
         title={article.title}
         description={articleExcerpt(article.content, 160)}
         canonicalPath={canonicalPath}
-        image={article.image || undefined}
+        image={shareImage}
         ogType="article"
         articlePublishedTime={article.created_at}
         articleModifiedTime={article.created_at}

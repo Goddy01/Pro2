@@ -128,3 +128,17 @@ export function galleryDisplayUrl(
   });
 }
 
+/**
+ * Social share / Open Graph image: JPEG 1200×630 (best platform support).
+ * Falls back to the original URL when not Cloudinary.
+ */
+export function ogShareImageUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  return optimizeImageUrl(url, {
+    width: 1200,
+    height: 630,
+    quality: 80,
+    format: 'jpg',
+  });
+}
+

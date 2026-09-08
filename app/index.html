@@ -37,24 +37,12 @@
     <meta name="twitter:image" content="https://sideline-se.com/media/favicon-logo.jpg" />
 
     <!--
-      Social preview troubleshooting:
-      - Share the exact URL where the site is live (crawlers fetch that URL).
-      - Clear cache: Facebook https://developers.facebook.com/tools/debug/ , Twitter https://cards-dev.twitter.com/validator
-      - Ensure public/logo-180.png exists so /logo-180.png is served. For a larger card use a 1200x630 image as public/og-image.png and change the image path above to /og-image.png
+      Default OG image above is the site logo (homepage / fallback).
+      Article pages get the real article image via Edge middleware (middleware.js)
+      for social crawlers. After deploying, refresh caches:
+      Facebook https://developers.facebook.com/tools/debug/
+      LinkedIn https://www.linkedin.com/post-inspector/
     -->
-    <script>
-      (function() {
-        var o = window.location.origin;
-        var img = o + '/media/favicon-logo.jpg';
-        var base = o + '/';
-        function set(el, attr, val) { if (el) el.setAttribute(attr, val); }
-        set(document.querySelector('meta[property="og:url"]'), 'content', base);
-        set(document.querySelector('meta[property="og:image"]'), 'content', img);
-        set(document.querySelector('meta[name="twitter:url"]'), 'content', base);
-        set(document.querySelector('meta[name="twitter:image"]'), 'content', img);
-        set(document.querySelector('link[rel="canonical"]'), 'href', base);
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>

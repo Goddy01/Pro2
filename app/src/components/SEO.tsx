@@ -119,8 +119,10 @@ export function SEO({
     setMeta(head, 'property', 'og:title', fullTitle);
     setMeta(head, 'property', 'og:description', description);
     setMeta(head, 'property', 'og:image', ogImage);
+    setMeta(head, 'property', 'og:image:secure_url', ogImage);
     setMeta(head, 'property', 'og:image:width', '1200');
     setMeta(head, 'property', 'og:image:height', '630');
+    if (title) setMeta(head, 'property', 'og:image:alt', title);
     setMeta(head, 'property', 'og:site_name', SITE_NAME);
     setMeta(head, 'property', 'og:locale', 'en_US');
 

@@ -10,6 +10,7 @@ import {
   ChevronLeft, ChevronRight, X
 } from 'lucide-react';
 import { apiUrl } from '../lib/api';
+import { articleDisplayUrl } from '../lib/images';
 import SEO from '../components/SEO';
 import '../App.css';
 
@@ -506,7 +507,7 @@ export default function Home() {
                 <article className="card-editorial grid lg:grid-cols-2 gap-0 overflow-hidden group cursor-pointer">
                   <div className="relative overflow-hidden h-[400px] lg:h-[500px]">
                     <img 
-                      src={featuredArticles[0].image} 
+                      src={articleDisplayUrl(featuredArticles[0].image, { width: 1200, height: 800 })} 
                       alt=""
                       className="w-full h-full object-cover object-top img-editorial"
                       loading="eager"
@@ -557,9 +558,9 @@ export default function Home() {
                   <article className="stagger-card card-editorial overflow-hidden group cursor-pointer">
                     <div className="relative overflow-hidden h-[250px]">
                       <img 
-                        src={article.image} 
+                        src={articleDisplayUrl(article.image, { width: 900, height: 560 })} 
                         alt=""
-                        className="w-full h-full object-cover img-editorial"
+                        className="w-full h-full object-cover object-top img-editorial"
                         loading="lazy"
                         decoding="async"
                       />
@@ -603,7 +604,7 @@ export default function Home() {
                 <article className="cursor-pointer h-full">
                   <div className="bg-offwhite border border-forest/10 overflow-hidden hover:shadow-2xl transition-shadow duration-500 h-full">
                     <div className="relative overflow-hidden h-[260px] lg:h-[280px]">
-                      <img src={card.image} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
+                      <img src={articleDisplayUrl(card.image, { width: 900, height: 560 })} alt="" className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105" loading="lazy" decoding="async" />
                       <div className="absolute top-4 left-4">
                         <span className="bg-lime text-forest text-[10px] font-bold uppercase tracking-wider px-2 py-1">{card.category}</span>
                       </div>

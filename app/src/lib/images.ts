@@ -96,19 +96,32 @@ export async function compressImageForUpload(
  */
 export function optimizeImageUrl(
   url: string | null | undefined,
-  opts: { width?: number; height?: number; quality?: number; format?: 'auto' | 'webp' | 'jpg' | 'png' } = {}
+  opts: {
+    width?: number;
+    height?: number;
+    quality?: number;
+    format?: 'auto' | 'webp' | 'jpg' | 'png';
+    /** Crop focus when width+height fill is used. "north" = top / upper half. */
+    gravity?: 'north' | 'center' | 'auto' | 'face';
+  } = {}
 ): string {
   if (!url) return '';
   const src = String(url);
   if (!isCloudinaryUrl(src)) return src;
 
-  const { width, height, quality, format = 'auto' } = opts;
+  const { width, height, quality, format = 'auto', gravity } = opts;
   const q = typeof quality === 'number' ? Math.max(1, Math.min(100, quality)) : 'auto';
   const f = format === 'auto' ? 'f_auto' : `f_${format}`;
 
   const transforms: string[] = [f, `q_${q}`];
   if (typeof width === 'number' && width > 0) transforms.push(`w_${Math.round(width)}`);
-  if (typeof height === 'number' && height > 0) transforms.push(`h_${Math.round(height)}`, 'c_fill');
+  if (typeof height === 'number' && height > 0) {
+    transforms.push(`h_${Math.round(height)}`, 'c_fill');
+    if (gravity === 'north') transforms.push('g_north');
+    else if (gravity === 'face') transforms.push('g_face');
+    else if (gravity === 'auto') transforms.push('g_auto');
+    else if (gravity === 'center') transforms.push('g_center');
+  }
 
   // Avoid stacking transforms if this URL was already optimized
   if (/\/upload\/[^/]*\bf_(?:auto|webp|jpg|png)\b/.test(src)) return src;
@@ -129,8 +142,24 @@ export function galleryDisplayUrl(
 }
 
 /**
- * Social share / Open Graph image: JPEG 1200×630 (best platform support).
- * Falls back to the original URL when not Cloudinary.
+ * Article card / hero display: sized WebP cropped to the top–middle of the photo.
+ */
+export function articleDisplayUrl(
+  url: string | null | undefined,
+  opts: { width?: number; height?: number; quality?: number } = {}
+): string {
+  if (!url) return '';
+  return optimizeImageUrl(url, {
+    width: opts.width ?? 1200,
+    height: opts.height ?? 750,
+    quality: opts.quality ?? 78,
+    format: 'webp',
+    gravity: 'north',
+  });
+}
+
+/**
+ * Social share / Open Graph image: JPEG 1200×630, top–middle crop (best platform support).
  */
 export function ogShareImageUrl(url: string | null | undefined): string {
   if (!url) return '';
@@ -139,6 +168,7 @@ export function ogShareImageUrl(url: string | null | undefined): string {
     height: 630,
     quality: 80,
     format: 'jpg',
+    gravity: 'north',
   });
 }
 

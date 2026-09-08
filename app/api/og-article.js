@@ -34,7 +34,7 @@ function ogImageUrl(image) {
   const src = String(image);
   if (src.includes('res.cloudinary.com') && src.includes('/upload/')) {
     if (/\/upload\/[^/]*\bf_/.test(src)) return src;
-    return src.replace('/upload/', '/upload/f_jpg,q_80,w_1200,h_630,c_fill/');
+    return src.replace('/upload/', '/upload/f_jpg,q_80,w_1200,h_630,c_fill,g_north/');
   }
   if (src.startsWith('http://') || src.startsWith('https://')) return src;
   return `https://sideline-se.com${src.startsWith('/') ? src : `/${src}`}`;

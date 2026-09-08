@@ -4,7 +4,7 @@ import { ArrowLeft, Clock, User, Share2 } from 'lucide-react';
 import { apiUrl } from '../lib/api';
 import { decodeArticleId } from '../lib/articleId';
 import { SITE_URL } from '../lib/site';
-import { ogShareImageUrl } from '../lib/images';
+import { ogShareImageUrl, articleDisplayUrl } from '../lib/images';
 import SEO from '../components/SEO';
 import '../App.css';
 
@@ -261,7 +261,7 @@ export default function StoryDetail() {
             {article.image && (
               <div className="rounded-xl overflow-hidden bg-forest/30 mb-8 w-full aspect-[16/10] min-h-[260px] max-h-[420px]">
                 <img
-                  src={article.image}
+                  src={articleDisplayUrl(article.image, { width: 1400, height: 875 })}
                   alt=""
                   className="w-full h-full object-cover object-top"
                   loading="eager"

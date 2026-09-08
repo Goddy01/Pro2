@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Clock, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { apiUrl } from '../lib/api';
+import { articleDisplayUrl } from '../lib/images';
 import SEO from '../components/SEO';
 import '../App.css';
 
@@ -193,9 +194,9 @@ export default function Stories() {
                     <div className="bg-offwhite border border-forest/10 overflow-hidden hover:shadow-2xl transition-shadow duration-500 h-full">
                       <div className="relative overflow-hidden h-[220px]">
                         <img
-                          src={card.image}
+                          src={articleDisplayUrl(card.image, { width: 800, height: 500 })}
                           alt=""
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                           loading="lazy"
                           decoding="async"
                         />

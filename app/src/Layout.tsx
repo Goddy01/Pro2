@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 import SponsorshipBanner from './components/SponsorshipBanner';
-import { Zap, Menu, X, Youtube, Instagram } from 'lucide-react';
+import { Zap, Menu, X, Youtube, Instagram, Facebook } from 'lucide-react';
 import { apiUrl } from './lib/api';
 import { getDefaultStructuredData } from './lib/site';
 
@@ -23,9 +23,12 @@ function IconTikTok({ className }: { className?: string }) {
   );
 }
 
+const FACEBOOK_URL = 'https://www.facebook.com/share/1C7ouVUS3c/?mibextid=wwXIfr';
+
 const FALLBACK_SOCIAL_LINKS = [
   { href: 'https://x.com/sidelinesport1', icon: IconXLogo, label: 'X' },
   { href: 'https://www.instagram.com/sidelinesport1', icon: Instagram, label: 'Instagram' },
+  { href: FACEBOOK_URL, icon: Facebook, label: 'Facebook' },
   { href: 'https://www.tiktok.com/@sidelinesports?_r=1&_t=ZP-93rbPS1Y3Be', icon: IconTikTok, label: 'TikTok' },
   { href: 'https://www.youtube.com/@sidelinesports3840?si=E5TmSrVYn-l-qBWh', icon: Youtube, label: 'YouTube' },
 ];
@@ -86,10 +89,12 @@ export default function Layout() {
   useEffect(() => {
     fetch(apiUrl('/api/social-links'))
       .then((r) => r.json())
-      .then((data: { x?: string | null; instagram?: string | null; tiktok?: string | null; youtube?: string | null }) => {
+      .then((data: { x?: string | null; instagram?: string | null; facebook?: string | null; tiktok?: string | null; youtube?: string | null }) => {
         const links: SocialLink[] = [];
         if (data.x) links.push({ href: data.x, icon: IconXLogo, label: 'X' });
         if (data.instagram) links.push({ href: data.instagram, icon: Instagram, label: 'Instagram' });
+        const facebook = data.facebook || FACEBOOK_URL;
+        if (facebook) links.push({ href: facebook, icon: Facebook, label: 'Facebook' });
         if (data.tiktok) links.push({ href: data.tiktok, icon: IconTikTok, label: 'TikTok' });
         if (data.youtube) links.push({ href: data.youtube, icon: Youtube, label: 'YouTube' });
         if (links.length > 0) setSocialLinks(links);

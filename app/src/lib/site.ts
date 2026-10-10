@@ -48,6 +48,7 @@ export function getDefaultStructuredData(): object[] {
       sameAs: [
         'https://x.com/sidelinesport1',
         'https://www.instagram.com/sidelinesport1',
+        'https://www.facebook.com/share/1C7ouVUS3c/?mibextid=wwXIfr',
         'https://www.youtube.com/@sidelinesports3840',
       ],
     },

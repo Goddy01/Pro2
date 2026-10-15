@@ -23,7 +23,7 @@ function IconTikTok({ className }: { className?: string }) {
   );
 }
 
-const FACEBOOK_URL = 'https://www.facebook.com/share/1C7ouVUS3c/?mibextid=wwXIfr';
+const FACEBOOK_URL = 'https://www.facebook.com/share/1Dx67sUEj7/?mibextid=wwXIfr';
 
 const FALLBACK_SOCIAL_LINKS = [
   { href: 'https://x.com/sidelinesport1', icon: IconXLogo, label: 'X' },
